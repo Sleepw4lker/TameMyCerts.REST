@@ -1,0 +1,205 @@
+﻿= AdcsToRest
+
+A simple, yet powerful REST API for submitting certificates to one or more Microsoft link:https://docs.microsoft.com/en-us/windows/win32/seccrypto/certificate-services[Active Directory Certificate Services (AD CS)^] certification authorities.
+
+== Introduction
+
+The API allows for requesting certificates from systems that are not joined to the same Active Directory domain as the certification authorities (or not joined to any domain at all). It can serve any client operating system that is capable of submitting a REST API call. It converts certificate requests submitted via REST to the DCOM protocol.
+
+=== Security
+
+As the API requires authentication, it should only be used over HTTPS.
+
+The API also works when NTLM is disabled in the environment and thus Kerberos authentication is enforced.
+
+I suggest using the API with link:https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/basic-authentication[Basic Authentication^]. Windows Authentication (Kerberos) and Client Certificate Authentication work as well, but I advise against these because you will need Kerberos Delegation which can be a very dangerous topic that should be used with extreme caution.
+
+Submitted certificate requests appear on the certification authority under the security context of the Active Directory user who submitted them via the API.
+
+You may want to combine the API with the link:https://github.com/Sleepw4lker/TameMyCerts[TameMyCerts policy module^] on your certification authorities to be able to strictly restrict requested certificate content.
+
+== Installing
+
+=== Prepare the account
+
+=== Install IIS
+
+Install IIS with the following basic feature set.
+
+....
+Add-WindowsFeature -Name Web-Server,Web-Asp-Net45,Web-Basic-Auth -IncludeManagementTools
+....
+
+Ensure you have a SSL certificate installed and require SSL on the web site you plan the API onto.
+
+=== Install AdcsToRest
+
+Simply copy the files into the designated Web Root. No application configuration required.
+
+=== Configure IIS
+
+Configure your SSL Binding and ensure the "Require SSL" configuration parameter is set.
+
+
+For Basic Authentication, ass the following setting in web.config:
+
+....
+<system.web>
+    <authentication mode="Windows" />
+</system.web>
+....
+
+On the web site, in authentication settings, do the following:
+
+* Configure your Default Domain
+* Disable anonymous Authentication
+* Enable Basic Authentication
+
+NOTE: You should establish protections against link:https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/preventing-cross-site-request-forgery-csrf-attacks[Cross Site Request Forgery^] attacks.
+
+== Using the API
+
+NOTE: As the API is still in development, the operations may change until the official release gets published.
+
+The API currently supports three operations. All of them must be executed via HTTP POST.
+
+=== GetCACertificate
+
+Retrieves the certification authority certificate for a given certification authority.
+
+==== Body Parameters
+
+|===
+|Name |Description |Type
+
+|CertificationAuthority	
+|The common name of the target certification authority.
+|string
+
+|IncludeCertificateChain	
+|When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain certificate.
+|boolean	
+
+|===
+
+=== SubmitRequest
+
+Submits a certificate signing request (CSR) to a given certification authority.
+
+==== Body Parameters
+
+|===
+|Name |Description |Type
+
+|CertificationAuthority
+|The common name of the target certification authority.
+|string
+
+|CertificateTemplate
+|The certificate template name the request is targeted for.
+|string
+
+|IncludeCertificateChain
+|When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain certificate.
+|boolean
+
+|CertificateRequest
+|The certificate request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are supported.
+|string
+
+|===
+
+=== RetrieveCertificate
+
+Retrieves an issued certificate from a given certification authority.
+
+==== Body Parameters
+
+|===
+|Name |Description |Type
+
+|CertificationAuthority
+|The common name of the target certification authority.
+|string
+
+|IncludeCertificateChain
+|When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain certificate.
+|boolean
+
+|RequestId
+|The request ID of the certificate to retrieve.
+|integer
+
+|===
+
+=== Response
+
+All three operations return the same data type:
+
+|===
+|Name |Description |Type
+
+|Description
+|A textual description of the outcome of the submission process.
+|string	
+
+|StatusCode
+|Contains HResult error codes as defined in WinErr.h
+|integer
+
+|StatusMessage
+|A textual description of the HResult error code.
+|string	
+
+|RequestId
+|The request ID of the issued certificate, or the pending request.
+|integer
+
+|DispositionCode
+|The disposition code for the certificate request as defined in CertCli.h.
+|integer
+
+|DispositionMessage
+|A textual description of the disposition.
+|string
+
+|Certificate	
+|The issued certificate, if issued by the certification authority.
+|string	
+
+|===
+
+==== Disposition Codes
+
+|===
+|Symbol |Numerical value |Description
+
+|CR_DISP_INCOMPLETE
+|0
+|Request did not complete 
+
+|CR_DISP_ERROR
+|1
+|Request failed
+
+|CR_DISP_DENIED
+|2
+|Request denied 
+
+|CR_DISP_ISSUED
+|3
+|Certificate issued
+
+|CR_DISP_ISSUED_OUT_OF_BAND
+|4
+|Certificate issued separately
+
+|CR_DISP_UNDER_SUBMISSION
+|5
+|Request taken under submission
+
+|===
+
+== Troubleshooting
+
+For simplicity, the API does not log to the Windows Event Log. Errors that may occur are forwarded to the client.
