@@ -41,7 +41,7 @@ Simply copy the files into the designated Web Root. No application configuration
 Configure your SSL Binding and ensure the "Require SSL" configuration parameter is set.
 
 
-For Basic Authentication, ass the following setting in web.config:
+For Basic Authentication, add the following setting in web.config:
 
 ....
 <system.web>
@@ -82,7 +82,7 @@ Retrieves the certification authority certificate for a given certification auth
 
 |===
 
-=== SubmitRequest
+=== RequestCertificate
 
 Submits a certificate signing request (CSR) to a given certification authority.
 
@@ -104,8 +104,16 @@ Submits a certificate signing request (CSR) to a given certification authority.
 |boolean
 
 |CertificateRequest
-|The certificate request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are supported.
+|The certificate request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are supported. See RequestType parameter.
 |string
+
+|RequestType
+|The type of the submitted certificate request constant as defined in CertCli.h. Possible Values: 0x100 (PKCS#10), 0x300 (PKCS#7), 0x400 (CMC). Defaults to PKCS#10.
+|integer
+
+|RequestAttributes
+|Optional request attributes as an array of Key/Value pairs.
+|Collection of Pair of string [key] and string [value]
 
 |===
 
@@ -144,7 +152,7 @@ All three operations return the same data type:
 |string	
 
 |StatusCode
-|Contains HResult error codes as defined in WinErr.h
+|Contains HResult error codes as defined in WinErr.h.
 |integer
 
 |StatusMessage
