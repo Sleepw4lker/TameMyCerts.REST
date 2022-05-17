@@ -22,6 +22,8 @@ You may want to combine the API with the link:https://github.com/Sleepw4lker/Tam
 
 === Prepare the account
 
+You don't need a service account. The integrated IIS application pool identity is sufficient if you use HTTP basic authentication.
+
 === Install IIS
 
 Install IIS with the following basic feature set.
