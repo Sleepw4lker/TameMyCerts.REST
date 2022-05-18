@@ -49,7 +49,6 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     Optional request attributes as an array of Key/Value pairs.
         /// </summary>
-        public List<KeyValuePair<string, string>> RequestAttributes { get; set; } =
-            new List<KeyValuePair<string, string>>();
+        public List<string> RequestAttributes { get; set; } = new List<string>();
     }
 }

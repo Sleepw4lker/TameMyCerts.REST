@@ -17,7 +17,6 @@ using System.Collections;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using System.Web.Hosting;
 using System.Web.Http;
 using AdcsToRest.Models;
 using CERTCLILib;
@@ -65,7 +64,7 @@ namespace AdcsToRest.Controllers
 
                     // Short form would raise an E_NOINTERFACE exception on Windows 2012 R2 and earlier
                     var certRequestPkcs10 =
-                        (IX509CertificateRequestPkcs10)Activator.CreateInstance(
+                        (IX509CertificateRequestPkcs10) Activator.CreateInstance(
                             Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestPkcs10"));
 
                     try
@@ -97,7 +96,7 @@ namespace AdcsToRest.Controllers
 
                     // Short form would raise an E_NOINTERFACE exception on Windows 2012 R2 and earlier
                     var certRequestPkcs7 =
-                        (IX509CertificateRequestPkcs10)Activator.CreateInstance(
+                        (IX509CertificateRequestPkcs10) Activator.CreateInstance(
                             Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestPkcs7"));
 
                     try
@@ -129,7 +128,7 @@ namespace AdcsToRest.Controllers
 
                     // Short form would raise an E_NOINTERFACE exception on Windows 2012 R2 and earlier
                     var certRequestCmc =
-                        (IX509CertificateRequestPkcs10)Activator.CreateInstance(
+                        (IX509CertificateRequestPkcs10) Activator.CreateInstance(
                             Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestCmc"));
 
                     try
@@ -196,13 +195,13 @@ namespace AdcsToRest.Controllers
             {
                 foreach (var requestAttribute in req.RequestAttributes)
                 {
-                    arguments.Add($"{requestAttribute.Key}:{requestAttribute.Value}");
+                    arguments.Add(requestAttribute);
                 }
 
                 var submissionResult = certRequestInterface.Submit(
                     submissionFlags,
                     rawCertificateRequest,
-                    string.Join(",", arguments.ToArray()),
+                    string.Join(Environment.NewLine, arguments.ToArray()),
                     configString
                 );
 
