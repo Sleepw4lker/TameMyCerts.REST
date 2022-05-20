@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Uwe Gradenegger
+﻿// Copyright 2022 Uwe Gradenegger
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -27,20 +26,20 @@ namespace AdcsToRest.Controllers
     public class RequestCertificateController : ApiController
     {
         /// <summary>
-        ///     Submits a certificate signing request (CSR) to a given certification authority
+        ///     Submits a certificate signing request (CSR) to a given certification authority.
         /// </summary>
         [Authorize]
         //[Route("submit")]
         public IssuedCertificate Post(RequestCertificateRequest req)
         {
-            if (null == req.CertificateRequest || null == req.CertificationAuthority ||
-                null == req.CertificateTemplate)
+            if (null == req.CertificateRequest || null == req.CertificationAuthority)
             {
                 return new IssuedCertificate
                 {
                     StatusCode = WinError.ERROR_BAD_ARGUMENTS,
                     StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description = "Invalid Arguments specified."
+                    Description =
+                        "Invalid Arguments specified. CertificationAuthority and CertificateRequest are mandatory parameters."
                 };
             }
 
@@ -50,7 +49,7 @@ namespace AdcsToRest.Controllers
                 {
                     StatusCode = WinError.ERROR_BAD_ARGUMENTS,
                     StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description = "The specified Certification Authority was not found."
+                    Description = $"The certification authority \"{req.CertificationAuthority}\" was not found."
                 };
             }
 
@@ -185,23 +184,14 @@ namespace AdcsToRest.Controllers
             }
 
             var certRequestInterface = new CCertRequest();
-            var arguments = new ArrayList
-            {
-                $"CertificateTemplate:{req.CertificateTemplate}"
-            };
             IssuedCertificate result;
 
             try
             {
-                foreach (var requestAttribute in req.RequestAttributes)
-                {
-                    arguments.Add(requestAttribute);
-                }
-
                 var submissionResult = certRequestInterface.Submit(
                     submissionFlags,
                     rawCertificateRequest,
-                    string.Join(Environment.NewLine, arguments.ToArray()),
+                    string.Join(Environment.NewLine, req.RequestAttributes.ToArray()),
                     configString
                 );
 

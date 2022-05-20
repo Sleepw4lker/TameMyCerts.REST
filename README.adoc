@@ -57,11 +57,11 @@ On the web site, in authentication settings, do the following:
 * Disable anonymous Authentication
 * Enable Basic Authentication
 
-NOTE: You should establish protections against link:https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/preventing-cross-site-request-forgery-csrf-attacks[Cross Site Request Forgery^] attacks.
-
 == Using the API
 
 NOTE: As the API is still in development, the operations may change until the official release gets published.
+
+NOTE: The API incorporates Swagger. You can reach it under the /swagger directory.
 
 The API currently supports three operations. All of them must be executed via HTTP POST.
 
@@ -114,8 +114,8 @@ Submits a certificate signing request (CSR) to a given certification authority.
 |integer
 
 |RequestAttributes
-|Optional request attributes as an array of Key/Value pairs.
-|Collection of Pair of string [key] and string [value]
+|Optional request attributes as a collection of strings.
+|Collection of string
 
 |===
 

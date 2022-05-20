@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Uwe Gradenegger
+﻿// Copyright 2022 Uwe Gradenegger
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,15 +24,10 @@ namespace AdcsToRest.Models
         public string CertificationAuthority { get; set; }
 
         /// <summary>
-        ///     The certificate template name the request is targeted for.
-        /// </summary>
-        public string CertificateTemplate { get; set; }
-
-        /// <summary>
         ///     When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain
         ///     certificate.
         /// </summary>
-        public bool IncludeCertificateChain { get; set; }
+        public bool IncludeCertificateChain { get; set; } = false;
 
         /// <summary>
         ///     The certificate request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are supported. See
@@ -47,7 +42,9 @@ namespace AdcsToRest.Models
         public int RequestType { get; set; } = CertCli.CR_IN_PKCS10;
 
         /// <summary>
-        ///     Optional request attributes as an array of Key/Value pairs.
+        ///     Optional request attributes as a collection of strings. A request attribute is declared as a name-value pair
+        ///     separated by a colon. For example, to specify a certificate template name, you would add
+        ///     "CertificateTemplate:TemplateNameHere".
         /// </summary>
         public List<string> RequestAttributes { get; set; } = new List<string>();
     }

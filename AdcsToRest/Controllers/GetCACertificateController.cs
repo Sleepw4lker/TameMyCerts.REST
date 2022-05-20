@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Uwe Gradenegger
+﻿// Copyright 2022 Uwe Gradenegger
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +23,8 @@ namespace AdcsToRest.Controllers
 {
     public class GetCACertificateController : ApiController
     {
-
         /// <summary>
-        /// Retrieves the certification authority certificate for a given certification authority
+        ///     Retrieves the certification authority certificate for a given certification authority.
         /// </summary>
         [Authorize]
         //[Route("getcacertificate")]
@@ -37,7 +36,7 @@ namespace AdcsToRest.Controllers
                 {
                     StatusCode = WinError.ERROR_BAD_ARGUMENTS,
                     StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description = "Invalid Arguments specified."
+                    Description = "Invalid Arguments specified. CertificationAuthority is a mandatory parameter."
                 };
             }
 
@@ -47,7 +46,7 @@ namespace AdcsToRest.Controllers
                 {
                     StatusCode = WinError.ERROR_BAD_ARGUMENTS,
                     StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description = "The specified Certification Authority was not found."
+                    Description = $"The certification authority \"{req.CertificationAuthority}\" was not found."
                 };
             }
 
@@ -62,14 +61,12 @@ namespace AdcsToRest.Controllers
                     outputFlags |= CertCli.CR_OUT_CHAIN;
                 }
 
-                var submissionResult = certRequestInterface.GetCACertificate(0, configString, outputFlags);
-
                 result = new IssuedCertificate
                 {
                     StatusCode = WinError.ERROR_SUCCESS,
                     StatusMessage = new Win32Exception(WinError.ERROR_SUCCESS).Message,
                     RequestId = certRequestInterface.GetRequestId(),
-                    Certificate = submissionResult,
+                    Certificate = certRequestInterface.GetCACertificate(0, configString, outputFlags),
                     Description = "The certification authority certificate was successfully retrieved."
                 };
             }

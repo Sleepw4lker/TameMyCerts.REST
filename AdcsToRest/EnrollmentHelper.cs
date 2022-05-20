@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Uwe Gradenegger
+﻿// Copyright 2022 Uwe Gradenegger
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -100,14 +100,6 @@ namespace AdcsToRest
 
             return true;
         }
-
-        // LDAP functions fail when identity impersonate is configured
-        // See https://social.msdn.microsoft.com/Forums/en-US/7b46ec3e-a5c1-4277-999d-65aa92dbfe78/iis-impersonation?forum=aspsecurity
-        /*
-         * "ExceptionType":"System.DirectoryServices.DirectoryServicesCOMException","StackTrace":"
-         * at System.DirectoryServices.DirectoryEntry.Bind(Boolean throwIfFail)\r\n
-         * at System.DirectoryServices.DirectoryEntry.Bind()
-         */
 
         private static string GetForestRootDomain()
         {

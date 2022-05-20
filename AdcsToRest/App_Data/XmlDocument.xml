@@ -483,7 +483,7 @@
         </member>
         <member name="M:AdcsToRest.Controllers.GetCACertificateController.Post(AdcsToRest.Models.GetCACertificateRequest)">
             <summary>
-            Retrieves the certification authority certificate for a given certification authority
+                Retrieves the certification authority certificate for a given certification authority
             </summary>
         </member>
         <member name="M:AdcsToRest.Controllers.RequestCertificateController.Post(AdcsToRest.Models.RequestCertificateRequest)">
@@ -528,11 +528,6 @@
                 The common name of the target certification authority.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.RequestCertificateRequest.CertificateTemplate">
-            <summary>
-                The certificate template name the request is targeted for.
-            </summary>
-        </member>
         <member name="P:AdcsToRest.Models.RequestCertificateRequest.IncludeCertificateChain">
             <summary>
                 When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain
@@ -553,7 +548,9 @@
         </member>
         <member name="P:AdcsToRest.Models.RequestCertificateRequest.RequestAttributes">
             <summary>
-                Optional request attributes as an array of Key/Value pairs.
+                Optional request attributes as a collection of strings. A request attribute is declared as a name-value pair
+                separated by a colon. For example, to specify a certificate template name, you would add
+                "CertificateTemplate:TemplateNameHere".
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.IssuedCertificate.Description">
@@ -563,7 +560,8 @@
         </member>
         <member name="P:AdcsToRest.Models.IssuedCertificate.StatusCode">
             <summary>
-                Contains HResult error codes as defined in WinErr.h.
+                Status code for the processing of incoming API requests and the connection to the certification authority, Contains
+                HResult error codes as defined in WinErr.h.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.IssuedCertificate.StatusMessage">
@@ -578,17 +576,18 @@
         </member>
         <member name="P:AdcsToRest.Models.IssuedCertificate.DispositionCode">
             <summary>
-                The disposition code for the certificate request as defined in CertCli.h.
+                The disposition code returned by the certification authority for the certificate request as defined in CertCli.h.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.IssuedCertificate.DispositionMessage">
             <summary>
-                A textual description of the disposition.
+                A textual description of the disposition status returned by the certification authority.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.IssuedCertificate.Certificate">
             <summary>
-                The issued certificate, if issued by the certification authority.
+                The issued certificate, if issued by the certification authority. Always returned as BASE64-encoded DER (also known
+                as PEM).
             </summary>
         </member>
     </members>
