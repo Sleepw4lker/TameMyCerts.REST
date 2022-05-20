@@ -28,8 +28,30 @@ namespace AdcsToRest.Controllers
         ///     Retrieves an issued certificate from a given certification authority.
         /// </summary>
         [Authorize]
-        //[Route("retrievepending")]
+        [Route("api/retrievecertificate/{certificationAuthority}/{requestId}")]
+        public IssuedCertificate Get(string certificationAuthority, int requestId, [FromUri] bool includeCertificateChain)
+        {
+            var req = new RetrieveCertificateRequest
+            {
+                CertificationAuthority = certificationAuthority,
+                RequestId = requestId,
+                IncludeCertificateChain = includeCertificateChain
+            };
+
+            return RetrieveCertificate(req);
+        }
+
+        /// <summary>
+        ///     Retrieves an issued certificate from a given certification authority.
+        /// </summary>
+        [Authorize]
+        [Route("api/retrievecertificate")]
         public IssuedCertificate Post(RetrieveCertificateRequest req)
+        {
+            return RetrieveCertificate(req);
+        }
+
+        private IssuedCertificate RetrieveCertificate (RetrieveCertificateRequest req) 
         {
             if (0 == req.RequestId || null == req.CertificationAuthority)
             {
