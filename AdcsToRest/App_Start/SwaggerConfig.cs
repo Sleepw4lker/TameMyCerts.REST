@@ -253,7 +253,7 @@ namespace AdcsToRest
         }
         private static string GetXmlCommentsPath()
         {
-            return System.AppDomain.CurrentDomain.BaseDirectory + @"\App_Data\XmlDocument.xml";
+            return System.AppDomain.CurrentDomain.BaseDirectory + @"\AdcsToRest.Documentation.xml";
         }
     }
 }
