@@ -23,14 +23,14 @@ using CERTENROLLLib;
 
 namespace AdcsToRest.Controllers
 {
-    public class RequestCertificateController : ApiController
+    public class SubmitController : ApiController
     {
         /// <summary>
         ///     Submits a certificate signing request (CSR) to a given certification authority.
         /// </summary>
         [Authorize]
-        //[Route("submit")]
-        public IssuedCertificate Post(RequestCertificateRequest req)
+        [Route("submit")]
+        public IssuedCertificate Post(SubmitRequest req)
         {
             if (null == req.CertificateRequest || null == req.CertificationAuthority)
             {

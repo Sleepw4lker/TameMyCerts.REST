@@ -22,36 +22,36 @@ using CERTCLILib;
 
 namespace AdcsToRest.Controllers
 {
-    public class RetrieveCertificateController : ApiController
+    public class RetrievePendingController : ApiController
     {
         /// <summary>
         ///     Retrieves an issued certificate from a given certification authority.
         /// </summary>
         [Authorize]
-        [Route("api/retrievecertificate/{certificationAuthority}/{requestId}")]
-        public IssuedCertificate Get(string certificationAuthority, int requestId, [FromUri] bool includeCertificateChain)
+        [Route("retrievepending/{certificationAuthority}/{requestId}")]
+        public IssuedCertificate Get(string certificationAuthority, int requestId, [FromUri] bool includeCertificateChain = false)
         {
-            var req = new RetrieveCertificateRequest
+            var req = new RetrievePendingRequest
             {
                 CertificationAuthority = certificationAuthority,
                 RequestId = requestId,
                 IncludeCertificateChain = includeCertificateChain
             };
 
-            return RetrieveCertificate(req);
+            return RetrievePending(req);
         }
 
         /// <summary>
         ///     Retrieves an issued certificate from a given certification authority.
         /// </summary>
         [Authorize]
-        [Route("api/retrievecertificate")]
-        public IssuedCertificate Post(RetrieveCertificateRequest req)
+        [Route("retrievepending")]
+        public IssuedCertificate Post(RetrievePendingRequest req)
         {
-            return RetrieveCertificate(req);
+            return RetrievePending(req);
         }
 
-        private IssuedCertificate RetrieveCertificate (RetrieveCertificateRequest req) 
+        private IssuedCertificate RetrievePending (RetrievePendingRequest req) 
         {
             if (0 == req.RequestId || null == req.CertificationAuthority)
             {

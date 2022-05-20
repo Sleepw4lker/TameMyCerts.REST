@@ -4,17 +4,27 @@
         <name>AdcsToRest</name>
     </assembly>
     <members>
+        <member name="M:AdcsToRest.Controllers.GetCACertificateController.Get(System.String,System.Boolean)">
+            <summary>
+                Retrieves the certification authority certificate for a given certification authority.
+            </summary>
+        </member>
         <member name="M:AdcsToRest.Controllers.GetCACertificateController.Post(AdcsToRest.Models.GetCACertificateRequest)">
             <summary>
                 Retrieves the certification authority certificate for a given certification authority.
             </summary>
         </member>
-        <member name="M:AdcsToRest.Controllers.RequestCertificateController.Post(AdcsToRest.Models.RequestCertificateRequest)">
+        <member name="M:AdcsToRest.Controllers.SubmitController.Post(AdcsToRest.Models.SubmitRequest)">
             <summary>
                 Submits a certificate signing request (CSR) to a given certification authority.
             </summary>
         </member>
-        <member name="M:AdcsToRest.Controllers.RetrieveCertificateController.Post(AdcsToRest.Models.RetrieveCertificateRequest)">
+        <member name="M:AdcsToRest.Controllers.RetrievePendingController.Get(System.String,System.Int32,System.Boolean)">
+            <summary>
+                Retrieves an issued certificate from a given certification authority.
+            </summary>
+        </member>
+        <member name="M:AdcsToRest.Controllers.RetrievePendingController.Post(AdcsToRest.Models.RetrievePendingRequest)">
             <summary>
                 Retrieves an issued certificate from a given certification authority.
             </summary>
@@ -30,46 +40,46 @@
                 certificate.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.RetrieveCertificateRequest.CertificationAuthority">
+        <member name="P:AdcsToRest.Models.RetrievePendingRequest.CertificationAuthority">
             <summary>
                 The common name of the target certification authority.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.RetrieveCertificateRequest.IncludeCertificateChain">
+        <member name="P:AdcsToRest.Models.RetrievePendingRequest.IncludeCertificateChain">
             <summary>
                 When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain
                 certificate.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.RetrieveCertificateRequest.RequestId">
+        <member name="P:AdcsToRest.Models.RetrievePendingRequest.RequestId">
             <summary>
                 The request ID of the certificate to retrieve.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.RequestCertificateRequest.CertificationAuthority">
+        <member name="P:AdcsToRest.Models.SubmitRequest.CertificationAuthority">
             <summary>
                 The common name of the target certification authority.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.RequestCertificateRequest.IncludeCertificateChain">
+        <member name="P:AdcsToRest.Models.SubmitRequest.IncludeCertificateChain">
             <summary>
                 When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain
                 certificate.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.RequestCertificateRequest.CertificateRequest">
+        <member name="P:AdcsToRest.Models.SubmitRequest.CertificateRequest">
             <summary>
                 The certificate request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are supported. See
                 RequestType parameter.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.RequestCertificateRequest.RequestType">
+        <member name="P:AdcsToRest.Models.SubmitRequest.RequestType">
             <summary>
                 The type of the submitted certificate request constant as defined in CertCli.h. Possible Values: 0x100 (PKCS#10),
                 0x300 (PKCS#7), 0x400 (CMC). Defaults to PKCS#10.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.RequestCertificateRequest.RequestAttributes">
+        <member name="P:AdcsToRest.Models.SubmitRequest.RequestAttributes">
             <summary>
                 Optional request attributes as a collection of strings. A request attribute is declared as a name-value pair
                 separated by a colon. For example, to specify a certificate template name, you would add

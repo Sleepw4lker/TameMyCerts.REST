@@ -27,8 +27,8 @@ namespace AdcsToRest.Controllers
         ///     Retrieves the certification authority certificate for a given certification authority.
         /// </summary>
         [Authorize]
-        [Route("api/getcacertificate/{certificationAuthority}")]
-        public IssuedCertificate Get(string certificationAuthority, [FromUri] bool includeCertificateChain)
+        [Route("getcacertificate/{certificationAuthority}")]
+        public IssuedCertificate Get(string certificationAuthority, [FromUri] bool includeCertificateChain = false)
         {
             var req = new GetCACertificateRequest
             {
@@ -43,7 +43,7 @@ namespace AdcsToRest.Controllers
         ///     Retrieves the certification authority certificate for a given certification authority.
         /// </summary>
         [Authorize]
-        [Route("api/getcacertificate")]
+        [Route("getcacertificate")]
         public IssuedCertificate Post(GetCACertificateRequest req)
         {
             return GetCACertificate(req);

@@ -16,7 +16,7 @@ using System.Collections.Generic;
 
 namespace AdcsToRest.Models
 {
-    public class RequestCertificateRequest
+    public class SubmitRequest
     {
         /// <summary>
         ///     The common name of the target certification authority.

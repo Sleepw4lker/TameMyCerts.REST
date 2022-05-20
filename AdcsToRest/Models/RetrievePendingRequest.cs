@@ -14,7 +14,7 @@
 
 namespace AdcsToRest.Models
 {
-    public class RetrieveCertificateRequest
+    public class RetrievePendingRequest
     {
         /// <summary>
         ///     The common name of the target certification authority.

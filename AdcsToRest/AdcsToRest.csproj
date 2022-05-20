@@ -134,16 +134,16 @@
     </Compile>
     <Compile Include="Controllers\GetCACertificateController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\RequestCertificateController.cs" />
-    <Compile Include="Controllers\RetrieveCertificateController.cs" />
+    <Compile Include="Controllers\SubmitController.cs" />
+    <Compile Include="Controllers\RetrievePendingController.cs" />
     <Compile Include="EnrollmentHelper.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Headers.cs" />
     <Compile Include="Models\GetCACertificateRequest.cs" />
-    <Compile Include="Models\RetrieveCertificateRequest.cs" />
-    <Compile Include="Models\RequestCertificateRequest.cs" />
+    <Compile Include="Models\RetrievePendingRequest.cs" />
+    <Compile Include="Models\SubmitRequest.cs" />
     <Compile Include="Models\IssuedCertificate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
