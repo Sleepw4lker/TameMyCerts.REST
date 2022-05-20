@@ -23,7 +23,6 @@ MSBuild.exe ^
 /p:TransformOnBuild=true ^
 /p:TransformOutOfDateOnly=false
 
-copy %XMLDOCS% bin\%PROFILE%\%XMLDOCS%
 copy ..\README.adoc bin\%PROFILE%\
 copy ..\LICENSE bin\%PROFILE%\
 copy ..\NOTICE bin\%PROFILE%\
