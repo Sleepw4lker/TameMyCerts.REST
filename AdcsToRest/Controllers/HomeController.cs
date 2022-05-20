@@ -8,7 +8,7 @@ namespace AdcsToRest.Controllers
         {
             ViewBag.Title = "Home Page";
 
-            return View();
+            return new RedirectResult("~/swagger");
         }
     }
 }
