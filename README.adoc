@@ -1,22 +1,22 @@
-﻿= AdcsToRest
+﻿= The "bring AD CS to REST" API
 
 A simple, yet powerful REST API for submitting certificates to one or more Microsoft link:https://docs.microsoft.com/en-us/windows/win32/seccrypto/certificate-services[Active Directory Certificate Services (AD CS)^] certification authorities.
 
 == Introduction
 
-The API allows for requesting certificates from systems that are not joined to the same Active Directory domain as the certification authorities (or not joined to any domain at all). It can serve any client operating system that is capable of submitting a REST API call. It converts certificate requests submitted via REST to the DCOM protocol.
+The API allows for requesting certificates from systems that are not joined to the same Active Directory domain as the certification authorities (or not joined to any domain at all). It can serve any client operating system that is capable of submitting a REST API call. It converts certificate requests submitted via REST to the DCOM protocol. Therefor it is perfectly suited for certificate issuance scenarios from Linux, BSD, cloud services and the like.
+
+It aims to replicate the functionality of the three main methods of the DCOM link:https://docs.microsoft.com/en-us/windows/win32/api/certcli/nn-certcli-icertrequest[ICertRequest^] Interface and make these accessible via REST. It pursiuts a low code approach, thus no fancy features. Think of it as a protocol converter (therefore the name, ADCS to REST).
 
 === Security
+
+Submitted certificate requests appear on the certification authority under the security context of the Active Directory user who submitted them via the API. So permissions are handled on the CA/Template level, exactly as you would do with DCOM. You may want to combine the API with the link:https://github.com/Sleepw4lker/TameMyCerts[TameMyCerts policy module^] on your certification authorities to be able to strictly restrict requested certificate content.
+
+I suggest using the API with link:https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/basic-authentication[Basic Authentication^]. Windows Authentication (Kerberos) and Client Certificate Authentication work as well, but I advise against these because you will need Kerberos Delegation which can be a very dangerous topic that should be used with extreme caution.
 
 As the API requires authentication, it should only be used over HTTPS.
 
 The API also works when NTLM is disabled in the environment and thus Kerberos authentication is enforced.
-
-I suggest using the API with link:https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/basic-authentication[Basic Authentication^]. Windows Authentication (Kerberos) and Client Certificate Authentication work as well, but I advise against these because you will need Kerberos Delegation which can be a very dangerous topic that should be used with extreme caution.
-
-Submitted certificate requests appear on the certification authority under the security context of the Active Directory user who submitted them via the API.
-
-You may want to combine the API with the link:https://github.com/Sleepw4lker/TameMyCerts[TameMyCerts policy module^] on your certification authorities to be able to strictly restrict requested certificate content.
 
 == Installing
 
@@ -32,7 +32,7 @@ Install IIS with the following basic feature set.
 Add-WindowsFeature -Name Web-Server,Web-Asp-Net45,Web-Basic-Auth -IncludeManagementTools
 ....
 
-Ensure you have a SSL certificate installed and require SSL on the web site you plan the API onto.
+Ensure you have a SSL certificate installed and require SSL on the web site you plan to install the API onto.
 
 === Install AdcsToRest
 
@@ -42,173 +42,21 @@ Simply copy the files into the designated Web Root. No application configuration
 
 Configure your SSL Binding and ensure the "Require SSL" configuration parameter is set.
 
+For Basic Authentication, on the web site, in authentication settings, do the following:
 
-For Basic Authentication, add the following setting in web.config:
-
-....
-<system.web>
-    <authentication mode="Windows" />
-</system.web>
-....
-
-On the web site, in authentication settings, do the following:
-
-* Configure your Default Domain
 * Disable anonymous Authentication
 * Enable Basic Authentication
+* Configure your Default Domain for Basic Authentication
 
 == Using the API
 
-NOTE: As the API is still in development, the operations may change until the official release gets published.
+The API currently supports three operations (all similar to the DCOM link:https://docs.microsoft.com/en-us/windows/win32/api/certcli/nn-certcli-icertrequest[ICertRequest^] Interface):
 
-NOTE: The API incorporates Swagger. You can reach it under the /swagger directory.
+* link:https://docs.microsoft.com/en-us/windows/win32/api/certcli/nf-certcli-icertrequest-submit[Submit^]
+* link:https://docs.microsoft.com/en-us/windows/win32/api/certcli/nf-certcli-icertrequest-retrievepending[RetrievePending^]
+* link:https://docs.microsoft.com/en-us/windows/win32/api/certcli/nf-certcli-icertrequest-getcacertificate[GetCACertificate^]
 
-The API currently supports three operations. All of them must be executed via HTTP POST.
-
-=== GetCACertificate
-
-Retrieves the certification authority certificate for a given certification authority.
-
-==== Body Parameters
-
-|===
-|Name |Description |Type
-
-|CertificationAuthority	
-|The common name of the target certification authority.
-|string
-
-|IncludeCertificateChain	
-|When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain certificate.
-|boolean	
-
-|===
-
-=== RequestCertificate
-
-Submits a certificate signing request (CSR) to a given certification authority.
-
-==== Body Parameters
-
-|===
-|Name |Description |Type
-
-|CertificationAuthority
-|The common name of the target certification authority.
-|string
-
-|CertificateTemplate
-|The certificate template name the request is targeted for.
-|string
-
-|IncludeCertificateChain
-|When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain certificate.
-|boolean
-
-|CertificateRequest
-|The certificate request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are supported. See RequestType parameter.
-|string
-
-|RequestType
-|The type of the submitted certificate request constant as defined in CertCli.h. Possible Values: 0x100 (PKCS#10), 0x300 (PKCS#7), 0x400 (CMC). Defaults to PKCS#10.
-|integer
-
-|RequestAttributes
-|Optional request attributes as a collection of strings.
-|Collection of string
-
-|===
-
-=== RetrieveCertificate
-
-Retrieves an issued certificate from a given certification authority.
-
-==== Body Parameters
-
-|===
-|Name |Description |Type
-
-|CertificationAuthority
-|The common name of the target certification authority.
-|string
-
-|IncludeCertificateChain
-|When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain certificate.
-|boolean
-
-|RequestId
-|The request ID of the certificate to retrieve.
-|integer
-
-|===
-
-=== Response
-
-All three operations return the same data type:
-
-|===
-|Name |Description |Type
-
-|Description
-|A textual description of the outcome of the submission process.
-|string	
-
-|StatusCode
-|Contains HResult error codes as defined in WinErr.h.
-|integer
-
-|StatusMessage
-|A textual description of the HResult error code.
-|string	
-
-|RequestId
-|The request ID of the issued certificate, or the pending request.
-|integer
-
-|DispositionCode
-|The disposition code for the certificate request as defined in CertCli.h.
-|integer
-
-|DispositionMessage
-|A textual description of the disposition.
-|string
-
-|Certificate	
-|The issued certificate, if issued by the certification authority.
-|string	
-
-|===
-
-==== Disposition Codes
-
-|===
-|Symbol |Numerical value |Description
-
-|CR_DISP_INCOMPLETE
-|0
-|Request did not complete 
-
-|CR_DISP_ERROR
-|1
-|Request failed
-
-|CR_DISP_DENIED
-|2
-|Request denied 
-
-|CR_DISP_ISSUED
-|3
-|Certificate issued
-
-|CR_DISP_ISSUED_OUT_OF_BAND
-|4
-|Certificate issued separately
-
-|CR_DISP_UNDER_SUBMISSION
-|5
-|Request taken under submission
-
-|===
+The API incorporates Swagger for automated documentation of the API operations. You can reach it under the /swagger directory, which is the default directory when youn access it via browser.
 
 == Troubleshooting
 
