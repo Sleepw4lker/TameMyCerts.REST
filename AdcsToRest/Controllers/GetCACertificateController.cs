@@ -49,7 +49,7 @@ namespace AdcsToRest.Controllers
             return GetCACertificate(req);
         }
 
-        private IssuedCertificate GetCACertificate(GetCACertificateRequest req)
+        private static IssuedCertificate GetCACertificate(GetCACertificateRequest req)
         {
             if (null == req.CertificationAuthority)
             {

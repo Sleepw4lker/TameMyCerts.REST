@@ -29,7 +29,8 @@ namespace AdcsToRest.Controllers
         /// </summary>
         [Authorize]
         [Route("retrievepending/{certificationAuthority}/{requestId}")]
-        public IssuedCertificate Get(string certificationAuthority, int requestId, [FromUri] bool includeCertificateChain = false)
+        public IssuedCertificate Get(string certificationAuthority, int requestId,
+            [FromUri] bool includeCertificateChain = false)
         {
             var req = new RetrievePendingRequest
             {
@@ -51,7 +52,7 @@ namespace AdcsToRest.Controllers
             return RetrievePending(req);
         }
 
-        private IssuedCertificate RetrievePending (RetrievePendingRequest req) 
+        private IssuedCertificate RetrievePending(RetrievePendingRequest req)
         {
             if (0 == req.RequestId || null == req.CertificationAuthority)
             {

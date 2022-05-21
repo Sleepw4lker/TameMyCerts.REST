@@ -32,6 +32,11 @@ namespace AdcsToRest.Controllers
         [Route("submit")]
         public IssuedCertificate Post(SubmitRequest req)
         {
+            return Submit(req);
+        }
+
+        private IssuedCertificate Submit(SubmitRequest req)
+        {
             if (null == req.CertificateRequest || null == req.CertificationAuthority)
             {
                 return new IssuedCertificate

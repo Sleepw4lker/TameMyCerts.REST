@@ -39,6 +39,8 @@ namespace AdcsToRest.Models
 
         /// <summary>
         ///     The disposition code returned by the certification authority for the certificate request as defined in CertCli.h.
+        ///     Can be one of: 0 (Request did not complete), 1 (Request failed), 2 (Request denied), 3 (Certificate issued), 4
+        ///     (Certificate issued separately), 5 (Request taken under submission).
         /// </summary>
         public int DispositionCode { get; set; } = 0;
 
