@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using System;
-using System.ComponentModel;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Web.Http;
 using AdcsToRest.Models;
@@ -30,13 +30,13 @@ namespace AdcsToRest.Controllers
         [Route("getcacertificate/{certificationAuthority}")]
         public IssuedCertificate Get(string certificationAuthority, [FromUri] bool includeCertificateChain = false)
         {
-            var req = new GetCACertificateRequest
+            var getCaCertificateRequest = new GetCACertificateRequest
             {
                 CertificationAuthority = certificationAuthority,
                 IncludeCertificateChain = includeCertificateChain
             };
 
-            return GetCACertificate(req);
+            return GetCACertificate(getCaCertificateRequest);
         }
 
         /// <summary>
@@ -44,31 +44,21 @@ namespace AdcsToRest.Controllers
         /// </summary>
         [Authorize]
         [Route("getcacertificate")]
-        public IssuedCertificate Post(GetCACertificateRequest req)
+        public IssuedCertificate Post(GetCACertificateRequest getCaCertificateRequest)
         {
-            return GetCACertificate(req);
+            return GetCACertificate(getCaCertificateRequest);
         }
 
-        private static IssuedCertificate GetCACertificate(GetCACertificateRequest req)
+        private static IssuedCertificate GetCACertificate(GetCACertificateRequest getCaCertificateRequest)
         {
-            if (null == req.CertificationAuthority)
+            if (null == getCaCertificateRequest.CertificationAuthority)
             {
-                return new IssuedCertificate
-                {
-                    StatusCode = WinError.ERROR_BAD_ARGUMENTS,
-                    StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description = "Invalid Arguments specified. CertificationAuthority is a mandatory parameter."
-                };
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
             }
 
-            if (!EnrollmentHelper.GetConfigString(req.CertificationAuthority, out var configString))
+            if (!EnrollmentHelper.GetConfigString(getCaCertificateRequest.CertificationAuthority, out var configString))
             {
-                return new IssuedCertificate
-                {
-                    StatusCode = WinError.ERROR_BAD_ARGUMENTS,
-                    StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description = $"The certification authority \"{req.CertificationAuthority}\" was not found."
-                };
+                throw new HttpResponseException(HttpStatusCode.NotFound);
             }
 
             var certRequestInterface = new CCertRequest();
@@ -77,28 +67,27 @@ namespace AdcsToRest.Controllers
             try
             {
                 var outputFlags = CertCli.CR_OUT_BASE64HEADER;
-                if (req.IncludeCertificateChain)
+                if (getCaCertificateRequest.IncludeCertificateChain)
                 {
                     outputFlags |= CertCli.CR_OUT_CHAIN;
                 }
 
                 result = new IssuedCertificate
-                {
-                    StatusCode = WinError.ERROR_SUCCESS,
-                    StatusMessage = new Win32Exception(WinError.ERROR_SUCCESS).Message,
-                    RequestId = certRequestInterface.GetRequestId(),
-                    Certificate = certRequestInterface.GetCACertificate(0, configString, outputFlags),
-                    Description = "The certification authority certificate was successfully retrieved."
-                };
+                (
+                    WinError.ERROR_SUCCESS,
+                    "The certification authority certificate was successfully retrieved.",
+                    certRequestInterface.GetRequestId(),
+                    0, null,
+                    certRequestInterface.GetCACertificate(0, configString, outputFlags)
+                );
             }
             catch (Exception ex)
             {
                 result = new IssuedCertificate
-                {
-                    StatusCode = ex.HResult,
-                    StatusMessage = new Win32Exception(ex.HResult).Message,
-                    RequestId = certRequestInterface.GetRequestId()
-                };
+                (
+                    ex.HResult,
+                    "Error retrieving the certification authority certificate"
+                );
             }
             finally
             {

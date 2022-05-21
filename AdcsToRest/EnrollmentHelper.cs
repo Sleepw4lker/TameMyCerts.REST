@@ -25,13 +25,13 @@ namespace AdcsToRest
             int disposition, bool includeCertificateChain = false)
         {
             var result = new IssuedCertificate
-            {
-                StatusCode = certRequestInterface.GetLastStatus(),
-                StatusMessage = new Win32Exception(certRequestInterface.GetLastStatus()).Message,
-                RequestId = certRequestInterface.GetRequestId(),
-                DispositionCode = disposition,
-                DispositionMessage = certRequestInterface.GetDispositionMessage()
-            };
+            (
+                certRequestInterface.GetLastStatus(),
+                null,
+                certRequestInterface.GetRequestId(),
+                disposition,
+                certRequestInterface.GetDispositionMessage()
+            );
 
             switch (disposition)
             {

@@ -12,10 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.ComponentModel;
+
 namespace AdcsToRest.Models
 {
     public class IssuedCertificate
     {
+        public IssuedCertificate(int statusCode, string description = null, int requestId = 0, int dispositionCode = 0,
+            string dispositionMessage = null, string certificate = null)
+        {
+            StatusCode = statusCode;
+            StatusMessage = new Win32Exception(statusCode).Message;
+            RequestId = requestId;
+            Description = description;
+            DispositionCode = dispositionCode;
+            DispositionMessage = dispositionMessage;
+            Certificate = certificate;
+        }
+
         /// <summary>
         ///     A textual description of the outcome of the submission process.
         /// </summary>
@@ -35,14 +49,14 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     The request ID of the issued certificate, or the pending request.
         /// </summary>
-        public int RequestId { get; set; } = 0;
+        public int RequestId { get; set; }
 
         /// <summary>
         ///     The disposition code returned by the certification authority for the certificate request as defined in CertCli.h.
         ///     Can be one of: 0 (Request did not complete), 1 (Request failed), 2 (Request denied), 3 (Certificate issued), 4
         ///     (Certificate issued separately), 5 (Request taken under submission).
         /// </summary>
-        public int DispositionCode { get; set; } = 0;
+        public int DispositionCode { get; set; }
 
         /// <summary>
         ///     A textual description of the disposition status returned by the certification authority.
@@ -53,6 +67,6 @@ namespace AdcsToRest.Models
         ///     The issued certificate, if issued by the certification authority. Always returned as BASE64-encoded DER (also known
         ///     as PEM).
         /// </summary>
-        public string Certificate { get; set; } = null;
+        public string Certificate { get; set; }
     }
 }

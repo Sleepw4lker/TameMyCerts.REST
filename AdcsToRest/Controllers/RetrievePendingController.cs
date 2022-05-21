@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using System;
-using System.ComponentModel;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Web.Http;
@@ -32,14 +32,14 @@ namespace AdcsToRest.Controllers
         public IssuedCertificate Get(string certificationAuthority, int requestId,
             [FromUri] bool includeCertificateChain = false)
         {
-            var req = new RetrievePendingRequest
+            var retrievePendingRequest = new RetrievePendingRequest
             {
                 CertificationAuthority = certificationAuthority,
                 RequestId = requestId,
                 IncludeCertificateChain = includeCertificateChain
             };
 
-            return RetrievePending(req);
+            return RetrievePending(retrievePendingRequest);
         }
 
         /// <summary>
@@ -47,54 +47,26 @@ namespace AdcsToRest.Controllers
         /// </summary>
         [Authorize]
         [Route("retrievepending")]
-        public IssuedCertificate Post(RetrievePendingRequest req)
+        public IssuedCertificate Post(RetrievePendingRequest retrievePendingRequest)
         {
-            return RetrievePending(req);
+            return RetrievePending(retrievePendingRequest);
         }
 
         private IssuedCertificate RetrievePending(RetrievePendingRequest req)
         {
             if (0 == req.RequestId || null == req.CertificationAuthority)
             {
-                return new IssuedCertificate
-                {
-                    StatusCode = WinError.ERROR_BAD_ARGUMENTS,
-                    StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description =
-                        "Invalid Arguments specified. CertificationAuthority and RequestId are mandatory parameters."
-                };
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
             }
 
             if (!EnrollmentHelper.GetConfigString(req.CertificationAuthority, out var configString))
             {
-                return new IssuedCertificate
-                {
-                    StatusCode = WinError.ERROR_BAD_ARGUMENTS,
-                    StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description = $"The certification authority \"{req.CertificationAuthority}\" was not found."
-                };
+                throw new HttpResponseException(HttpStatusCode.NotFound);
             }
 
             #region The following part runs under the security context of the authenticated user
 
-            // https://docs.microsoft.com/en-us/troubleshoot/aspnet/implement-impersonation
-
-            WindowsImpersonationContext impersonationContext;
-
-            try
-            {
-                impersonationContext = ((WindowsIdentity) User.Identity).Impersonate();
-            }
-            catch (Exception ex)
-            {
-                // TODO: This will probably not return any HResult
-                return new IssuedCertificate
-                {
-                    StatusCode = ex.HResult,
-                    StatusMessage = ex.Message,
-                    Description = "Impersonation failed."
-                };
-            }
+            var impersonationContext = ((WindowsIdentity) User.Identity).Impersonate();
 
             var certRequestInterface = new CCertRequest();
             IssuedCertificate result;
@@ -109,13 +81,10 @@ namespace AdcsToRest.Controllers
             catch (Exception ex)
             {
                 result = new IssuedCertificate
-                {
-                    StatusCode = ex.HResult,
-                    StatusMessage = new Win32Exception(ex.HResult).Message,
-                    RequestId = certRequestInterface.GetRequestId(),
-                    Description =
-                        $"Unable to submit the request to {configString} as user {WindowsIdentity.GetCurrent().Name} because {ex.Message}. Impersonation Level: {((WindowsIdentity) User.Identity).ImpersonationLevel}."
-                };
+                (
+                    ex.HResult,
+                    $"Unable to submit the request to {configString} as user {WindowsIdentity.GetCurrent().Name} because {ex.Message}."
+                );
             }
             finally
             {

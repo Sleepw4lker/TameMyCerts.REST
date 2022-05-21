@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using System;
-using System.ComponentModel;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Web.Http;
@@ -30,39 +30,28 @@ namespace AdcsToRest.Controllers
         /// </summary>
         [Authorize]
         [Route("submit")]
-        public IssuedCertificate Post(SubmitRequest req)
+        public IssuedCertificate Post(SubmitRequest submitRequest)
         {
-            return Submit(req);
+            return Submit(submitRequest);
         }
 
-        private IssuedCertificate Submit(SubmitRequest req)
+        private IssuedCertificate Submit(SubmitRequest submitRequest)
         {
-            if (null == req.CertificateRequest || null == req.CertificationAuthority)
+            if (null == submitRequest.CertificateRequest || null == submitRequest.CertificationAuthority)
             {
-                return new IssuedCertificate
-                {
-                    StatusCode = WinError.ERROR_BAD_ARGUMENTS,
-                    StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description =
-                        "Invalid Arguments specified. CertificationAuthority and CertificateRequest are mandatory parameters."
-                };
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
             }
 
-            if (!EnrollmentHelper.GetConfigString(req.CertificationAuthority, out var configString))
+            if (!EnrollmentHelper.GetConfigString(submitRequest.CertificationAuthority, out var configString))
             {
-                return new IssuedCertificate
-                {
-                    StatusCode = WinError.ERROR_BAD_ARGUMENTS,
-                    StatusMessage = new Win32Exception(WinError.ERROR_BAD_ARGUMENTS).Message,
-                    Description = $"The certification authority \"{req.CertificationAuthority}\" was not found."
-                };
+                throw new HttpResponseException(HttpStatusCode.NotFound);
             }
 
-            var certificateRequest = req.CertificateRequest;
+            var certificateRequest = submitRequest.CertificateRequest;
             string rawCertificateRequest;
             var submissionFlags = CertCli.CR_IN_BASE64;
 
-            switch (req.RequestType)
+            switch (submitRequest.RequestType)
             {
                 case CertCli.CR_IN_PKCS10:
 
@@ -74,7 +63,7 @@ namespace AdcsToRest.Controllers
                     try
                     {
                         certRequestPkcs10.InitializeDecode(
-                            req.CertificateRequest,
+                            submitRequest.CertificateRequest,
                             EncodingType.XCN_CRYPT_STRING_BASE64_ANY
                         );
 
@@ -83,11 +72,7 @@ namespace AdcsToRest.Controllers
                     }
                     catch
                     {
-                        return new IssuedCertificate
-                        {
-                            StatusCode = WinError.ERROR_INVALID_DATA,
-                            Description = "Unable to interpret the given Certificate Request."
-                        };
+                        throw new HttpResponseException(HttpStatusCode.BadRequest);
                     }
                     finally
                     {
@@ -115,11 +100,7 @@ namespace AdcsToRest.Controllers
                     }
                     catch
                     {
-                        return new IssuedCertificate
-                        {
-                            StatusCode = WinError.ERROR_INVALID_DATA,
-                            Description = "Unable to interpret the given Certificate Request."
-                        };
+                        throw new HttpResponseException(HttpStatusCode.BadRequest);
                     }
                     finally
                     {
@@ -147,11 +128,7 @@ namespace AdcsToRest.Controllers
                     }
                     catch
                     {
-                        return new IssuedCertificate
-                        {
-                            StatusCode = WinError.ERROR_INVALID_DATA,
-                            Description = "Unable to interpret the given Certificate Request."
-                        };
+                        throw new HttpResponseException(HttpStatusCode.BadRequest);
                     }
                     finally
                     {
@@ -163,30 +140,16 @@ namespace AdcsToRest.Controllers
                 default:
 
                     return new IssuedCertificate
-                    {
-                        StatusCode = WinError.ERROR_INVALID_DATA,
-                        Description = "Unable to interpret the given Certificate Request."
-                    };
+                    (
+                        WinError.ERROR_INVALID_DATA,
+                        "Unable to interpret the given Certificate Request."
+                    );
             }
 
             #region The following part runs under the security context of the authenticated user
 
-            // https://docs.microsoft.com/en-us/troubleshoot/aspnet/implement-impersonation
-            WindowsImpersonationContext impersonationContext;
+            var impersonationContext = ((WindowsIdentity) User.Identity).Impersonate();
 
-            try
-            {
-                impersonationContext = ((WindowsIdentity) User.Identity).Impersonate();
-            }
-            catch (Exception ex)
-            {
-                return new IssuedCertificate
-                {
-                    StatusCode = ex.HResult,
-                    StatusMessage = ex.Message,
-                    Description = "Impersonation failed."
-                };
-            }
 
             var certRequestInterface = new CCertRequest();
             IssuedCertificate result;
@@ -196,23 +159,20 @@ namespace AdcsToRest.Controllers
                 var submissionResult = certRequestInterface.Submit(
                     submissionFlags,
                     rawCertificateRequest,
-                    string.Join(Environment.NewLine, req.RequestAttributes.ToArray()),
+                    string.Join(Environment.NewLine, submitRequest.RequestAttributes.ToArray()),
                     configString
                 );
 
                 result = EnrollmentHelper.ProcessEnrollmentResult(ref certRequestInterface, submissionResult,
-                    req.IncludeCertificateChain);
+                    submitRequest.IncludeCertificateChain);
             }
             catch (Exception ex)
             {
                 result = new IssuedCertificate
-                {
-                    StatusCode = ex.HResult,
-                    StatusMessage = new Win32Exception(ex.HResult).Message,
-                    RequestId = certRequestInterface.GetRequestId(),
-                    Description =
-                        $"Unable to submit the request to {configString} as user {WindowsIdentity.GetCurrent().Name} because {ex.Message}."
-                };
+                (
+                    ex.HResult,
+                    $"Unable to submit the request to {configString} as user {WindowsIdentity.GetCurrent().Name} because {ex.Message}."
+                );
             }
             finally
             {
