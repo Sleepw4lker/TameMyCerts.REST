@@ -80,11 +80,7 @@ namespace AdcsToRest.Controllers
             }
             catch (Exception ex)
             {
-                result = new IssuedCertificate
-                (
-                    ex.HResult,
-                    $"Unable to submit the request to {configString} as user {WindowsIdentity.GetCurrent().Name} because {ex.Message}."
-                );
+                result = new IssuedCertificate(ex.HResult, ex.Message);
             }
             finally
             {

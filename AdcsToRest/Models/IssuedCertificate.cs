@@ -18,22 +18,22 @@ namespace AdcsToRest.Models
 {
     public class IssuedCertificate
     {
-        public IssuedCertificate(int statusCode, string description = null, int requestId = 0, int dispositionCode = 0,
+        public IssuedCertificate(int statusCode, string statusMessage)
+        {
+            StatusCode = statusCode;
+            StatusMessage = statusMessage;
+        }
+
+        public IssuedCertificate(int statusCode, int requestId = 0, int dispositionCode = 0,
             string dispositionMessage = null, string certificate = null)
         {
             StatusCode = statusCode;
             StatusMessage = new Win32Exception(statusCode).Message;
             RequestId = requestId;
-            Description = description;
             DispositionCode = dispositionCode;
             DispositionMessage = dispositionMessage;
             Certificate = certificate;
         }
-
-        /// <summary>
-        ///     A textual description of the outcome of the submission process.
-        /// </summary>
-        public string Description { get; set; }
 
         /// <summary>
         ///     Status code for the processing of incoming API requests and the connection to the certification authority, Contains

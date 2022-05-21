@@ -139,11 +139,7 @@ namespace AdcsToRest.Controllers
 
                 default:
 
-                    return new IssuedCertificate
-                    (
-                        WinError.ERROR_INVALID_DATA,
-                        "Unable to interpret the given Certificate Request."
-                    );
+                    throw new HttpResponseException(HttpStatusCode.BadRequest);
             }
 
             #region The following part runs under the security context of the authenticated user
@@ -168,11 +164,7 @@ namespace AdcsToRest.Controllers
             }
             catch (Exception ex)
             {
-                result = new IssuedCertificate
-                (
-                    ex.HResult,
-                    $"Unable to submit the request to {configString} as user {WindowsIdentity.GetCurrent().Name} because {ex.Message}."
-                );
+                result = new IssuedCertificate(ex.HResult, ex.Message);
             }
             finally
             {

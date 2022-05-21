@@ -75,7 +75,6 @@ namespace AdcsToRest.Controllers
                 result = new IssuedCertificate
                 (
                     WinError.ERROR_SUCCESS,
-                    "The certification authority certificate was successfully retrieved.",
                     certRequestInterface.GetRequestId(),
                     0, null,
                     certRequestInterface.GetCACertificate(0, configString, outputFlags)
@@ -83,11 +82,7 @@ namespace AdcsToRest.Controllers
             }
             catch (Exception ex)
             {
-                result = new IssuedCertificate
-                (
-                    ex.HResult,
-                    "Error retrieving the certification authority certificate"
-                );
+                result = new IssuedCertificate(ex.HResult, ex.Message);
             }
             finally
             {

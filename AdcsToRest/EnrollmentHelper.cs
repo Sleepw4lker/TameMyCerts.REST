@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel;
 using System.DirectoryServices;
 using AdcsToRest.Models;
 using CERTCLILib;
@@ -27,59 +26,21 @@ namespace AdcsToRest
             var result = new IssuedCertificate
             (
                 certRequestInterface.GetLastStatus(),
-                null,
                 certRequestInterface.GetRequestId(),
                 disposition,
                 certRequestInterface.GetDispositionMessage()
             );
 
-            switch (disposition)
+            if (disposition == CertCli.CR_DISP_ISSUED)
             {
-                case CertCli.CR_DISP_DENIED:
+                var outputFlags = CertCli.CR_OUT_BASE64HEADER;
 
-                    result.Description = "The certificate request was denied by the certification authority.";
-                    break;
+                if (includeCertificateChain)
+                {
+                    outputFlags |= CertCli.CR_OUT_CHAIN;
+                }
 
-                case CertCli.CR_DISP_ERROR:
-
-                    result.Description = "The certification authority was unable to process the certificate request.";
-                    break;
-
-                case CertCli.CR_DISP_INCOMPLETE:
-
-                    result.Description = "The certificate request was incomplete.";
-                    break;
-
-                case CertCli.CR_DISP_UNDER_SUBMISSION:
-
-                    result.Description = "The certificate request is under Submission.";
-                    break;
-
-                case CertCli.CR_DISP_ISSUED_OUT_OF_BAND:
-
-                    result.Description = "The certificate was issued out of Band.";
-                    break;
-
-                case CertCli.CR_DISP_ISSUED:
-
-                    // https://docs.microsoft.com/en-us/windows/win32/api/certcli/nf-certcli-icertrequest-getcertificate
-                    var outputFlags = CertCli.CR_OUT_BASE64HEADER;
-
-                    // Include the certificate chain. Causes the certificate to get returned as a PKCS#7 message.
-                    if (includeCertificateChain)
-                    {
-                        outputFlags |= CertCli.CR_OUT_CHAIN;
-                    }
-
-                    result.Description = "The certificate was issued.";
-                    result.Certificate = certRequestInterface.GetCertificate(outputFlags);
-                    break;
-
-                default:
-
-                    // This should never occur, but just to be sure
-                    result.Description = "Unknown result processing the certificate request.";
-                    break;
+                result.Certificate = certRequestInterface.GetCertificate(outputFlags);
             }
 
             return result;
