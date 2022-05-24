@@ -29,6 +29,62 @@
                 Retrieves an issued certificate from a given certification authority.
             </summary>
         </member>
+        <member name="T:AdcsToRest.LocalizedStrings">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.DESC_INVALID_CSR">
+            <summary>
+              Looks up a localized string similar to Unable to parse the given certificate request. RequestType was {0}..
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.DESC_MISSING_CERTIFICATIONAUTHORITY">
+            <summary>
+              Looks up a localized string similar to The certification authority {0} was not found..
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.DESC_MISSING_PARAMETER">
+            <summary>
+              Looks up a localized string similar to The {0} parameter is missing or invalid..
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.DESC_SUBMISSION_FAILED">
+            <summary>
+              Looks up a localized string similar to Unable to connect to certification authority {0} because {1}..
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.ERR_INVALID_CSR">
+            <summary>
+              Looks up a localized string similar to Unable to interpret the given certificate request..
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.ERR_MISSING_CERTIFICATIONAUTHORITY">
+            <summary>
+              Looks up a localized string similar to Unable to find certification authority..
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.ERR_MISSING_PARAMETER">
+            <summary>
+              Looks up a localized string similar to Input parameter validation failed..
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.ERR_SUBMISSION_FAILED">
+            <summary>
+              Looks up a localized string similar to Unable to connect to certification authority..
+            </summary>
+        </member>
         <member name="P:AdcsToRest.Models.GetCACertificateRequest.CertificationAuthority">
             <summary>
                 The common name of the target certification authority.
@@ -36,8 +92,8 @@
         </member>
         <member name="P:AdcsToRest.Models.GetCACertificateRequest.IncludeCertificateChain">
             <summary>
-                When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain
-                certificate.
+                When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
+                instead of a plain certificate.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.RetrievePendingRequest.CertificationAuthority">
@@ -47,8 +103,8 @@
         </member>
         <member name="P:AdcsToRest.Models.RetrievePendingRequest.IncludeCertificateChain">
             <summary>
-                When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain
-                certificate.
+                When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
+                instead of a plain certificate.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.RetrievePendingRequest.RequestId">
@@ -63,8 +119,8 @@
         </member>
         <member name="P:AdcsToRest.Models.SubmitRequest.IncludeCertificateChain">
             <summary>
-                When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain
-                certificate.
+                When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
+                instead of a plain certificate.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.SubmitRequest.CertificateRequest">
@@ -84,11 +140,6 @@
                 Optional request attributes as a collection of strings. A request attribute is declared as a name-value pair
                 separated by a colon. For example, to specify a certificate template name, you would add
                 "CertificateTemplate:TemplateNameHere".
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.IssuedCertificate.Description">
-            <summary>
-                A textual description of the outcome of the submission process.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.IssuedCertificate.StatusCode">

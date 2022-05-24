@@ -14,6 +14,7 @@
 
 using System;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Web.Http;
 using AdcsToRest.Models;
@@ -53,16 +54,25 @@ namespace AdcsToRest.Controllers
         {
             if (null == getCaCertificateRequest.CertificationAuthority)
             {
-                throw new HttpResponseException(HttpStatusCode.BadRequest);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_PARAMETER,
+                        "certificationAuthority")),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_PARAMETER
+                });
             }
 
             if (!EnrollmentHelper.GetConfigString(getCaCertificateRequest.CertificationAuthority, out var configString))
             {
-                throw new HttpResponseException(HttpStatusCode.NotFound);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CERTIFICATIONAUTHORITY,
+                        getCaCertificateRequest.CertificationAuthority)),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CERTIFICATIONAUTHORITY
+                });
             }
 
             var certRequestInterface = new CCertRequest();
-            IssuedCertificate result;
 
             try
             {
@@ -72,7 +82,7 @@ namespace AdcsToRest.Controllers
                     outputFlags |= CertCli.CR_OUT_CHAIN;
                 }
 
-                result = new IssuedCertificate
+                return new IssuedCertificate
                 (
                     WinError.ERROR_SUCCESS,
                     certRequestInterface.GetRequestId(),
@@ -82,15 +92,18 @@ namespace AdcsToRest.Controllers
             }
             catch (Exception ex)
             {
-                result = new IssuedCertificate(ex.HResult, ex.Message);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED,
+                        getCaCertificateRequest.CertificationAuthority, ex.Message)),
+                    ReasonPhrase = LocalizedStrings.ERR_SUBMISSION_FAILED
+                });
             }
             finally
             {
                 Marshal.ReleaseComObject(certRequestInterface);
                 GC.Collect();
             }
-
-            return result;
         }
     }
 }

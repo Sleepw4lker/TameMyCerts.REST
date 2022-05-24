@@ -14,6 +14,7 @@
 
 using System;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Web.Http;
@@ -37,17 +38,36 @@ namespace AdcsToRest.Controllers
 
         private IssuedCertificate Submit(SubmitRequest submitRequest)
         {
-            if (null == submitRequest.CertificateRequest || null == submitRequest.CertificationAuthority)
+            if (null == submitRequest.CertificateRequest)
             {
-                throw new HttpResponseException(HttpStatusCode.BadRequest);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content =
+                        new StringContent(string.Format(LocalizedStrings.DESC_MISSING_PARAMETER, "CertificateRequest")),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_PARAMETER
+                });
+            }
+
+            if (null == submitRequest.CertificationAuthority)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_PARAMETER,
+                        "certificationAuthority")),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_PARAMETER
+                });
             }
 
             if (!EnrollmentHelper.GetConfigString(submitRequest.CertificationAuthority, out var configString))
             {
-                throw new HttpResponseException(HttpStatusCode.NotFound);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CERTIFICATIONAUTHORITY,
+                        submitRequest.CertificationAuthority)),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CERTIFICATIONAUTHORITY
+                });
             }
 
-            var certificateRequest = submitRequest.CertificateRequest;
             string rawCertificateRequest;
             var submissionFlags = CertCli.CR_IN_BASE64;
 
@@ -72,7 +92,12 @@ namespace AdcsToRest.Controllers
                     }
                     catch
                     {
-                        throw new HttpResponseException(HttpStatusCode.BadRequest);
+                        throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                        {
+                            Content = new StringContent(string.Format(LocalizedStrings.DESC_INVALID_CSR,
+                                submitRequest.RequestType)),
+                            ReasonPhrase = LocalizedStrings.ERR_INVALID_CSR
+                        });
                     }
                     finally
                     {
@@ -91,7 +116,7 @@ namespace AdcsToRest.Controllers
                     try
                     {
                         certRequestPkcs7.InitializeDecode(
-                            certificateRequest,
+                            submitRequest.CertificateRequest,
                             EncodingType.XCN_CRYPT_STRING_BASE64_ANY
                         );
 
@@ -100,7 +125,12 @@ namespace AdcsToRest.Controllers
                     }
                     catch
                     {
-                        throw new HttpResponseException(HttpStatusCode.BadRequest);
+                        throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                        {
+                            Content = new StringContent(string.Format(LocalizedStrings.DESC_INVALID_CSR,
+                                submitRequest.RequestType)),
+                            ReasonPhrase = LocalizedStrings.ERR_INVALID_CSR
+                        });
                     }
                     finally
                     {
@@ -119,7 +149,7 @@ namespace AdcsToRest.Controllers
                     try
                     {
                         certRequestCmc.InitializeDecode(
-                            certificateRequest,
+                            submitRequest.CertificateRequest,
                             EncodingType.XCN_CRYPT_STRING_BASE64_ANY
                         );
 
@@ -128,7 +158,12 @@ namespace AdcsToRest.Controllers
                     }
                     catch
                     {
-                        throw new HttpResponseException(HttpStatusCode.BadRequest);
+                        throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                        {
+                            Content = new StringContent(string.Format(LocalizedStrings.DESC_INVALID_CSR,
+                                submitRequest.RequestType)),
+                            ReasonPhrase = LocalizedStrings.ERR_INVALID_CSR
+                        });
                     }
                     finally
                     {
@@ -139,7 +174,12 @@ namespace AdcsToRest.Controllers
 
                 default:
 
-                    throw new HttpResponseException(HttpStatusCode.BadRequest);
+                    throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                    {
+                        Content = new StringContent(string.Format(LocalizedStrings.DESC_INVALID_CSR,
+                            submitRequest.RequestType)),
+                        ReasonPhrase = LocalizedStrings.ERR_INVALID_CSR
+                    });
             }
 
             #region The following part runs under the security context of the authenticated user
@@ -148,7 +188,6 @@ namespace AdcsToRest.Controllers
 
 
             var certRequestInterface = new CCertRequest();
-            IssuedCertificate result;
 
             try
             {
@@ -159,12 +198,17 @@ namespace AdcsToRest.Controllers
                     configString
                 );
 
-                result = EnrollmentHelper.ProcessEnrollmentResult(ref certRequestInterface, submissionResult,
+                return EnrollmentHelper.ProcessEnrollmentResult(ref certRequestInterface, submissionResult,
                     submitRequest.IncludeCertificateChain);
             }
             catch (Exception ex)
             {
-                result = new IssuedCertificate(ex.HResult, ex.Message);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED,
+                        submitRequest.CertificationAuthority, ex.Message)),
+                    ReasonPhrase = LocalizedStrings.ERR_SUBMISSION_FAILED
+                });
             }
             finally
             {
@@ -174,8 +218,6 @@ namespace AdcsToRest.Controllers
                 Marshal.ReleaseComObject(certRequestInterface);
                 GC.Collect();
             }
-
-            return result;
 
             #endregion
         }

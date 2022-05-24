@@ -14,6 +14,7 @@
 
 using System;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Web.Http;
@@ -52,16 +53,35 @@ namespace AdcsToRest.Controllers
             return RetrievePending(retrievePendingRequest);
         }
 
-        private IssuedCertificate RetrievePending(RetrievePendingRequest req)
+        private IssuedCertificate RetrievePending(RetrievePendingRequest retrievePendingRequest)
         {
-            if (0 == req.RequestId || null == req.CertificationAuthority)
+            if (0 == retrievePendingRequest.RequestId)
             {
-                throw new HttpResponseException(HttpStatusCode.BadRequest);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_PARAMETER, "requestId")),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_PARAMETER
+                });
             }
 
-            if (!EnrollmentHelper.GetConfigString(req.CertificationAuthority, out var configString))
+            if (null == retrievePendingRequest.CertificationAuthority)
             {
-                throw new HttpResponseException(HttpStatusCode.NotFound);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_PARAMETER,
+                        "certificationAuthority")),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_PARAMETER
+                });
+            }
+
+            if (!EnrollmentHelper.GetConfigString(retrievePendingRequest.CertificationAuthority, out var configString))
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CERTIFICATIONAUTHORITY,
+                        retrievePendingRequest.CertificationAuthority)),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CERTIFICATIONAUTHORITY
+                });
             }
 
             #region The following part runs under the security context of the authenticated user
@@ -69,18 +89,23 @@ namespace AdcsToRest.Controllers
             var impersonationContext = ((WindowsIdentity) User.Identity).Impersonate();
 
             var certRequestInterface = new CCertRequest();
-            IssuedCertificate result;
 
             try
             {
-                var submissionResult = certRequestInterface.RetrievePending(req.RequestId, configString);
+                var submissionResult =
+                    certRequestInterface.RetrievePending(retrievePendingRequest.RequestId, configString);
 
-                result = EnrollmentHelper.ProcessEnrollmentResult(ref certRequestInterface, submissionResult,
-                    req.IncludeCertificateChain);
+                return EnrollmentHelper.ProcessEnrollmentResult(ref certRequestInterface, submissionResult,
+                    retrievePendingRequest.IncludeCertificateChain);
             }
             catch (Exception ex)
             {
-                result = new IssuedCertificate(ex.HResult, ex.Message);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED,
+                        retrievePendingRequest.CertificationAuthority, ex.Message)),
+                    ReasonPhrase = LocalizedStrings.ERR_SUBMISSION_FAILED
+                });
             }
             finally
             {
@@ -90,8 +115,6 @@ namespace AdcsToRest.Controllers
                 Marshal.ReleaseComObject(certRequestInterface);
                 GC.Collect();
             }
-
-            return result;
 
             #endregion
         }
