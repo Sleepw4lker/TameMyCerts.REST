@@ -22,8 +22,8 @@ namespace AdcsToRest.Models
         public string CertificationAuthority { get; set; }
 
         /// <summary>
-        ///     When set to true, the response will be a PKCS#7 container including the certificate chain instead of a plain
-        ///     certificate.
+        ///     When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
+        ///     instead of a plain certificate.
         /// </summary>
         public bool IncludeCertificateChain { get; set; }
 

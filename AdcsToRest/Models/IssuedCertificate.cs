@@ -18,12 +18,6 @@ namespace AdcsToRest.Models
 {
     public class IssuedCertificate
     {
-        public IssuedCertificate(int statusCode, string statusMessage)
-        {
-            StatusCode = statusCode;
-            StatusMessage = statusMessage;
-        }
-
         public IssuedCertificate(int statusCode, int requestId = 0, int dispositionCode = 0,
             string dispositionMessage = null, string certificate = null)
         {
