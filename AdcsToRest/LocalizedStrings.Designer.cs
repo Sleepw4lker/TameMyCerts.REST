@@ -70,11 +70,11 @@ namespace AdcsToRest {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The certification authority {0} was not found..
+        ///   Looks up a localized string similar to The certificate authority {0} was not found..
         /// </summary>
-        internal static string DESC_MISSING_CERTIFICATIONAUTHORITY {
+        internal static string DESC_MISSING_CA {
             get {
-                return ResourceManager.GetString("DESC_MISSING_CERTIFICATIONAUTHORITY", resourceCulture);
+                return ResourceManager.GetString("DESC_MISSING_CA", resourceCulture);
             }
         }
         
@@ -88,7 +88,7 @@ namespace AdcsToRest {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to connect to certification authority {0} because {1}..
+        ///   Looks up a localized string similar to Unable to connect to certificate authority because {0}..
         /// </summary>
         internal static string DESC_SUBMISSION_FAILED {
             get {
@@ -106,11 +106,11 @@ namespace AdcsToRest {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to find certification authority..
+        ///   Looks up a localized string similar to Unable to find certificate authority..
         /// </summary>
-        internal static string ERR_MISSING_CERTIFICATIONAUTHORITY {
+        internal static string ERR_MISSING_CA {
             get {
-                return ResourceManager.GetString("ERR_MISSING_CERTIFICATIONAUTHORITY", resourceCulture);
+                return ResourceManager.GetString("ERR_MISSING_CA", resourceCulture);
             }
         }
         
@@ -124,7 +124,7 @@ namespace AdcsToRest {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to connect to certification authority..
+        ///   Looks up a localized string similar to Unable to connect to certificate authority..
         /// </summary>
         internal static string ERR_SUBMISSION_FAILED {
             get {

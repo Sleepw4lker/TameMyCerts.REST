@@ -44,6 +44,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\AdcsToRest.Documentation.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -132,11 +133,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AutoVersionIncrement.tt</DependentUpon>
     </Compile>
-    <Compile Include="Controllers\GetCACertificateController.cs" />
+    <Compile Include="CCertRequestExtensions.cs" />
+    <Compile Include="Controllers\CertificateAuthoritiesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\SubmitController.cs" />
-    <Compile Include="Controllers\RetrievePendingController.cs" />
-    <Compile Include="EnrollmentHelper.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -146,10 +145,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>LocalizedStrings.resx</DependentUpon>
     </Compile>
-    <Compile Include="Models\GetCACertificateRequest.cs" />
-    <Compile Include="Models\RetrievePendingRequest.cs" />
-    <Compile Include="Models\SubmitRequest.cs" />
-    <Compile Include="Models\IssuedCertificate.cs" />
+    <Compile Include="Models\CertificateAuthority.cs" />
+    <Compile Include="Models\CertificateRequest.cs" />
+    <Compile Include="Models\CertificateRevocationList.cs" />
+    <Compile Include="Models\SubmissionResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

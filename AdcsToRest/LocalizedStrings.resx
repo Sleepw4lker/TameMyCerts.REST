@@ -120,25 +120,25 @@
   <data name="DESC_INVALID_CSR" xml:space="preserve">
     <value>Unable to parse the given certificate request. RequestType was {0}.</value>
   </data>
-  <data name="DESC_MISSING_CERTIFICATIONAUTHORITY" xml:space="preserve">
-    <value>The certification authority {0} was not found.</value>
+  <data name="DESC_MISSING_CA" xml:space="preserve">
+    <value>The certificate authority {0} was not found.</value>
   </data>
   <data name="DESC_MISSING_PARAMETER" xml:space="preserve">
     <value>The {0} parameter is missing or invalid.</value>
   </data>
   <data name="DESC_SUBMISSION_FAILED" xml:space="preserve">
-    <value>Unable to connect to certification authority {0} because {1}.</value>
+    <value>Unable to connect to certificate authority because {0}.</value>
   </data>
   <data name="ERR_INVALID_CSR" xml:space="preserve">
     <value>Unable to interpret the given certificate request.</value>
   </data>
-  <data name="ERR_MISSING_CERTIFICATIONAUTHORITY" xml:space="preserve">
-    <value>Unable to find certification authority.</value>
+  <data name="ERR_MISSING_CA" xml:space="preserve">
+    <value>Unable to find certificate authority.</value>
   </data>
   <data name="ERR_MISSING_PARAMETER" xml:space="preserve">
     <value>Input parameter validation failed.</value>
   </data>
   <data name="ERR_SUBMISSION_FAILED" xml:space="preserve">
-    <value>Unable to connect to certification authority.</value>
+    <value>Unable to connect to certificate authority.</value>
   </data>
 </root>

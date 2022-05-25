@@ -12,19 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+
 namespace AdcsToRest.Models
 {
-    public class GetCACertificateRequest
+    public class CertificateRevocationList
     {
         /// <summary>
-        ///     The common name of the target certification authority.
+        ///     A collection of uniform resource locators the certificate revocation list is distributed by the certificate authority.
         /// </summary>
-        public string CertificationAuthority { get; set; }
+        public List<string> CrlDistributionPoints { get; set; }
 
         /// <summary>
-        ///     When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-        ///     instead of a plain certificate.
+        ///     The X.509 V2 certificate revocation list. Always returned as BASE64-encoded DER with header (also known
+        ///     as PEM).
         /// </summary>
-        public bool IncludeCertificateChain { get; set; }
+        public string Crl { get; set; }
     }
 }

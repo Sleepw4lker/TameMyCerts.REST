@@ -16,24 +16,13 @@ using System.Collections.Generic;
 
 namespace AdcsToRest.Models
 {
-    public class SubmitRequest
+    public class CertificateRequest
     {
         /// <summary>
-        ///     The common name of the target certification authority.
+        ///     The X.509 certificate signing request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are
+        ///     supported. See RequestType parameter.
         /// </summary>
-        public string CertificationAuthority { get; set; }
-
-        /// <summary>
-        ///     When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-        ///     instead of a plain certificate.
-        /// </summary>
-        public bool IncludeCertificateChain { get; set; } = false;
-
-        /// <summary>
-        ///     The certificate request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are supported. See
-        ///     RequestType parameter.
-        /// </summary>
-        public string CertificateRequest { get; set; }
+        public string Request { get; set; }
 
         /// <summary>
         ///     The type of the submitted certificate request constant as defined in CertCli.h. Possible Values: 0x100 (PKCS#10),

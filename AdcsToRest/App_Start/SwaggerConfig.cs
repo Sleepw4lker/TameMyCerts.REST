@@ -31,7 +31,7 @@ namespace AdcsToRest
                     // hold additional metadata for an API. Version and title are required but you can also provide
                     // additional fields by chaining methods off SingleApiVersion.
                     //
-                    c.SingleApiVersion("v1", "AdcsToRest");
+                    c.SingleApiVersion("v1", "The \"bring ADCS to REST\" API");
 
                     // If you want the output Swagger docs to be indented properly, enable the "PrettyPrint" option.
                     //
@@ -211,7 +211,7 @@ namespace AdcsToRest
                     // It can be set to "None" (default), "List" (shows operations for each resource),
                     // or "Full" (fully expanded: shows operations and their details).
                     //
-                    //c.DocExpansion(DocExpansion.List);
+                    c.DocExpansion(DocExpansion.List);
 
                     // Specify which HTTP operations will have the 'Try it out!' option. An empty paramter list disables
                     // it for all operations.
