@@ -29,7 +29,7 @@ namespace AdcsToRest.Controllers
     public class CertificateAuthoritiesController : ApiController
     {
         /// <summary>
-        ///     Retrieves a collection of all online certificate authorities in the underlying Active Directory environment.
+        ///     Retrieves a collection of all available certificate authorities.
         /// </summary>
         [HttpGet]
         [Authorize]
@@ -64,7 +64,7 @@ namespace AdcsToRest.Controllers
         }
 
         /// <summary>
-        ///     Retrieves the certificate authority certificate for a certificate authority.
+        ///     Retrieves the current certificate authority certificate for a certificate authority.
         /// </summary>
         /// <param name="caName">The common name of the target certificate authority.</param>
         /// <param name="includeCertificateChain">
@@ -77,22 +77,13 @@ namespace AdcsToRest.Controllers
         public SubmissionResponse GetCaCertificate(string caName,
             [FromUri] bool includeCertificateChain = false)
         {
-            if (!GetConfigString(caName, out var configString))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        caName)),
-                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
-                });
-            }
-
+            var configString = GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
             return certRequestInterface.GetCaCertificate2(configString, includeCertificateChain);
         }
 
         /// <summary>
-        ///     Retrieves the certificate authority exchange certificate for a certificate authority.
+        ///     Retrieves the current certificate authority exchange certificate for a certificate authority.
         /// </summary>
         /// <param name="caName">The common name of the target certificate authority.</param>
         /// <param name="includeCertificateChain">
@@ -105,43 +96,39 @@ namespace AdcsToRest.Controllers
         public SubmissionResponse GetCaExchangeCertificate(string caName,
             [FromUri] bool includeCertificateChain = false)
         {
-            if (!GetConfigString(caName, out var configString))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        caName)),
-                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
-                });
-            }
-
+            var configString = GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
             return certRequestInterface.GetCaCertificate2(configString, includeCertificateChain, true);
         }
 
         /// <summary>
-        ///     Retrieves a collection of certificate revocation lists for a certificate authority.
+        ///     Retrieves a collection of certificate revocation list distribution points for a certificate authority.
         /// </summary>
         /// <param name="caName">The common name of the target certificate authority.</param>
         /// <returns></returns>
         [HttpGet]
         [Authorize]
-        [Route("ca/{caName}/crl")]
-        public List<CertificateRevocationList> GetCrl(string caName)
+        [Route("ca/{caName}/crldp")]
+        public List<CertificateRevocationListDistributionPoint> GetCrl(string caName)
         {
-            if (!GetConfigString(caName, out var configString))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        caName)),
-                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
-                });
-            }
-
+            var configString = GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
+            return certRequestInterface.GetCrlDpCollection(configString);
+        }
 
-            return certRequestInterface.GetCrlCollection(configString);
+        /// <summary>
+        ///     Retrieves a collection of authority information access distribution points for a certificate authority.
+        /// </summary>
+        /// <param name="caName">The common name of the target certificate authority.</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize]
+        [Route("ca/{caName}/aia")]
+        public List<AuthorityInformationAccess> GetAis(string caName)
+        {
+            var configString = GetConfigString(caName);
+            var certRequestInterface = new CCertRequest();
+            return certRequestInterface.GetAiaCollection(configString);
         }
 
         /// <summary>
@@ -159,26 +146,17 @@ namespace AdcsToRest.Controllers
         public SubmissionResponse Get(string caName, int requestId,
             [FromUri] bool includeCertificateChain = false)
         {
-            if (!GetConfigString(caName, out var configString))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        caName)),
-                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
-                });
-            }
+            var configString = GetConfigString(caName);
 
             using (((WindowsIdentity) User.Identity).Impersonate())
             {
                 var certRequestInterface = new CCertRequest();
-
                 return certRequestInterface.RetrievePending2(configString, requestId, includeCertificateChain);
             }
         }
 
         /// <summary>
-        ///     Submits a certificate signing request (CSR) to a certificate authority.
+        ///     Submits a certificate signing request to a certificate authority.
         /// </summary>
         /// <param name="caName">The common name of the target certificate authority.</param>
         /// <param name="certificateRequest">The data structure containing the certificate request and optional settings.</param>
@@ -205,16 +183,7 @@ namespace AdcsToRest.Controllers
                 });
             }
 
-            if (!GetConfigString(caName, out var configString))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        caName)),
-                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
-                });
-            }
-
+            var configString = GetConfigString(caName);
             var submissionFlags = CertCli.CR_IN_BASE64;
             submissionFlags |= certificateRequest.RequestType;
 
@@ -386,20 +355,21 @@ namespace AdcsToRest.Controllers
             return directorySearcher.FindAll();
         }
 
-        private static bool GetConfigString(string certificateAuthority, out string configString)
+        private static string GetConfigString(string certificateAuthority)
         {
-            configString = string.Empty;
-
             var certificateAuthorityServerName = GetCertificateAuthorityServerName(certificateAuthority);
 
             if (null == certificateAuthorityServerName)
             {
-                return false;
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
+                        certificateAuthority)),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
+                });
             }
 
-            configString = $"{certificateAuthorityServerName}\\{certificateAuthority}";
-
-            return true;
+            return $"{certificateAuthorityServerName}\\{certificateAuthority}";
         }
 
         private static string GetForestRootDomain()

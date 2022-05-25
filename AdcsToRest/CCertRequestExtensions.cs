@@ -12,7 +12,7 @@ namespace AdcsToRest
 {
     public static class CCertRequestExtensions
     {
-        public static List<CertificateRevocationList> GetCrlCollection(this CCertRequest certRequestInterface,
+        public static List<CertificateRevocationListDistributionPoint> GetCrlDpCollection(this CCertRequest certRequestInterface,
             string configString)
         {
             try
@@ -20,7 +20,7 @@ namespace AdcsToRest
                 int caCertCount = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERTCOUNT, 0,
                     CertSrv.PROPTYPE_LONG, 0);
 
-                var crlList = new List<CertificateRevocationList>();
+                var crlList = new List<CertificateRevocationListDistributionPoint>();
 
                 for (var index = caCertCount - 1; index >= 0; index--)
                 {
@@ -32,15 +32,15 @@ namespace AdcsToRest
                         continue;
                     }
 
-                    string y = certRequestInterface.GetCAProperty(configString,
+                    string crlDistributionPoints = certRequestInterface.GetCAProperty(configString,
                         CertCli.CR_PROP_CERTCDPURLS, index,
                         CertSrv.PROPTYPE_STRING, 0);
 
-                    crlList.Add(new CertificateRevocationList
+                    crlList.Add(new CertificateRevocationListDistributionPoint
                     {
                         Crl = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_BASECRL, index,
                             CertSrv.PROPTYPE_BINARY, CertView.CV_OUT_BASE64X509CRLHEADER),
-                        CrlDistributionPoints = y.Split(new[] {"\n"},
+                        Urls = crlDistributionPoints.Split(new[] {"\n"},
                             StringSplitOptions.RemoveEmptyEntries).ToList()
                     });
                 }
@@ -59,7 +59,54 @@ namespace AdcsToRest
             finally
             {
                 Marshal.ReleaseComObject(certRequestInterface);
-                GC.Collect();
+            }
+        }
+
+        public static List<AuthorityInformationAccess> GetAiaCollection(this CCertRequest certRequestInterface,
+            string configString)
+        {
+            try
+            {
+                int caCertCount = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERTCOUNT, 0,
+                    CertSrv.PROPTYPE_LONG, 0);
+
+                var crlList = new List<AuthorityInformationAccess>();
+
+                for (var index = caCertCount - 1; index >= 0; index--)
+                {
+                    string aiaUrls = certRequestInterface.GetCAProperty(configString,
+                        CertCli.CR_PROP_CERTAIAURLS, index,
+                        CertSrv.PROPTYPE_STRING, 0);
+
+                    string aiaOcspUrls = certRequestInterface.GetCAProperty(configString,
+                        CertCli.CR_PROP_CERTAIAOCSPURLS, index,
+                        CertSrv.PROPTYPE_STRING, 0);
+
+                    crlList.Add(new AuthorityInformationAccess
+                    {
+                        Certificate = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERT, index,
+                            CertSrv.PROPTYPE_BINARY, CertView.CV_OUT_BASE64HEADER),
+                        Urls = aiaUrls.Split(new[] {"\n"},
+                            StringSplitOptions.RemoveEmptyEntries).ToList(),
+                        OcspUrls = aiaOcspUrls.Split(new[] {"\n"},
+                            StringSplitOptions.RemoveEmptyEntries).ToList()
+                    });
+                }
+
+                return crlList;
+            }
+            catch (Exception ex)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED,
+                        ex.Message)),
+                    ReasonPhrase = LocalizedStrings.ERR_SUBMISSION_FAILED
+                });
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(certRequestInterface);
             }
         }
 
@@ -84,7 +131,6 @@ namespace AdcsToRest
             finally
             {
                 Marshal.ReleaseComObject(certRequestInterface);
-                GC.Collect();
             }
         }
 
@@ -115,7 +161,6 @@ namespace AdcsToRest
             finally
             {
                 Marshal.ReleaseComObject(certRequestInterface);
-                GC.Collect();
             }
         }
 
@@ -134,8 +179,7 @@ namespace AdcsToRest
                 return new SubmissionResponse
                 (
                     WinError.ERROR_SUCCESS,
-                    certRequestInterface.GetRequestId(),
-                    0, null,
+                    0, 0, null,
                     certRequestInterface.GetCACertificate(caExchangeCertificate ? 1 : 0, configString, outputFlags)
                 );
             }
@@ -150,7 +194,6 @@ namespace AdcsToRest
             finally
             {
                 Marshal.ReleaseComObject(certRequestInterface);
-                GC.Collect();
             }
         }
 

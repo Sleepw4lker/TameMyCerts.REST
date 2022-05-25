@@ -16,12 +16,12 @@ using System.Collections.Generic;
 
 namespace AdcsToRest.Models
 {
-    public class CertificateRevocationList
+    public class CertificateRevocationListDistributionPoint
     {
         /// <summary>
         ///     A collection of uniform resource locators the certificate revocation list is distributed by the certificate authority.
         /// </summary>
-        public List<string> CrlDistributionPoints { get; set; }
+        public List<string> Urls { get; set; }
 
         /// <summary>
         ///     The X.509 V2 certificate revocation list. Always returned as BASE64-encoded DER with header (also known

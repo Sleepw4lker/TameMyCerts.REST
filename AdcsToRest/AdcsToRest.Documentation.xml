@@ -6,7 +6,7 @@
     <members>
         <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetCaInfoList">
             <summary>
-                Retrieves a collection of all online certificate authorities in the underlying Active Directory environment.
+                Retrieves a collection of all available certificate authorities.
             </summary>
         </member>
         <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetCaInfo(System.String)">
@@ -37,7 +37,14 @@
         </member>
         <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetCrl(System.String)">
             <summary>
-                Retrieves a collection of certificate revocation lists for a certificate authority.
+                Retrieves a collection of certificate revocation list distribution points for a certificate authority.
+            </summary>
+            <param name="caName">The common name of the target certificate authority.</param>
+            <returns></returns>
+        </member>
+        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetAis(System.String)">
+            <summary>
+                Retrieves a collection of authority information access distribution points for a certificate authority.
             </summary>
             <param name="caName">The common name of the target certificate authority.</param>
             <returns></returns>
@@ -55,7 +62,7 @@
         </member>
         <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.PostCertificateRequest(System.String,AdcsToRest.Models.CertificateRequest,System.Boolean)">
             <summary>
-                Submits a certificate signing request (CSR) to a certificate authority.
+                Submits a certificate signing request to a certificate authority.
             </summary>
             <param name="caName">The common name of the target certificate authority.</param>
             <param name="certificateRequest">The data structure containing the certificate request and optional settings.</param>
@@ -172,12 +179,12 @@
                 "CertificateTemplate:TemplateNameHere".
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.CertificateRevocationList.CrlDistributionPoints">
+        <member name="P:AdcsToRest.Models.CertificateRevocationListDistributionPoints.Urls">
             <summary>
                 A collection of uniform resource locators the certificate revocation list is distributed by the certificate authority.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.CertificateRevocationList.Crl">
+        <member name="P:AdcsToRest.Models.CertificateRevocationListDistributionPoints.Crl">
             <summary>
                 The X.509 V2 certificate revocation list. Always returned as BASE64-encoded DER with header (also known
                 as PEM).
