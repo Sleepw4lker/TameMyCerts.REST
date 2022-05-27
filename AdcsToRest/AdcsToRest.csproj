@@ -124,6 +124,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActiveDirectory.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\SwaggerConfig.cs" />
@@ -134,6 +135,7 @@
       <DependentUpon>AutoVersionIncrement.tt</DependentUpon>
     </Compile>
     <Compile Include="CCertRequestExtensions.cs" />
+    <Compile Include="CertificateRequestIntegrityChecks.cs" />
     <Compile Include="Controllers\CertificateAuthorityController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs">

@@ -4,6 +4,17 @@
         <name>AdcsToRest</name>
     </assembly>
     <members>
+        <member name="M:AdcsToRest.CertificateRequestIntegrityChecks.VerifyCertificateRequest(System.String,System.Int32,System.String@)">
+            <summary>
+                Verifies if the certificate request can be parsed as defined by the requestType.
+            </summary>
+            <param name="certificateRequest">The certificate request in BASE64 format, with or without headers.</param>
+            <param name="requestType">The request type specifies how the certificate request is to be interpreted.</param>
+            <param name="rawCertificateRequest">
+                Harmonized certificate request, returned as BASE64 without header, regardless of
+                the given input.
+            </param>
+        </member>
         <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaInfoList">
             <summary>
                 Retrieves a collection of all available certificate authorities.
@@ -71,17 +82,6 @@
                 instead of a plain certificate.
             </param>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.VerifyCertificateRequest(System.String,System.Int32,System.String@)">
-            <summary>
-                Verifies if the certificate request can be parsed as defined by the requestType.
-            </summary>
-            <param name="certificateRequest">The certificate request in BASE64 format, with or without headers.</param>
-            <param name="requestType">The request type specifies how the certificate request is to be interpreted.</param>
-            <param name="rawCertificateRequest">
-                Harmonized certificate request, returned as BASE64 without header, regardless of
-                the given input.
-            </param>
-        </member>
         <member name="T:AdcsToRest.LocalizedStrings">
             <summary>
               A strongly-typed resource class, for looking up localized strings, etc.
@@ -100,7 +100,7 @@
         </member>
         <member name="P:AdcsToRest.LocalizedStrings.DESC_INVALID_CSR">
             <summary>
-              Looks up a localized string similar to Unable to parse the given certificate request. RequestType was {0}..
+              Looks up a localized string similar to Unable to parse the given certificate request..
             </summary>
         </member>
         <member name="P:AdcsToRest.LocalizedStrings.DESC_MISSING_CA">
@@ -163,12 +163,6 @@
             <summary>
                 The X.509 certificate signing request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are
                 supported. See RequestType parameter.
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.CertificateRequest.RequestType">
-            <summary>
-                The type of the submitted certificate request constant as defined in CertCli.h. Possible Values: 0x100 (PKCS#10),
-                0x300 (PKCS#7), 0x400 (CMC). Defaults to PKCS#10.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.CertificateRequest.RequestAttributes">

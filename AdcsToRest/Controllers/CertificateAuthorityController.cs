@@ -12,17 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Web.Http;
 using AdcsToRest.Models;
 using CERTCLILib;
-using CERTENROLLLib;
 
 namespace AdcsToRest.Controllers
 {
@@ -36,7 +32,7 @@ namespace AdcsToRest.Controllers
         [Route("ca")]
         public List<CertificateAuthority> GetCaInfoList()
         {
-            return GetCertificateAuthorityList();
+            return ActiveDirectory.GetCertificateAuthorityList();
         }
 
         /// <summary>
@@ -48,7 +44,7 @@ namespace AdcsToRest.Controllers
         [Route("ca/{caName}")]
         public CertificateAuthority GetCaInfo(string caName)
         {
-            return GetCertificateAuthority(caName);
+            return ActiveDirectory.GetCertificateAuthority(caName);
         }
 
         /// <summary>
@@ -65,7 +61,7 @@ namespace AdcsToRest.Controllers
         public SubmissionResponse GetCaCertificate(string caName,
             [FromUri] bool includeCertificateChain = false)
         {
-            var configString = GetConfigString(caName);
+            var configString = ActiveDirectory.GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
             return certRequestInterface.GetCaCertificate2(configString, includeCertificateChain);
         }
@@ -84,7 +80,7 @@ namespace AdcsToRest.Controllers
         public SubmissionResponse GetCaExchangeCertificate(string caName,
             [FromUri] bool includeCertificateChain = false)
         {
-            var configString = GetConfigString(caName);
+            var configString = ActiveDirectory.GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
             return certRequestInterface.GetCaCertificate2(configString, includeCertificateChain, true);
         }
@@ -99,7 +95,7 @@ namespace AdcsToRest.Controllers
         [Route("ca/{caName}/crldp")]
         public List<CertificateRevocationListDistributionPoint> GetCrlDp(string caName)
         {
-            var configString = GetConfigString(caName);
+            var configString = ActiveDirectory.GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
             return certRequestInterface.GetCrlDpCollection(configString);
         }
@@ -114,7 +110,7 @@ namespace AdcsToRest.Controllers
         [Route("ca/{caName}/aia")]
         public List<AuthorityInformationAccess> GetAia(string caName)
         {
-            var configString = GetConfigString(caName);
+            var configString = ActiveDirectory.GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
             return certRequestInterface.GetAiaCollection(configString);
         }
@@ -134,7 +130,7 @@ namespace AdcsToRest.Controllers
         public SubmissionResponse Get(string caName, int requestId,
             [FromUri] bool includeCertificateChain = false)
         {
-            var configString = GetConfigString(caName);
+            var configString = ActiveDirectory.GetConfigString(caName);
 
             using (((WindowsIdentity) User.Identity).Impersonate())
             {
@@ -159,21 +155,21 @@ namespace AdcsToRest.Controllers
             CertificateRequest certificateRequest,
             [FromUri] bool includeCertificateChain = false)
         {
-            if (!VerifyCertificateRequest(certificateRequest.Request, certificateRequest.RequestType,
-                    out var rawCertificateRequest))
+            var requestType = CertificateRequestIntegrityChecks.AutoDetectRequestType(certificateRequest.Request,
+                out var rawCertificateRequest);
+
+            if (requestType == 0)
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
                 {
-                    Content =
-                        new StringContent(string.Format(LocalizedStrings.DESC_INVALID_CSR,
-                            $"0x{certificateRequest.RequestType:X}")),
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_INVALID_CSR)),
                     ReasonPhrase = LocalizedStrings.ERR_INVALID_CSR
                 });
             }
 
-            var configString = GetConfigString(caName);
+            var configString = ActiveDirectory.GetConfigString(caName);
             var submissionFlags = CertCli.CR_IN_BASE64;
-            submissionFlags |= certificateRequest.RequestType;
+            submissionFlags |= requestType;
 
             using (((WindowsIdentity) User.Identity).Impersonate())
             {
@@ -181,204 +177,6 @@ namespace AdcsToRest.Controllers
                 return certRequestInterface.Submit2(configString, rawCertificateRequest,
                     certificateRequest.RequestAttributes,
                     submissionFlags, includeCertificateChain);
-            }
-        }
-
-        /// <summary>
-        ///     Verifies if the certificate request can be parsed as defined by the requestType.
-        /// </summary>
-        /// <param name="certificateRequest">The certificate request in BASE64 format, with or without headers.</param>
-        /// <param name="requestType">The request type specifies how the certificate request is to be interpreted.</param>
-        /// <param name="rawCertificateRequest">
-        ///     Harmonized certificate request, returned as BASE64 without header, regardless of
-        ///     the given input.
-        /// </param>
-        private static bool VerifyCertificateRequest(string certificateRequest, int requestType,
-            out string rawCertificateRequest)
-        {
-            rawCertificateRequest = null;
-
-            switch (requestType)
-            {
-                case CertCli.CR_IN_PKCS10:
-
-                    var certRequestPkcs10 =
-                        (IX509CertificateRequestPkcs10) Activator.CreateInstance(
-                            Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestPkcs10"));
-
-                    try
-                    {
-                        certRequestPkcs10.InitializeDecode(
-                            certificateRequest,
-                            EncodingType.XCN_CRYPT_STRING_BASE64_ANY
-                        );
-                        rawCertificateRequest = certRequestPkcs10.RawData;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                    finally
-                    {
-                        Marshal.ReleaseComObject(certRequestPkcs10);
-                    }
-
-                    break;
-
-                case CertCli.CR_IN_PKCS7:
-
-                    var certRequestPkcs7 =
-                        (IX509CertificateRequestPkcs10) Activator.CreateInstance(
-                            Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestPkcs7"));
-
-                    try
-                    {
-                        certRequestPkcs7.InitializeDecode(
-                            certificateRequest,
-                            EncodingType.XCN_CRYPT_STRING_BASE64_ANY
-                        );
-                        rawCertificateRequest = certRequestPkcs7.RawData;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                    finally
-                    {
-                        Marshal.ReleaseComObject(certRequestPkcs7);
-                    }
-
-                    break;
-
-                case CertCli.CR_IN_CMC:
-
-                    var certRequestCmc =
-                        (IX509CertificateRequestPkcs10) Activator.CreateInstance(
-                            Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestCmc"));
-
-                    try
-                    {
-                        certRequestCmc.InitializeDecode(
-                            certificateRequest,
-                            EncodingType.XCN_CRYPT_STRING_BASE64_ANY
-                        );
-                        rawCertificateRequest = certRequestCmc.RawData;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                    finally
-                    {
-                        Marshal.ReleaseComObject(certRequestCmc);
-                    }
-
-                    break;
-
-                default:
-
-                    return false;
-            }
-
-            return true;
-        }
-
-        private static CertificateAuthority GetCertificateAuthority(string certificateAuthority)
-        {
-            var searchResults = GetEnrollmentServiceCollection(certificateAuthority);
-
-            if (searchResults.Count != 1)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        certificateAuthority)),
-                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
-                });
-            }
-
-            return new CertificateAuthority(searchResults[0]);
-        }
-
-        private static List<CertificateAuthority> GetCertificateAuthorityList()
-        {
-            var searchResults = GetEnrollmentServiceCollection();
-
-            var caInfoList = new List<CertificateAuthority>();
-
-            foreach (SearchResult searchResult in searchResults)
-            {
-                caInfoList.Add(new CertificateAuthority(searchResult));
-            }
-
-            return caInfoList;
-        }
-
-        private static string GetCertificateAuthorityServerName(string certificateAuthority)
-        {
-            var searchResults = GetEnrollmentServiceCollection(certificateAuthority);
-
-            return searchResults.Count == 1 ? searchResults[0].Properties["dNSHostName"][0].ToString() : null;
-        }
-
-        private static SearchResultCollection GetEnrollmentServiceCollection(string cn = null)
-        {
-            var domainPath = GetForestRootDomain();
-
-            if (domainPath == null)
-            {
-                return null;
-            }
-
-            var additionalCriteria = string.Empty;
-
-            if (cn != null)
-            {
-                additionalCriteria += $"(cn={cn})";
-            }
-
-            var enrollmentContainer =
-                $"LDAP://CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,{domainPath}";
-
-            var directoryEntry = new DirectoryEntry(enrollmentContainer);
-
-            var directorySearcher = new DirectorySearcher(directoryEntry)
-            {
-                Filter = $"(&{additionalCriteria}(objectCategory=pKIEnrollmentService))",
-                Sort = new SortOption("cn", SortDirection.Ascending),
-                PropertiesToLoad = {"cn", "certificateTemplates", "dNSHostName"}
-            };
-
-            return directorySearcher.FindAll();
-        }
-
-        private static string GetConfigString(string certificateAuthority)
-        {
-            var certificateAuthorityServerName = GetCertificateAuthorityServerName(certificateAuthority);
-
-            if (null == certificateAuthorityServerName)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        certificateAuthority)),
-                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
-                });
-            }
-
-            return $"{certificateAuthorityServerName}\\{certificateAuthority}";
-        }
-
-        private static string GetForestRootDomain()
-        {
-            try
-            {
-                var directoryEntry = new DirectoryEntry("LDAP://RootDSE");
-                return directoryEntry.Properties["rootDomainNamingContext"][0].ToString();
-            }
-            catch
-            {
-                return null;
             }
         }
     }

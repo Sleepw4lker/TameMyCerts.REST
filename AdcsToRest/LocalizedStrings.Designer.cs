@@ -61,7 +61,7 @@ namespace AdcsToRest {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to parse the given certificate request. RequestType was {0}..
+        ///   Looks up a localized string similar to Unable to parse the given certificate request..
         /// </summary>
         internal static string DESC_INVALID_CSR {
             get {

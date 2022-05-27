@@ -20,15 +20,9 @@ namespace AdcsToRest.Models
     {
         /// <summary>
         ///     The X.509 certificate signing request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are
-        ///     supported. See RequestType parameter.
+        ///     supported and are detected automatically.
         /// </summary>
         public string Request { get; set; }
-
-        /// <summary>
-        ///     The type of the submitted certificate request constant as defined in CertCli.h. Possible Values: 0x100 (PKCS#10),
-        ///     0x300 (PKCS#7), 0x400 (CMC). Defaults to PKCS#10.
-        /// </summary>
-        public int RequestType { get; set; } = CertCli.CR_IN_PKCS10;
 
         /// <summary>
         ///     Optional request attributes as a collection of strings. A request attribute is declared as a name-value pair
