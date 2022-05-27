@@ -13,7 +13,10 @@
 // limitations under the License.
 
 using System;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Web.Http;
 using CERTENROLLLib;
 
 namespace AdcsToRest
@@ -144,7 +147,10 @@ namespace AdcsToRest
                 }
             }
 
-            return 0;
+            throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+            {
+                Content = new StringContent(string.Format(LocalizedStrings.DESC_INVALID_CSR))
+            });
         }
     }
 }

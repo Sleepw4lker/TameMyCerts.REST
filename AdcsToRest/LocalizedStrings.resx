@@ -129,16 +129,4 @@
   <data name="DESC_SUBMISSION_FAILED" xml:space="preserve">
     <value>Unable to connect to certificate authority because {0}.</value>
   </data>
-  <data name="ERR_INVALID_CSR" xml:space="preserve">
-    <value>Unable to interpret the given certificate request.</value>
-  </data>
-  <data name="ERR_MISSING_CA" xml:space="preserve">
-    <value>Unable to find certificate authority.</value>
-  </data>
-  <data name="ERR_MISSING_PARAMETER" xml:space="preserve">
-    <value>Input parameter validation failed.</value>
-  </data>
-  <data name="ERR_SUBMISSION_FAILED" xml:space="preserve">
-    <value>Unable to connect to certificate authority.</value>
-  </data>
 </root>

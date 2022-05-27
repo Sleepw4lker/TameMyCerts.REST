@@ -15,6 +15,14 @@
                 the given input.
             </param>
         </member>
+        <member name="M:AdcsToRest.CertificateRequestIntegrityChecks.AutoDetectRequestType(System.String,System.String@)">
+            <summary>
+                Identifies the type of a given certificate request.
+            </summary>
+            <param name="certificateRequest">The input certificate request as BASE64 encoded string (aka PEM).</param>
+            <param name="rawCertificateRequest">The input certificate request as BASE64 encoded string (aka PEM) without headers.</param>
+            <returns>The request type to be used with ICertRequest::Submit</returns>
+        </member>
         <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaInfoList">
             <summary>
                 Retrieves a collection of all available certificate authorities.
@@ -118,26 +126,6 @@
               Looks up a localized string similar to Unable to connect to certificate authority because {0}..
             </summary>
         </member>
-        <member name="P:AdcsToRest.LocalizedStrings.ERR_INVALID_CSR">
-            <summary>
-              Looks up a localized string similar to Unable to interpret the given certificate request..
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.LocalizedStrings.ERR_MISSING_CA">
-            <summary>
-              Looks up a localized string similar to Unable to find certificate authority..
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.LocalizedStrings.ERR_MISSING_PARAMETER">
-            <summary>
-              Looks up a localized string similar to Input parameter validation failed..
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.LocalizedStrings.ERR_SUBMISSION_FAILED">
-            <summary>
-              Looks up a localized string similar to Unable to connect to certificate authority..
-            </summary>
-        </member>
         <member name="T:AdcsToRest.Models.CertificateAuthority">
             <summary>
                 An object holding information about a certificate authority.
@@ -162,7 +150,7 @@
         <member name="P:AdcsToRest.Models.CertificateRequest.Request">
             <summary>
                 The X.509 certificate signing request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are
-                supported. See RequestType parameter.
+                supported and are detected automatically.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.CertificateRequest.RequestAttributes">

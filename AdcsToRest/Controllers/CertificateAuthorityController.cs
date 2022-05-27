@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
 using System.Security.Principal;
 using System.Web.Http;
 using AdcsToRest.Models;
@@ -158,15 +156,6 @@ namespace AdcsToRest.Controllers
             var requestType = CertificateRequestIntegrityChecks.AutoDetectRequestType(certificateRequest.Request,
                 out var rawCertificateRequest);
 
-            if (requestType == 0)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_INVALID_CSR)),
-                    ReasonPhrase = LocalizedStrings.ERR_INVALID_CSR
-                });
-            }
-
             var configString = ActiveDirectory.GetConfigString(caName);
             var submissionFlags = CertCli.CR_IN_BASE64;
             submissionFlags |= requestType;
@@ -175,8 +164,7 @@ namespace AdcsToRest.Controllers
             {
                 var certRequestInterface = new CCertRequest();
                 return certRequestInterface.Submit2(configString, rawCertificateRequest,
-                    certificateRequest.RequestAttributes,
-                    submissionFlags, includeCertificateChain);
+                    certificateRequest.RequestAttributes, submissionFlags, includeCertificateChain);
             }
         }
     }

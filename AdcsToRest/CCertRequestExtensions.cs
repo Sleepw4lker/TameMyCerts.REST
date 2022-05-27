@@ -26,7 +26,8 @@ namespace AdcsToRest
 {
     public static class CCertRequestExtensions
     {
-        public static List<CertificateRevocationListDistributionPoint> GetCrlDpCollection(this CCertRequest certRequestInterface,
+        public static List<CertificateRevocationListDistributionPoint> GetCrlDpCollection(
+            this CCertRequest certRequestInterface,
             string configString)
         {
             try
@@ -65,9 +66,7 @@ namespace AdcsToRest
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED,
-                        ex.Message)),
-                    ReasonPhrase = LocalizedStrings.ERR_SUBMISSION_FAILED
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
             }
             finally
@@ -113,9 +112,7 @@ namespace AdcsToRest
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED,
-                        ex.Message)),
-                    ReasonPhrase = LocalizedStrings.ERR_SUBMISSION_FAILED
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
             }
             finally
@@ -138,8 +135,7 @@ namespace AdcsToRest
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message)),
-                    ReasonPhrase = LocalizedStrings.ERR_SUBMISSION_FAILED
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
             }
             finally
@@ -168,8 +164,7 @@ namespace AdcsToRest
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message)),
-                    ReasonPhrase = LocalizedStrings.ERR_SUBMISSION_FAILED
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
             }
             finally
@@ -192,8 +187,7 @@ namespace AdcsToRest
 
                 return new SubmissionResponse
                 (
-                    WinError.ERROR_SUCCESS,
-                    0, 0, null,
+                    WinError.ERROR_SUCCESS, 0, 0, null,
                     certRequestInterface.GetCACertificate(caExchangeCertificate ? 1 : 0, configString, outputFlags)
                 );
             }
@@ -201,8 +195,7 @@ namespace AdcsToRest
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message)),
-                    ReasonPhrase = LocalizedStrings.ERR_SUBMISSION_FAILED
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
             }
             finally

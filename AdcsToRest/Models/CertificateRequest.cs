@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace AdcsToRest.Models
 {
@@ -22,6 +23,7 @@ namespace AdcsToRest.Models
         ///     The X.509 certificate signing request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are
         ///     supported and are detected automatically.
         /// </summary>
+        [JsonRequired]
         public string Request { get; set; }
 
         /// <summary>

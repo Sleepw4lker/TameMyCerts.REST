@@ -95,41 +95,5 @@ namespace AdcsToRest {
                 return ResourceManager.GetString("DESC_SUBMISSION_FAILED", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to interpret the given certificate request..
-        /// </summary>
-        internal static string ERR_INVALID_CSR {
-            get {
-                return ResourceManager.GetString("ERR_INVALID_CSR", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to find certificate authority..
-        /// </summary>
-        internal static string ERR_MISSING_CA {
-            get {
-                return ResourceManager.GetString("ERR_MISSING_CA", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Input parameter validation failed..
-        /// </summary>
-        internal static string ERR_MISSING_PARAMETER {
-            get {
-                return ResourceManager.GetString("ERR_MISSING_PARAMETER", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to connect to certificate authority..
-        /// </summary>
-        internal static string ERR_SUBMISSION_FAILED {
-            get {
-                return ResourceManager.GetString("ERR_SUBMISSION_FAILED", resourceCulture);
-            }
-        }
     }
 }
