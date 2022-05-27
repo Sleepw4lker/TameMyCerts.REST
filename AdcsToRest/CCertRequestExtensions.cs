@@ -70,7 +70,7 @@ namespace AdcsToRest
                 int caCertCount = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERTCOUNT, 0,
                     CertSrv.PROPTYPE_LONG, 0);
 
-                var crlList = new List<AuthorityInformationAccess>();
+                var aiaList = new List<AuthorityInformationAccess>();
 
                 for (var index = caCertCount - 1; index >= 0; index--)
                 {
@@ -82,7 +82,7 @@ namespace AdcsToRest
                         CertCli.CR_PROP_CERTAIAOCSPURLS, index,
                         CertSrv.PROPTYPE_STRING, 0);
 
-                    crlList.Add(new AuthorityInformationAccess
+                    aiaList.Add(new AuthorityInformationAccess
                     {
                         Certificate = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERT, index,
                             CertSrv.PROPTYPE_BINARY, CertView.CV_OUT_BASE64HEADER),
@@ -93,7 +93,7 @@ namespace AdcsToRest
                     });
                 }
 
-                return crlList;
+                return aiaList;
             }
             catch (Exception ex)
             {

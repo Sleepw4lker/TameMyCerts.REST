@@ -26,7 +26,7 @@ using CERTENROLLLib;
 
 namespace AdcsToRest.Controllers
 {
-    public class CertificateAuthoritiesController : ApiController
+    public class CertificateAuthorityController : ApiController
     {
         /// <summary>
         ///     Retrieves a collection of all available certificate authorities.
@@ -48,19 +48,7 @@ namespace AdcsToRest.Controllers
         [Route("ca/{caName}")]
         public CertificateAuthority GetCaInfo(string caName)
         {
-            var result = GetCertificateAuthority(caName);
-
-            if (result == null)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        caName)),
-                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
-                });
-            }
-
-            return result;
+            return GetCertificateAuthority(caName);
         }
 
         /// <summary>
@@ -109,7 +97,7 @@ namespace AdcsToRest.Controllers
         [HttpGet]
         [Authorize]
         [Route("ca/{caName}/crldp")]
-        public List<CertificateRevocationListDistributionPoint> GetCrl(string caName)
+        public List<CertificateRevocationListDistributionPoint> GetCrlDp(string caName)
         {
             var configString = GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
@@ -124,7 +112,7 @@ namespace AdcsToRest.Controllers
         [HttpGet]
         [Authorize]
         [Route("ca/{caName}/aia")]
-        public List<AuthorityInformationAccess> GetAis(string caName)
+        public List<AuthorityInformationAccess> GetAia(string caName)
         {
             var configString = GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
@@ -205,7 +193,6 @@ namespace AdcsToRest.Controllers
         ///     Harmonized certificate request, returned as BASE64 without header, regardless of
         ///     the given input.
         /// </param>
-        /// <returns></returns>
         private static bool VerifyCertificateRequest(string certificateRequest, int requestType,
             out string rawCertificateRequest)
         {
@@ -300,7 +287,17 @@ namespace AdcsToRest.Controllers
         {
             var searchResults = GetEnrollmentServiceCollection(certificateAuthority);
 
-            return searchResults.Count == 1 ? new CertificateAuthority(searchResults[0]) : null;
+            if (searchResults.Count != 1)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
+                        certificateAuthority)),
+                    ReasonPhrase = LocalizedStrings.ERR_MISSING_CA
+                });
+            }
+
+            return new CertificateAuthority(searchResults[0]);
         }
 
         private static List<CertificateAuthority> GetCertificateAuthorityList()
@@ -349,7 +346,7 @@ namespace AdcsToRest.Controllers
             {
                 Filter = $"(&{additionalCriteria}(objectCategory=pKIEnrollmentService))",
                 Sort = new SortOption("cn", SortDirection.Ascending),
-                PropertiesToLoad = { "cn", "certificateTemplates", "dNSHostName" }
+                PropertiesToLoad = {"cn", "certificateTemplates", "dNSHostName"}
             };
 
             return directorySearcher.FindAll();

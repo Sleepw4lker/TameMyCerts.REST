@@ -134,7 +134,7 @@
       <DependentUpon>AutoVersionIncrement.tt</DependentUpon>
     </Compile>
     <Compile Include="CCertRequestExtensions.cs" />
-    <Compile Include="Controllers\CertificateAuthoritiesController.cs" />
+    <Compile Include="Controllers\CertificateAuthorityController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

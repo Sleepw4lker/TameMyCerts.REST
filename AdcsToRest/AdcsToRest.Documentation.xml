@@ -4,20 +4,20 @@
         <name>AdcsToRest</name>
     </assembly>
     <members>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetCaInfoList">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaInfoList">
             <summary>
                 Retrieves a collection of all available certificate authorities.
             </summary>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetCaInfo(System.String)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaInfo(System.String)">
             <summary>
                 Retrieves details for a certificate authority.
             </summary>
             <param name="caName">The common name of the target certificate authority.</param>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetCaCertificate(System.String,System.Boolean)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaCertificate(System.String,System.Boolean)">
             <summary>
-                Retrieves the certificate authority certificate for a certificate authority.
+                Retrieves the current certificate authority certificate for a certificate authority.
             </summary>
             <param name="caName">The common name of the target certificate authority.</param>
             <param name="includeCertificateChain">
@@ -25,9 +25,9 @@
                 instead of a plain certificate.
             </param>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetCaExchangeCertificate(System.String,System.Boolean)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaExchangeCertificate(System.String,System.Boolean)">
             <summary>
-                Retrieves the certificate authority exchange certificate for a certificate authority.
+                Retrieves the current certificate authority exchange certificate for a certificate authority.
             </summary>
             <param name="caName">The common name of the target certificate authority.</param>
             <param name="includeCertificateChain">
@@ -35,21 +35,21 @@
                 instead of a plain certificate.
             </param>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetCrl(System.String)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCrlDp(System.String)">
             <summary>
                 Retrieves a collection of certificate revocation list distribution points for a certificate authority.
             </summary>
             <param name="caName">The common name of the target certificate authority.</param>
             <returns></returns>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.GetAis(System.String)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetAia(System.String)">
             <summary>
                 Retrieves a collection of authority information access distribution points for a certificate authority.
             </summary>
             <param name="caName">The common name of the target certificate authority.</param>
             <returns></returns>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.Get(System.String,System.Int32,System.Boolean)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.Get(System.String,System.Int32,System.Boolean)">
             <summary>
                 Retrieves an issued certificate from a certificate authority.
             </summary>
@@ -60,7 +60,7 @@
                 instead of a plain certificate.
             </param>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.PostCertificateRequest(System.String,AdcsToRest.Models.CertificateRequest,System.Boolean)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.PostCertificateRequest(System.String,AdcsToRest.Models.CertificateRequest,System.Boolean)">
             <summary>
                 Submits a certificate signing request to a certificate authority.
             </summary>
@@ -71,7 +71,7 @@
                 instead of a plain certificate.
             </param>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthoritiesController.VerifyCertificateRequest(System.String,System.Int32,System.String@)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.VerifyCertificateRequest(System.String,System.Int32,System.String@)">
             <summary>
                 Verifies if the certificate request can be parsed as defined by the requestType.
             </summary>
@@ -81,7 +81,6 @@
                 Harmonized certificate request, returned as BASE64 without header, regardless of
                 the given input.
             </param>
-            <returns></returns>
         </member>
         <member name="T:AdcsToRest.LocalizedStrings">
             <summary>
@@ -179,12 +178,12 @@
                 "CertificateTemplate:TemplateNameHere".
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.CertificateRevocationListDistributionPoints.Urls">
+        <member name="P:AdcsToRest.Models.CertificateRevocationListDistributionPoint.Urls">
             <summary>
                 A collection of uniform resource locators the certificate revocation list is distributed by the certificate authority.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.CertificateRevocationListDistributionPoints.Crl">
+        <member name="P:AdcsToRest.Models.CertificateRevocationListDistributionPoint.Crl">
             <summary>
                 The X.509 V2 certificate revocation list. Always returned as BASE64-encoded DER with header (also known
                 as PEM).
