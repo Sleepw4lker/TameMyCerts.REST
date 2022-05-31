@@ -383,18 +383,21 @@
             "type": "object",
             "properties": {
                 "urls": {
+                    "description": "A collection of authority information access urls that are available for the certification authority certificate.",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "ocspUrls": {
+                    "description": "A collection of online certificate status protocol urls that are available for the certification authority\r\ncertificate.",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "certificate": {
+                    "description": "The X.509 V3 certification authority certificate. Always returned as BASE64-encoded DER with header (also known\r\nas PEM).",
                     "type": "string"
                 }
             }

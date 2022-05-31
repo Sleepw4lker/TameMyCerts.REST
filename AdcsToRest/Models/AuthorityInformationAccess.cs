@@ -18,10 +18,21 @@ namespace AdcsToRest.Models
 {
     public class AuthorityInformationAccess
     {
+        /// <summary>
+        ///     A collection of authority information access urls that are available for the certification authority certificate.
+        /// </summary>
         public List<string> Urls { get; set; }
 
+        /// <summary>
+        ///     A collection of online certificate status protocol urls that are available for the certification authority
+        ///     certificate.
+        /// </summary>
         public List<string> OcspUrls { get; set; }
 
+        /// <summary>
+        ///     The X.509 V3 certification authority certificate. Always returned as BASE64-encoded DER with header (also known
+        ///     as PEM).
+        /// </summary>
         public string Certificate { get; set; }
     }
 }
