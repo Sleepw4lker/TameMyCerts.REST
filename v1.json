@@ -1,0 +1,422 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "v1",
+        "title": "The \"bring ADCS to REST\" API"
+    },
+    "schemes": [
+        "http"
+    ],
+    "paths": {
+        "/ca": {
+            "get": {
+                "tags": [
+                    "CertificateAuthority"
+                ],
+                "summary": "Retrieves a collection of all available certificate authorities.",
+                "operationId": "CertificateAuthority_GetCaInfoList",
+                "consumes": [],
+                "produces": [
+                    "application/json",
+                    "text/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/CertificateAuthority"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ca/{caName}": {
+            "get": {
+                "tags": [
+                    "CertificateAuthority"
+                ],
+                "summary": "Retrieves details for a certificate authority.",
+                "operationId": "CertificateAuthority_GetCaInfo",
+                "consumes": [],
+                "produces": [
+                    "application/json",
+                    "text/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "caName",
+                        "in": "path",
+                        "description": "The common name of the target certificate authority.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/CertificateAuthority"
+                        }
+                    }
+                }
+            }
+        },
+        "/ca/{caName}/ca-certificate": {
+            "get": {
+                "tags": [
+                    "CertificateAuthority"
+                ],
+                "summary": "Retrieves the current certificate authority certificate for a certificate authority.",
+                "operationId": "CertificateAuthority_GetCaCertificate",
+                "consumes": [],
+                "produces": [
+                    "application/json",
+                    "text/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "caName",
+                        "in": "path",
+                        "description": "The common name of the target certificate authority.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "includeCertificateChain",
+                        "in": "query",
+                        "description": "When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain\r\ninstead of a plain certificate.",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/SubmissionResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ca/{caName}/ca-exchange-certificate": {
+            "get": {
+                "tags": [
+                    "CertificateAuthority"
+                ],
+                "summary": "Retrieves the current certificate authority exchange certificate for a certificate authority.",
+                "operationId": "CertificateAuthority_GetCaExchangeCertificate",
+                "consumes": [],
+                "produces": [
+                    "application/json",
+                    "text/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "caName",
+                        "in": "path",
+                        "description": "The common name of the target certificate authority.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "includeCertificateChain",
+                        "in": "query",
+                        "description": "When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain\r\ninstead of a plain certificate.",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/SubmissionResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ca/{caName}/crldp": {
+            "get": {
+                "tags": [
+                    "CertificateAuthority"
+                ],
+                "summary": "Retrieves a collection of certificate revocation list distribution points for a certificate authority.",
+                "operationId": "CertificateAuthority_GetCrlDp",
+                "consumes": [],
+                "produces": [
+                    "application/json",
+                    "text/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "caName",
+                        "in": "path",
+                        "description": "The common name of the target certificate authority.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/CertificateRevocationListDistributionPoint"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ca/{caName}/aia": {
+            "get": {
+                "tags": [
+                    "CertificateAuthority"
+                ],
+                "summary": "Retrieves a collection of authority information access distribution points for a certificate authority.",
+                "operationId": "CertificateAuthority_GetAia",
+                "consumes": [],
+                "produces": [
+                    "application/json",
+                    "text/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "caName",
+                        "in": "path",
+                        "description": "The common name of the target certificate authority.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/AuthorityInformationAccess"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ca/{caName}/request/{requestId}": {
+            "get": {
+                "tags": [
+                    "CertificateAuthority"
+                ],
+                "summary": "Retrieves an issued certificate from a certificate authority.",
+                "operationId": "CertificateAuthority_Get",
+                "consumes": [],
+                "produces": [
+                    "application/json",
+                    "text/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "caName",
+                        "in": "path",
+                        "description": "The common name of the target certificate authority.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "requestId",
+                        "in": "path",
+                        "description": "The request ID of the certificate to retrieve.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    {
+                        "name": "includeCertificateChain",
+                        "in": "query",
+                        "description": "When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain\r\ninstead of a plain certificate.",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/SubmissionResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ca/{caName}/request": {
+            "post": {
+                "tags": [
+                    "CertificateAuthority"
+                ],
+                "summary": "Submits a certificate signing request to a certificate authority.",
+                "operationId": "CertificateAuthority_PostCertificateRequest",
+                "consumes": [
+                    "application/json",
+                    "text/json",
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json",
+                    "text/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "caName",
+                        "in": "path",
+                        "description": "The common name of the target certificate authority.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "certificateRequest",
+                        "in": "body",
+                        "description": "The data structure containing the certificate request and optional settings.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CertificateRequest"
+                        }
+                    },
+                    {
+                        "name": "certificateTemplate",
+                        "in": "query",
+                        "description": "The certificate template the certificate request shall be assigned to.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "includeCertificateChain",
+                        "in": "query",
+                        "description": "When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain\r\ninstead of a plain certificate.",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/SubmissionResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "CertificateAuthority": {
+            "description": "An object holding information about a certificate authority.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The common name of the certificate authority.",
+                    "type": "string"
+                },
+                "certificateTemplates": {
+                    "description": "A list of all certificate templates offered by the certificate authority.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "SubmissionResponse": {
+            "type": "object",
+            "properties": {
+                "statusCode": {
+                    "format": "int32",
+                    "description": "Status code for the processing of incoming API requests and the connection to the certificate authority, Contains\r\nHResult error codes as defined in WinErr.h.",
+                    "type": "integer"
+                },
+                "statusMessage": {
+                    "description": "A textual description of the HResult error code.",
+                    "type": "string"
+                },
+                "requestId": {
+                    "format": "int32",
+                    "description": "The request ID of the issued certificate, or the pending request.",
+                    "type": "integer"
+                },
+                "dispositionCode": {
+                    "format": "int32",
+                    "description": "The disposition code returned by the certificate authority for the certificate request as defined in CertCli.h.\r\nCan be one of: 0 (Request did not complete), 1 (Request failed), 2 (Request denied), 3 (Certificate issued), 4\r\n(Certificate issued separately), 5 (Request taken under submission).",
+                    "type": "integer"
+                },
+                "dispositionMessage": {
+                    "description": "A textual description of the disposition status returned by the certificate authority.",
+                    "type": "string"
+                },
+                "certificate": {
+                    "description": "The issued X.509 V3 certificate, if issued by the certificate authority. Always returned as BASE64-encoded DER\r\nwith header (also known as PEM).",
+                    "type": "string"
+                }
+            }
+        },
+        "CertificateRevocationListDistributionPoint": {
+            "type": "object",
+            "properties": {
+                "urls": {
+                    "description": "A collection of uniform resource locators the certificate revocation list is distributed by the certificate authority.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "crl": {
+                    "description": "The X.509 V2 certificate revocation list. Always returned as BASE64-encoded DER with header (also known\r\nas PEM).",
+                    "type": "string"
+                }
+            }
+        },
+        "AuthorityInformationAccess": {
+            "type": "object",
+            "properties": {
+                "urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "ocspUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "certificate": {
+                    "type": "string"
+                }
+            }
+        },
+        "CertificateRequest": {
+            "required": [
+                "request"
+            ],
+            "type": "object",
+            "properties": {
+                "request": {
+                    "description": "The X.509 certificate signing request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are\r\nsupported and are detected automatically.",
+                    "type": "string"
+                },
+                "requestAttributes": {
+                    "description": "Optional request attributes as a collection of strings. A request attribute is declared as a name-value pair\r\nseparated by a colon. Certificate template names can be specified here as well. You would add\r\n\"CertificateTemplate:TemplateNameHere\".",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}
