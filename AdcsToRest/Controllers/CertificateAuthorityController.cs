@@ -142,6 +142,7 @@ namespace AdcsToRest.Controllers
         /// </summary>
         /// <param name="caName">The common name of the target certificate authority.</param>
         /// <param name="certificateRequest">The data structure containing the certificate request and optional settings.</param>
+        /// <param name="certificateTemplate">The certificate template the certificate request shall be assigned to.</param>
         /// <param name="includeCertificateChain">
         ///     When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
         ///     instead of a plain certificate.
@@ -151,6 +152,7 @@ namespace AdcsToRest.Controllers
         [Route("ca/{caName}/request")]
         public SubmissionResponse PostCertificateRequest(string caName,
             CertificateRequest certificateRequest,
+            [FromUri] string certificateTemplate = null,
             [FromUri] bool includeCertificateChain = false)
         {
             var requestType = CertificateRequestIntegrityChecks.AutoDetectRequestType(certificateRequest.Request,
@@ -159,6 +161,11 @@ namespace AdcsToRest.Controllers
             var configString = ActiveDirectory.GetConfigString(caName);
             var submissionFlags = CertCli.CR_IN_BASE64;
             submissionFlags |= requestType;
+
+            if (certificateTemplate != null)
+            {
+                certificateRequest.RequestAttributes.Add($"CertificateTemplate:{certificateTemplate}");
+            }
 
             using (((WindowsIdentity) User.Identity).Impersonate())
             {
