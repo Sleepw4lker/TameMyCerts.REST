@@ -28,7 +28,7 @@ namespace AdcsToRest.Models
 
         /// <summary>
         ///     Optional request attributes as a collection of strings. A request attribute is declared as a name-value pair
-        ///     separated by a colon. For example, to specify a certificate template name, you would add
+        ///     separated by a colon. Certificate template names can be specified here as well. You would add
         ///     "CertificateTemplate:TemplateNameHere".
         /// </summary>
         public List<string> RequestAttributes { get; set; } = new List<string>();
