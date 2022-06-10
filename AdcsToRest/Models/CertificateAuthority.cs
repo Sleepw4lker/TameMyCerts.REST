@@ -18,7 +18,7 @@ using System.DirectoryServices;
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     An object holding information about a certificate authority.
+    ///     A data structure holding information about a certificate authority.
     /// </summary>
     public class CertificateAuthority
     {

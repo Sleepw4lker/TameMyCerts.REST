@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -21,6 +20,9 @@ using CERTENROLLLib;
 
 namespace AdcsToRest
 {
+    /// <summary>
+    ///     A class that helps identifying the type of the certificate request and harmonizing it for further processing.
+    /// </summary>
     public class CertificateRequestIntegrityChecks
     {
         /// <summary>
@@ -41,9 +43,7 @@ namespace AdcsToRest
             {
                 case CertCli.CR_IN_PKCS10:
 
-                    var certRequestPkcs10 =
-                        (IX509CertificateRequestPkcs10) Activator.CreateInstance(
-                            Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestPkcs10"));
+                    var certRequestPkcs10 = new CX509CertificateRequestPkcs10();
 
                     try
                     {
@@ -66,9 +66,7 @@ namespace AdcsToRest
 
                 case CertCli.CR_IN_PKCS7:
 
-                    var certRequestPkcs7 =
-                        (IX509CertificateRequestPkcs7) Activator.CreateInstance(
-                            Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestPkcs7"));
+                    var certRequestPkcs7 = new CX509CertificateRequestPkcs7();
 
                     try
                     {
@@ -91,9 +89,7 @@ namespace AdcsToRest
 
                 case CertCli.CR_IN_CMC:
 
-                    var certRequestCmc =
-                        (IX509CertificateRequestCmc) Activator.CreateInstance(
-                            Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestCmc"));
+                    var certRequestCmc = new CX509CertificateRequestCmc();
 
                     try
                     {
@@ -125,10 +121,13 @@ namespace AdcsToRest
         /// <summary>
         ///     Identifies the type of a given certificate request.
         /// </summary>
-        /// <param name="certificateRequest">The input certificate request as BASE64 encoded string (aka PEM).</param>
+        /// <param name="certificateRequest">
+        ///     The input certificate request as BASE64 encoded string (aka PEM), with headers or
+        ///     without.
+        /// </param>
         /// <param name="rawCertificateRequest">The input certificate request as BASE64 encoded string (aka PEM) without headers.</param>
         /// <returns>The request type to be used with ICertRequest::Submit</returns>
-        public static int AutoDetectRequestType(string certificateRequest, out string rawCertificateRequest)
+        public static int DetectRequestType(string certificateRequest, out string rawCertificateRequest)
         {
             int[] validRequestTypes =
             {

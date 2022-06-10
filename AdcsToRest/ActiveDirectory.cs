@@ -21,8 +21,19 @@ using AdcsToRest.Models;
 
 namespace AdcsToRest
 {
+    /// <summary>
+    ///     A class holding methods that help acquiring PKI related information from Active Directory.
+    /// </summary>
     public class ActiveDirectory
     {
+        /// <summary>
+        ///     Retrieves a certification authority and the templates bound to it from Active Directory.
+        /// </summary>
+        /// <param name="certificateAuthority">The name of the target certificate authority.</param>
+        /// <exception cref="HttpResponseException">
+        ///     Throws a HTTP 404 error if the specified certificate authority was not found in
+        ///     Active Directory.
+        /// </exception>
         public static CertificateAuthority GetCertificateAuthority(string certificateAuthority)
         {
             var searchResults = GetEnrollmentServiceCollection(certificateAuthority);
@@ -39,6 +50,9 @@ namespace AdcsToRest
             return new CertificateAuthority(searchResults[0]);
         }
 
+        /// <summary>
+        ///     Retrieves a list of all certificate authorities in the Active Directory forest, and the templates bound to each.
+        /// </summary>
         public static List<CertificateAuthority> GetCertificateAuthorityList()
         {
             var searchResults = GetEnrollmentServiceCollection();
@@ -53,6 +67,15 @@ namespace AdcsToRest
             return caInfoList;
         }
 
+        /// <summary>
+        ///     Retrieves the configuration string for a certificate authority.
+        /// </summary>
+        /// <param name="certificateAuthority">The name of the target certificate authority.</param>
+        /// <returns>The configuration string, built from the CA's DNS name and the CA common name.</returns>
+        /// <exception cref="HttpResponseException">
+        ///     Throws a HTTP 404 error if the specified certificate authority was not found in
+        ///     Active Directory.
+        /// </exception>
         public static string GetConfigString(string certificateAuthority)
         {
             var certificateAuthorityServerName = GetCertificateAuthorityServerName(certificateAuthority);

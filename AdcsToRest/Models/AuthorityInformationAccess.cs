@@ -16,6 +16,9 @@ using System.Collections.Generic;
 
 namespace AdcsToRest.Models
 {
+    /// <summary>
+    ///     A data structure containing authority information access for a certificate authority.
+    /// </summary>
     public class AuthorityInformationAccess
     {
         /// <summary>

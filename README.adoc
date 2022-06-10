@@ -1,6 +1,6 @@
 ﻿= The "bring AD CS to REST" API
 
-A simple, yet powerful REST API for submitting certificates to one or more Microsoft link:https://docs.microsoft.com/en-us/windows/win32/seccrypto/certificate-services[Active Directory Certificate Services (AD CS)^] certification authorities.
+A simple, yet powerful REST API for submitting certificates to one or more Microsoft link:https://docs.microsoft.com/en-us/windows/win32/seccrypto/certificate-services[Active Directory Certificate Services (AD CS)^] certification authorities, written in C#.
 
 == Introduction
 

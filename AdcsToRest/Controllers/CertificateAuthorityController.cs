@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Web.Http;
 using AdcsToRest.Models;
@@ -20,6 +21,9 @@ using CERTCLILib;
 
 namespace AdcsToRest.Controllers
 {
+    /// <summary>
+    ///     An API controller for all operations related to a certificate authority.
+    /// </summary>
     public class CertificateAuthorityController : ApiController
     {
         /// <summary>
@@ -61,7 +65,9 @@ namespace AdcsToRest.Controllers
         {
             var configString = ActiveDirectory.GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
-            return certRequestInterface.GetCaCertificate2(configString, includeCertificateChain);
+            var result = certRequestInterface.GetCaCertificate2(configString, includeCertificateChain);
+            Marshal.ReleaseComObject(certRequestInterface);
+            return result;
         }
 
         /// <summary>
@@ -80,7 +86,9 @@ namespace AdcsToRest.Controllers
         {
             var configString = ActiveDirectory.GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
-            return certRequestInterface.GetCaCertificate2(configString, includeCertificateChain, true);
+            var result = certRequestInterface.GetCaCertificate2(configString, includeCertificateChain, true);
+            Marshal.ReleaseComObject(certRequestInterface);
+            return result;
         }
 
         /// <summary>
@@ -95,7 +103,9 @@ namespace AdcsToRest.Controllers
         {
             var configString = ActiveDirectory.GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
-            return certRequestInterface.GetCrlDpCollection(configString);
+            var result = certRequestInterface.GetCrlDpCollection(configString);
+            Marshal.ReleaseComObject(certRequestInterface);
+            return result;
         }
 
         /// <summary>
@@ -110,7 +120,9 @@ namespace AdcsToRest.Controllers
         {
             var configString = ActiveDirectory.GetConfigString(caName);
             var certRequestInterface = new CCertRequest();
-            return certRequestInterface.GetAiaCollection(configString);
+            var result = certRequestInterface.GetAiaCollection(configString);
+            Marshal.ReleaseComObject(certRequestInterface);
+            return result;
         }
 
         /// <summary>
@@ -125,7 +137,7 @@ namespace AdcsToRest.Controllers
         [HttpGet]
         [Authorize]
         [Route("ca/{caName}/request/{requestId}")]
-        public SubmissionResponse Get(string caName, int requestId,
+        public SubmissionResponse GetCertificate(string caName, int requestId,
             [FromUri] bool includeCertificateChain = false)
         {
             var configString = ActiveDirectory.GetConfigString(caName);
@@ -133,7 +145,9 @@ namespace AdcsToRest.Controllers
             using (((WindowsIdentity) User.Identity).Impersonate())
             {
                 var certRequestInterface = new CCertRequest();
-                return certRequestInterface.RetrievePending2(configString, requestId, includeCertificateChain);
+                var result = certRequestInterface.RetrievePending2(configString, requestId, includeCertificateChain);
+                Marshal.ReleaseComObject(certRequestInterface);
+                return result;
             }
         }
 
@@ -155,7 +169,7 @@ namespace AdcsToRest.Controllers
             [FromUri] string certificateTemplate = null,
             [FromUri] bool includeCertificateChain = false)
         {
-            var requestType = CertificateRequestIntegrityChecks.AutoDetectRequestType(certificateRequest.Request,
+            var requestType = CertificateRequestIntegrityChecks.DetectRequestType(certificateRequest.Request,
                 out var rawCertificateRequest);
 
             var configString = ActiveDirectory.GetConfigString(caName);
@@ -170,8 +184,10 @@ namespace AdcsToRest.Controllers
             using (((WindowsIdentity) User.Identity).Impersonate())
             {
                 var certRequestInterface = new CCertRequest();
-                return certRequestInterface.Submit2(configString, rawCertificateRequest,
+                var result = certRequestInterface.Submit2(configString, rawCertificateRequest,
                     certificateRequest.RequestAttributes, submissionFlags, includeCertificateChain);
+                Marshal.ReleaseComObject(certRequestInterface);
+                return result;
             }
         }
     }

@@ -16,15 +16,27 @@ using System.ComponentModel;
 
 namespace AdcsToRest.Models
 {
+    /// <summary>
+    ///     A data structure containing the result of a DCOM based operation against the CerSrv.request Interface of a
+    ///     certification authority.
+    /// </summary>
     public class SubmissionResponse
     {
+        /// <summary>
+        ///     Builds a SubmissionResponse data structure.
+        /// </summary>
+        /// <param name="statusCode">The HResult status code.</param>
+        /// <param name="requestId">The request id, if any.</param>
+        /// <param name="dispositionCode">The disposition code returned by the certificate authority, if any.</param>
+        /// <param name="dispositionMessage">The disposition message text, if any.</param>
+        /// <param name="certificate">The certificate, if any.</param>
         public SubmissionResponse(int statusCode, int requestId = 0, int dispositionCode = 0,
             string dispositionMessage = null, string certificate = null)
         {
             var statusMessage = new Win32Exception(statusCode).Message;
 
             StatusCode = statusCode;
-            StatusMessage = statusCode == 0 ? statusMessage : $"{statusMessage}. 0x{statusCode:X} ({statusCode})";
+            StatusMessage = statusCode == WinError.ERROR_SUCCESS ? statusMessage : $"{statusMessage}. 0x{statusCode:X} ({statusCode})";
             RequestId = requestId;
             DispositionCode = dispositionCode;
             DispositionMessage = dispositionMessage;
@@ -32,13 +44,12 @@ namespace AdcsToRest.Models
         }
 
         /// <summary>
-        ///     Status code for the processing of incoming API requests and the connection to the certificate authority, Contains
-        ///     HResult error codes as defined in WinErr.h.
+        ///     Status code for the connection to the certificate authority. Contains HResult error codes as defined in WinErr.h.
         /// </summary>
         public int StatusCode { get; set; }
 
         /// <summary>
-        ///     A textual description of the HResult error code.
+        ///     A textual description of the HResult error code in statusCode.
         /// </summary>
         public string StatusMessage { get; set; }
 

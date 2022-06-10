@@ -17,6 +17,9 @@ using Newtonsoft.Json;
 
 namespace AdcsToRest.Models
 {
+    /// <summary>
+    ///     A data structure containing a certificate request and a list of optional request attributes.
+    /// </summary>
     public class CertificateRequest
     {
         /// <summary>

@@ -172,7 +172,7 @@ namespace AdcsToRestTests
         public void TestAutoDetectPkcs10()
         {
             var result =
-                CertificateRequestIntegrityChecks.AutoDetectRequestType(CsrPkcs10, out _);
+                CertificateRequestIntegrityChecks.DetectRequestType(CsrPkcs10, out _);
 
             Assert.IsTrue(result == CertCli.CR_IN_PKCS10);
         }
@@ -181,7 +181,7 @@ namespace AdcsToRestTests
         public void TestAutoDetectPkcs7()
         {
             var result =
-                CertificateRequestIntegrityChecks.AutoDetectRequestType(CsrPkcs7, out _);
+                CertificateRequestIntegrityChecks.DetectRequestType(CsrPkcs7, out _);
 
             Assert.IsTrue(result == CertCli.CR_IN_PKCS7);
         }
@@ -190,7 +190,7 @@ namespace AdcsToRestTests
         public void TestAutoDetectCmc()
         {
             var result =
-                CertificateRequestIntegrityChecks.AutoDetectRequestType(CsrCmc, out _);
+                CertificateRequestIntegrityChecks.DetectRequestType(CsrCmc, out _);
 
             Assert.IsTrue(result == CertCli.CR_IN_CMC);
         }

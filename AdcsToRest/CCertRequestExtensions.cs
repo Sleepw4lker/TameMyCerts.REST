@@ -17,15 +17,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Web.Http;
 using AdcsToRest.Models;
 using CERTCLILib;
 
 namespace AdcsToRest
 {
+    /// <summary>
+    ///     A class that extends the functionality if ICertRequest for the needs of our API.
+    /// </summary>
     public static class CCertRequestExtensions
     {
+        /// <summary>
+        ///     Retrieves certificate revocation list distribution point information from a certificate authority.
+        /// </summary>
+        /// <param name="certRequestInterface"></param>
+        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static List<CertificateRevocationListDistributionPoint> GetCrlDpCollection(
             this CCertRequest certRequestInterface,
             string configString)
@@ -69,12 +77,14 @@ namespace AdcsToRest
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
             }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
         }
 
+        /// <summary>
+        ///     Retrieves authority information access information from a certificate authority.
+        /// </summary>
+        /// <param name="certRequestInterface"></param>
+        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static List<AuthorityInformationAccess> GetAiaCollection(this CCertRequest certRequestInterface,
             string configString)
         {
@@ -115,12 +125,19 @@ namespace AdcsToRest
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
             }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
         }
 
+        /// <summary>
+        ///     Retrieves a certificate from a certificate authority.
+        /// </summary>
+        /// <param name="certRequestInterface"></param>
+        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <param name="requestId"></param>
+        /// <param name="includeCertificateChain">
+        ///     Specifies if the certificate shall be returned as a PKCS#7 container that
+        ///     includes the entire certificate chain.
+        /// </param>
+        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static SubmissionResponse RetrievePending2(this CCertRequest certRequestInterface, string configString,
             int requestId, bool includeCertificateChain = false)
         {
@@ -138,12 +155,24 @@ namespace AdcsToRest
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
             }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
         }
 
+        /// <summary>
+        ///     Submits a certificate request to a certificate authority.
+        /// </summary>
+        /// <param name="certRequestInterface"></param>
+        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <param name="rawCertificateRequest">The certificate request as BASE64 without headers.</param>
+        /// <param name="requestAttributes">
+        ///     An optional list of request attributes that shall be passed to the certificate
+        ///     authority.
+        /// </param>
+        /// <param name="submissionFlags">Submission flags.</param>
+        /// <param name="includeCertificateChain">
+        ///     Specifies if the certificate shall be returned as a PKCS#7 container that
+        ///     includes the entire certificate chain.
+        /// </param>
+        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static SubmissionResponse Submit2(this CCertRequest certRequestInterface, string configString,
             string rawCertificateRequest, List<string> requestAttributes, int submissionFlags,
             bool includeCertificateChain)
@@ -167,12 +196,19 @@ namespace AdcsToRest
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
             }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
         }
 
+        /// <summary>
+        ///     Retrieves a CA or CA exchange certificate from a certificate authority.
+        /// </summary>
+        /// <param name="certRequestInterface"></param>
+        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <param name="includeCertificateChain">
+        ///     Specifies if the certificate shall be returned as a PKCS#7 container that
+        ///     includes the entire certificate chain.
+        /// </param>
+        /// <param name="caExchangeCertificate">Returns the CA exchange certificate instead of the CA certificate.</param>
+        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static SubmissionResponse GetCaCertificate2(this CCertRequest certRequestInterface, string configString,
             bool includeCertificateChain,
             bool caExchangeCertificate = false)
@@ -197,10 +233,6 @@ namespace AdcsToRest
                 {
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
                 });
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
             }
         }
 

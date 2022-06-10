@@ -16,10 +16,14 @@ using System.Collections.Generic;
 
 namespace AdcsToRest.Models
 {
+    /// <summary>
+    ///     A data structure containing certificate revocation list distribution point information for a certificate authority.
+    /// </summary>
     public class CertificateRevocationListDistributionPoint
     {
         /// <summary>
-        ///     A collection of uniform resource locators the certificate revocation list is distributed by the certificate authority.
+        ///     A collection of uniform resource locators the certificate revocation list is distributed by the certificate
+        ///     authority.
         /// </summary>
         public List<string> Urls { get; set; }
 
