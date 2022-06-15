@@ -14,6 +14,7 @@
 
 using System.Collections.Generic;
 using System.DirectoryServices;
+using System.Linq;
 
 namespace AdcsToRest.Models
 {
@@ -28,12 +29,9 @@ namespace AdcsToRest.Models
         /// <param name="searchResult"></param>
         public CertificateAuthority(SearchResult searchResult)
         {
-            var certificateTemplates = new List<string>();
-
-            foreach (var certificateTemplate in searchResult.Properties["certificateTemplates"])
-            {
-                certificateTemplates.Add(certificateTemplate.ToString());
-            }
+            var certificateTemplates =
+                (from object certificateTemplate in searchResult.Properties["certificateTemplates"]
+                    select certificateTemplate.ToString()).ToList();
 
             certificateTemplates.Sort();
 

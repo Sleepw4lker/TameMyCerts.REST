@@ -31,7 +31,7 @@ namespace AdcsToRest.Controllers
         /// </summary>
         [HttpGet]
         [Authorize]
-        [Route("ca")]
+        [Route("v1/ca")]
         public List<CertificateAuthority> GetCaInfoList()
         {
             return ActiveDirectory.GetCertificateAuthorityList();
@@ -43,7 +43,7 @@ namespace AdcsToRest.Controllers
         /// <param name="caName">The common name of the target certificate authority.</param>
         [HttpGet]
         [Authorize]
-        [Route("ca/{caName}")]
+        [Route("v1/ca/{caName}")]
         public CertificateAuthority GetCaInfo(string caName)
         {
             return ActiveDirectory.GetCertificateAuthority(caName);
@@ -59,7 +59,7 @@ namespace AdcsToRest.Controllers
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("ca/{caName}/ca-certificate")]
+        [Route("v1/ca/{caName}/ca-certificate")]
         public SubmissionResponse GetCaCertificate(string caName,
             [FromUri] bool includeCertificateChain = false)
         {
@@ -80,7 +80,7 @@ namespace AdcsToRest.Controllers
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("ca/{caName}/ca-exchange-certificate")]
+        [Route("v1/ca/{caName}/ca-exchange-certificate")]
         public SubmissionResponse GetCaExchangeCertificate(string caName,
             [FromUri] bool includeCertificateChain = false)
         {
@@ -98,7 +98,7 @@ namespace AdcsToRest.Controllers
         /// <returns></returns>
         [HttpGet]
         [Authorize]
-        [Route("ca/{caName}/crldp")]
+        [Route("v1/ca/{caName}/crldp")]
         public List<CertificateRevocationListDistributionPoint> GetCrlDp(string caName)
         {
             var configString = ActiveDirectory.GetConfigString(caName);
@@ -115,7 +115,7 @@ namespace AdcsToRest.Controllers
         /// <returns></returns>
         [HttpGet]
         [Authorize]
-        [Route("ca/{caName}/aia")]
+        [Route("v1/ca/{caName}/aia")]
         public List<AuthorityInformationAccess> GetAia(string caName)
         {
             var configString = ActiveDirectory.GetConfigString(caName);
@@ -136,7 +136,7 @@ namespace AdcsToRest.Controllers
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("ca/{caName}/request/{requestId}")]
+        [Route("v1/ca/{caName}/request/{requestId}")]
         public SubmissionResponse GetCertificate(string caName, int requestId,
             [FromUri] bool includeCertificateChain = false)
         {
@@ -163,7 +163,7 @@ namespace AdcsToRest.Controllers
         /// </param>
         [HttpPost]
         [Authorize]
-        [Route("ca/{caName}/request")]
+        [Route("v1/ca/{caName}/request")]
         public SubmissionResponse PostCertificateRequest(string caName,
             CertificateRequest certificateRequest,
             [FromUri] string certificateTemplate = null,

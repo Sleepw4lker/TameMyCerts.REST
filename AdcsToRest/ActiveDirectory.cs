@@ -14,6 +14,7 @@
 
 using System.Collections.Generic;
 using System.DirectoryServices;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
@@ -57,14 +58,8 @@ namespace AdcsToRest
         {
             var searchResults = GetEnrollmentServiceCollection();
 
-            var caInfoList = new List<CertificateAuthority>();
-
-            foreach (SearchResult searchResult in searchResults)
-            {
-                caInfoList.Add(new CertificateAuthority(searchResult));
-            }
-
-            return caInfoList;
+            return (from SearchResult searchResult in searchResults select new CertificateAuthority(searchResult))
+                .ToList();
         }
 
         /// <summary>
