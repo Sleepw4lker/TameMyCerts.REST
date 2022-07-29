@@ -8,7 +8,7 @@
         "http"
     ],
     "paths": {
-        "/ca": {
+        "/v1/ca": {
             "get": {
                 "tags": [
                     "CertificateAuthority"
@@ -33,7 +33,7 @@
                 }
             }
         },
-        "/ca/{caName}": {
+        "/v1/ca/{caName}": {
             "get": {
                 "tags": [
                     "CertificateAuthority"
@@ -64,7 +64,7 @@
                 }
             }
         },
-        "/ca/{caName}/ca-certificate": {
+        "/v1/ca/{caName}/ca-certificate": {
             "get": {
                 "tags": [
                     "CertificateAuthority"
@@ -102,7 +102,7 @@
                 }
             }
         },
-        "/ca/{caName}/ca-exchange-certificate": {
+        "/v1/ca/{caName}/ca-exchange-certificate": {
             "get": {
                 "tags": [
                     "CertificateAuthority"
@@ -140,7 +140,7 @@
                 }
             }
         },
-        "/ca/{caName}/crldp": {
+        "/v1/ca/{caName}/crldp": {
             "get": {
                 "tags": [
                     "CertificateAuthority"
@@ -174,7 +174,7 @@
                 }
             }
         },
-        "/ca/{caName}/aia": {
+        "/v1/ca/{caName}/aia": {
             "get": {
                 "tags": [
                     "CertificateAuthority"
@@ -208,13 +208,13 @@
                 }
             }
         },
-        "/ca/{caName}/request/{requestId}": {
+        "/v1/ca/{caName}/request/{requestId}": {
             "get": {
                 "tags": [
                     "CertificateAuthority"
                 ],
                 "summary": "Retrieves an issued certificate from a certificate authority.",
-                "operationId": "CertificateAuthority_Get",
+                "operationId": "CertificateAuthority_GetCertificate",
                 "consumes": [],
                 "produces": [
                     "application/json",
@@ -254,7 +254,7 @@
                 }
             }
         },
-        "/ca/{caName}/request": {
+        "/v1/ca/{caName}/request": {
             "post": {
                 "tags": [
                     "CertificateAuthority"
@@ -315,7 +315,7 @@
     },
     "definitions": {
         "CertificateAuthority": {
-            "description": "An object holding information about a certificate authority.",
+            "description": "A data structure holding information about a certificate authority.",
             "type": "object",
             "properties": {
                 "name": {
@@ -332,15 +332,16 @@
             }
         },
         "SubmissionResponse": {
+            "description": "A data structure containing the result of a DCOM based operation against the CerSrv.request Interface of a\r\ncertification authority.",
             "type": "object",
             "properties": {
                 "statusCode": {
                     "format": "int32",
-                    "description": "Status code for the processing of incoming API requests and the connection to the certificate authority, Contains\r\nHResult error codes as defined in WinErr.h.",
+                    "description": "Status code for the connection to the certificate authority. Contains HResult error codes as defined in WinErr.h.",
                     "type": "integer"
                 },
                 "statusMessage": {
-                    "description": "A textual description of the HResult error code.",
+                    "description": "A textual description of the HResult error code in statusCode.",
                     "type": "string"
                 },
                 "requestId": {
@@ -364,10 +365,11 @@
             }
         },
         "CertificateRevocationListDistributionPoint": {
+            "description": "A data structure containing certificate revocation list distribution point information for a certificate authority.",
             "type": "object",
             "properties": {
                 "urls": {
-                    "description": "A collection of uniform resource locators the certificate revocation list is distributed by the certificate authority.",
+                    "description": "A collection of uniform resource locators the certificate revocation list is distributed by the certificate\r\nauthority.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -380,6 +382,7 @@
             }
         },
         "AuthorityInformationAccess": {
+            "description": "A data structure containing authority information access for a certificate authority.",
             "type": "object",
             "properties": {
                 "urls": {
@@ -403,6 +406,7 @@
             }
         },
         "CertificateRequest": {
+            "description": "A data structure containing a certificate request and a list of optional request attributes.",
             "required": [
                 "request"
             ],
