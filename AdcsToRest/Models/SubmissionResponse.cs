@@ -17,41 +17,64 @@ using System.ComponentModel;
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     A data structure containing the result of a DCOM based operation against the CerSrv.request Interface of a
-    ///     certification authority.
+    ///     A data structure containing the result of an operation against a certification authority.
     /// </summary>
     public class SubmissionResponse
     {
+        /// <summary>
+        ///     The possible disposition values returned by the certification authority.
+        /// </summary>
+        public enum DispositionCode
+        {
+            /// <summary>
+            ///     Request did not complete
+            /// </summary>
+            Incomplete = 0,
+
+            /// <summary>
+            ///     Request failed
+            /// </summary>
+            Failed = 1,
+
+            /// <summary>
+            ///     Request denied
+            /// </summary>
+            Denied = 2,
+
+            /// <summary>
+            ///     Certificate issued
+            /// </summary>
+            Issued = 3,
+
+            /// <summary>
+            ///     Certificate issued separately
+            /// </summary>
+            IssuedSeparately = 4,
+
+            /// <summary>
+            ///     Request taken under submission
+            /// </summary>
+            Pending = 5
+        }
+
         /// <summary>
         ///     Builds a SubmissionResponse data structure.
         /// </summary>
         /// <param name="statusCode">The HResult status code.</param>
         /// <param name="requestId">The request id, if any.</param>
         /// <param name="dispositionCode">The disposition code returned by the certificate authority, if any.</param>
-        /// <param name="dispositionMessage">The disposition message text, if any.</param>
         /// <param name="certificate">The certificate, if any.</param>
-        public SubmissionResponse(int statusCode, int requestId = 0, int dispositionCode = 0,
-            string dispositionMessage = null, string certificate = null)
+        public SubmissionResponse(int statusCode, int requestId = 0, int dispositionCode = 0, string certificate = null)
         {
             var statusMessage = new Win32Exception(statusCode).Message;
-
-            StatusCode = statusCode;
-            StatusMessage = statusCode == WinError.ERROR_SUCCESS ? statusMessage : $"{statusMessage}. 0x{statusCode:X} ({statusCode})";
+            Status = new Status(statusCode,
+                statusCode == WinError.ERROR_SUCCESS
+                    ? statusMessage
+                    : $"{statusMessage}. 0x{statusCode:X} ({statusCode})");
             RequestId = requestId;
-            DispositionCode = dispositionCode;
-            DispositionMessage = dispositionMessage;
             Certificate = certificate;
+            Disposition = (DispositionCode) dispositionCode;
         }
-
-        /// <summary>
-        ///     Status code for the connection to the certificate authority. Contains HResult error codes as defined in WinErr.h.
-        /// </summary>
-        public int StatusCode { get; set; }
-
-        /// <summary>
-        ///     A textual description of the HResult error code in statusCode.
-        /// </summary>
-        public string StatusMessage { get; set; }
 
         /// <summary>
         ///     The request ID of the issued certificate, or the pending request.
@@ -59,20 +82,17 @@ namespace AdcsToRest.Models
         public int RequestId { get; set; }
 
         /// <summary>
-        ///     The disposition code returned by the certificate authority for the certificate request as defined in CertCli.h.
-        ///     Can be one of: 0 (Request did not complete), 1 (Request failed), 2 (Request denied), 3 (Certificate issued), 4
-        ///     (Certificate issued separately), 5 (Request taken under submission).
+        ///     The disposition status of the submission or retrieval request.
         /// </summary>
-        public int DispositionCode { get; set; }
+        public DispositionCode Disposition { get; set; }
 
         /// <summary>
-        ///     A textual description of the disposition status returned by the certificate authority.
+        ///     Additional status information about the outcome of the submission process.
         /// </summary>
-        public string DispositionMessage { get; set; }
+        public Status Status { get; set; }
 
         /// <summary>
-        ///     The issued X.509 V3 certificate, if issued by the certificate authority. Always returned as BASE64-encoded DER
-        ///     with header (also known as PEM).
+        ///     The issued X.509 V3 certificate, if issued by the certificate authority, as BASE64-encoded DER.
         /// </summary>
         public string Certificate { get; set; }
     }

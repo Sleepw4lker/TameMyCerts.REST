@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Web.Http;
 using AdcsToRest;
 using Swashbuckle.Application;
@@ -10,6 +11,8 @@ namespace AdcsToRest
     {
         public static void Register()
         {
+            // NOTE: Unlike Swashbuckle.AspNetCore, Swashbuckle for WebAPI does not support OpenAPI 3.0.
+
             var thisAssembly = typeof(SwaggerConfig).Assembly;
 
             GlobalConfiguration.Configuration
@@ -25,7 +28,7 @@ namespace AdcsToRest
                     // the docs is taken as the default. If your API supports multiple schemes and you want to be explicit
                     // about them, you can use the "Schemes" option as shown below.
                     //
-                    //c.Schemes(new[] { "http", "https" });
+                    c.Schemes(new[] { "https" });
 
                     // Use "SingleApiVersion" to describe a single version API. Swagger 2.0 includes an "Info" object to
                     // hold additional metadata for an API. Version and title are required but you can also provide
@@ -35,7 +38,7 @@ namespace AdcsToRest
 
                     // If you want the output Swagger docs to be indented properly, enable the "PrettyPrint" option.
                     //
-                    //c.PrettyPrint();
+                    c.PrettyPrint();
 
                     // If your API has multiple versions, use "MultipleApiVersions" instead of "SingleApiVersion".
                     // In this case, you must provide a lambda that tells Swashbuckle which actions should be
@@ -142,7 +145,7 @@ namespace AdcsToRest
                     // enum type. Swashbuckle will honor this change out-of-the-box. However, if you use a different
                     // approach to serialize enums as strings, you can also force Swashbuckle to describe them as strings.
                     //
-                    //c.DescribeAllEnumsAsStrings();
+                    c.DescribeAllEnumsAsStrings();
 
                     // Similar to Schema filters, Swashbuckle also supports Operation and Document filters:
                     //
@@ -169,7 +172,7 @@ namespace AdcsToRest
                     // with the same path (sans query string) and HTTP method. You can workaround this by providing a
                     // custom strategy to pick a winner or merge the descriptions for the purposes of the Swagger docs
                     //
-                    //c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+                    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 
                     // Wrap the default SwaggerGenerator with additional behavior (e.g. caching) or provide an
                     // alternative implementation for ISwaggerProvider with the CustomProvider option.

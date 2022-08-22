@@ -9,7 +9,7 @@
                 A class holding methods that help acquiring PKI related information from Active Directory.
             </summary>
         </member>
-        <member name="M:AdcsToRest.ActiveDirectory.GetCertificateAuthority(System.String)">
+        <member name="M:AdcsToRest.ActiveDirectory.GetCertificateAuthority(System.String,System.Boolean)">
             <summary>
                 Retrieves a certification authority and the templates bound to it from Active Directory.
             </summary>
@@ -19,7 +19,7 @@
                 Active Directory.
             </exception>
         </member>
-        <member name="M:AdcsToRest.ActiveDirectory.GetCertificateAuthorityList">
+        <member name="M:AdcsToRest.ActiveDirectory.GetCertificateAuthorityList(System.Boolean)">
             <summary>
                 Retrieves a list of all certificate authorities in the Active Directory forest, and the templates bound to each.
             </summary>
@@ -40,23 +40,7 @@
                 A class that extends the functionality if ICertRequest for the needs of our API.
             </summary>
         </member>
-        <member name="M:AdcsToRest.CCertRequestExtensions.GetCrlDpCollection(CERTCLILib.CCertRequest,System.String)">
-            <summary>
-                Retrieves certificate revocation list distribution point information from a certificate authority.
-            </summary>
-            <param name="certRequestInterface"></param>
-            <param name="configString">The configuration string of the certificate authority.</param>
-            <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
-        </member>
-        <member name="M:AdcsToRest.CCertRequestExtensions.GetAiaCollection(CERTCLILib.CCertRequest,System.String)">
-            <summary>
-                Retrieves authority information access information from a certificate authority.
-            </summary>
-            <param name="certRequestInterface"></param>
-            <param name="configString">The configuration string of the certificate authority.</param>
-            <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
-        </member>
-        <member name="M:AdcsToRest.CCertRequestExtensions.RetrievePending2(CERTCLILib.CCertRequest,System.String,System.Int32,System.Boolean)">
+        <member name="M:AdcsToRest.CCertRequestExtensions.RetrievePending(CERTCLILib.CCertRequest,System.String,System.Int32,System.Boolean,System.Boolean)">
             <summary>
                 Retrieves a certificate from a certificate authority.
             </summary>
@@ -69,7 +53,7 @@
             </param>
             <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
-        <member name="M:AdcsToRest.CCertRequestExtensions.Submit2(CERTCLILib.CCertRequest,System.String,System.String,System.Collections.Generic.List{System.String},System.Int32,System.Boolean)">
+        <member name="M:AdcsToRest.CCertRequestExtensions.Submit(CERTCLILib.CCertRequest,System.String,System.String,System.Collections.Generic.List{System.String},System.Int32,System.Boolean,System.Boolean)">
             <summary>
                 Submits a certificate request to a certificate authority.
             </summary>
@@ -85,19 +69,6 @@
                 Specifies if the certificate shall be returned as a PKCS#7 container that
                 includes the entire certificate chain.
             </param>
-            <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
-        </member>
-        <member name="M:AdcsToRest.CCertRequestExtensions.GetCaCertificate2(CERTCLILib.CCertRequest,System.String,System.Boolean,System.Boolean)">
-            <summary>
-                Retrieves a CA or CA exchange certificate from a certificate authority.
-            </summary>
-            <param name="certRequestInterface"></param>
-            <param name="configString">The configuration string of the certificate authority.</param>
-            <param name="includeCertificateChain">
-                Specifies if the certificate shall be returned as a PKCS#7 container that
-                includes the entire certificate chain.
-            </param>
-            <param name="caExchangeCertificate">Returns the CA exchange certificate instead of the CA certificate.</param>
             <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
         <member name="T:AdcsToRest.CertificateRequestIntegrityChecks">
@@ -132,63 +103,28 @@
                 An API controller for all operations related to a certificate authority.
             </summary>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaInfoList">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetAllCas(System.Boolean)">
             <summary>
                 Retrieves a collection of all available certificate authorities.
             </summary>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaInfo(System.String)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaByName(System.String,System.Boolean)">
             <summary>
                 Retrieves details for a certificate authority.
             </summary>
             <param name="caName">The common name of the target certificate authority.</param>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaCertificate(System.String,System.Boolean)">
-            <summary>
-                Retrieves the current certificate authority certificate for a certificate authority.
-            </summary>
-            <param name="caName">The common name of the target certificate authority.</param>
-            <param name="includeCertificateChain">
-                When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-                instead of a plain certificate.
-            </param>
-        </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCaExchangeCertificate(System.String,System.Boolean)">
-            <summary>
-                Retrieves the current certificate authority exchange certificate for a certificate authority.
-            </summary>
-            <param name="caName">The common name of the target certificate authority.</param>
-            <param name="includeCertificateChain">
-                When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-                instead of a plain certificate.
-            </param>
-        </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCrlDp(System.String)">
-            <summary>
-                Retrieves a collection of certificate revocation list distribution points for a certificate authority.
-            </summary>
-            <param name="caName">The common name of the target certificate authority.</param>
-            <returns></returns>
-        </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetAia(System.String)">
-            <summary>
-                Retrieves a collection of authority information access distribution points for a certificate authority.
-            </summary>
-            <param name="caName">The common name of the target certificate authority.</param>
-            <returns></returns>
-        </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCertificate(System.String,System.Int32,System.Boolean)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.GetCertificateByRequestId(System.String,System.Int32,System.Boolean,System.Boolean)">
             <summary>
                 Retrieves an issued certificate from a certificate authority.
             </summary>
             <param name="caName">The common name of the target certificate authority.</param>
             <param name="requestId">The request ID of the certificate to retrieve.</param>
             <param name="includeCertificateChain">
-                When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-                instead of a plain certificate.
+               Causes to response to be a PKCS#7 container including the certificate chain.
             </param>
         </member>
-        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.PostCertificateRequest(System.String,AdcsToRest.Models.CertificateRequest,System.String,System.Boolean)">
+        <member name="M:AdcsToRest.Controllers.CertificateAuthorityController.SubmitCertificateRequest(System.String,AdcsToRest.Models.CertificateRequest,System.String,System.Boolean,System.Boolean)">
             <summary>
                 Submits a certificate signing request to a certificate authority.
             </summary>
@@ -196,8 +132,7 @@
             <param name="certificateRequest">The data structure containing the certificate request and optional settings.</param>
             <param name="certificateTemplate">The certificate template the certificate request shall be assigned to.</param>
             <param name="includeCertificateChain">
-                When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-                instead of a plain certificate.
+                Causes to response to be a PKCS#7 container including the certificate chain.
             </param>
         </member>
         <member name="T:AdcsToRest.LocalizedStrings">
@@ -236,34 +171,12 @@
               Looks up a localized string similar to Unable to connect to certificate authority because {0}..
             </summary>
         </member>
-        <member name="T:AdcsToRest.Models.AuthorityInformationAccess">
-            <summary>
-                A data structure containing authority information access for a certificate authority.
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.AuthorityInformationAccess.Urls">
-            <summary>
-                A collection of authority information access urls that are available for the certification authority certificate.
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.AuthorityInformationAccess.OcspUrls">
-            <summary>
-                A collection of online certificate status protocol urls that are available for the certification authority
-                certificate.
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.AuthorityInformationAccess.Certificate">
-            <summary>
-                The X.509 V3 certification authority certificate. Always returned as BASE64-encoded DER with header (also known
-                as PEM).
-            </summary>
-        </member>
         <member name="T:AdcsToRest.Models.CertificateAuthority">
             <summary>
                 A data structure holding information about a certificate authority.
             </summary>
         </member>
-        <member name="M:AdcsToRest.Models.CertificateAuthority.#ctor(System.DirectoryServices.SearchResult)">
+        <member name="M:AdcsToRest.Models.CertificateAuthority.#ctor(System.DirectoryServices.SearchResult,System.Boolean)">
             <summary>
                 Builds the object from a SearchResult containing a pKIEnrollmentService LDAP object.
             </summary>
@@ -279,6 +192,27 @@
                 A list of all certificate templates offered by the certificate authority.
             </summary>
         </member>
+        <member name="P:AdcsToRest.Models.CertificateAuthority.Certificate">
+            <summary>
+                The current certificate authority certificate of the certificate authority.
+            </summary>
+        </member>
+        <member name="T:AdcsToRest.Models.CertificateAuthorityCollection">
+            <summary>
+                A collection of CertificateAuthority Objects.
+            </summary>
+        </member>
+        <member name="M:AdcsToRest.Models.CertificateAuthorityCollection.#ctor(System.Collections.Generic.List{AdcsToRest.Models.CertificateAuthority})">
+            <summary>
+                Builds a CertificateAuthorityCollection.
+            </summary>
+            <param name="certificateAuthorities">The collection of certificate authorities.</param>
+        </member>
+        <member name="P:AdcsToRest.Models.CertificateAuthorityCollection.CertificateAuthorities">
+            <summary>
+                A collection of CertificateAuthority Objects.
+            </summary>
+        </member>
         <member name="T:AdcsToRest.Models.CertificateRequest">
             <summary>
                 A data structure containing a certificate request and a list of optional request attributes.
@@ -286,32 +220,22 @@
         </member>
         <member name="P:AdcsToRest.Models.CertificateRequest.Request">
             <summary>
-                The X.509 certificate signing request as BASE64 encoded DER (aka PEM) string. PKCS#10, PKCS#7/CMS and CMC are
-                supported and are detected automatically.
+                The X.509 certificate signing request as BASE64 encoded DER. Request types are detected automatically.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.CertificateRequest.RequestAttributes">
             <summary>
-                Optional request attributes as a collection of strings. A request attribute is declared as a name-value pair
-                separated by a colon. Certificate template names can be specified here as well. You would add
-                "CertificateTemplate:TemplateNameHere".
+                Optional request attributes as a collection of strings.
             </summary>
         </member>
-        <member name="T:AdcsToRest.Models.CertificateRevocationListDistributionPoint">
+        <member name="P:AdcsToRest.Models.Status.Code">
             <summary>
-                A data structure containing certificate revocation list distribution point information for a certificate authority.
+                The disposition code returned by the certificate authority for the certificate request as defined in CertCli.h.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.CertificateRevocationListDistributionPoint.Urls">
+        <member name="P:AdcsToRest.Models.Status.Description">
             <summary>
-                A collection of uniform resource locators the certificate revocation list is distributed by the certificate
-                authority.
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.CertificateRevocationListDistributionPoint.Crl">
-            <summary>
-                The X.509 V2 certificate revocation list. Always returned as BASE64-encoded DER with header (also known
-                as PEM).
+                The message the certification authority returned alongside with the disposition.
             </summary>
         </member>
         <member name="T:AdcsToRest.Models.SubmissionResponse">
@@ -320,47 +244,63 @@
                 certification authority.
             </summary>
         </member>
-        <member name="M:AdcsToRest.Models.SubmissionResponse.#ctor(System.Int32,System.Int32,System.Int32,System.String,System.String)">
+        <member name="T:AdcsToRest.Models.SubmissionResponse.DispositionCode">
+            <summary>
+                The possible disposition values returned by the certification authority.
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.SubmissionResponse.DispositionCode.Incomplete">
+            <summary>
+                Request did not complete
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.SubmissionResponse.DispositionCode.Failed">
+            <summary>
+                Request failed
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.SubmissionResponse.DispositionCode.Denied">
+            <summary>
+                Request denied
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.SubmissionResponse.DispositionCode.Issued">
+            <summary>
+                Certificate issued
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.SubmissionResponse.DispositionCode.IssuedSeparately">
+            <summary>
+                Certificate issued separately
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.SubmissionResponse.DispositionCode.Pending">
+            <summary>
+                Request taken under submission
+            </summary>
+        </member>
+        <member name="M:AdcsToRest.Models.SubmissionResponse.#ctor(System.Int32,System.Int32,System.Int32,System.String)">
             <summary>
                 Builds a SubmissionResponse data structure.
             </summary>
             <param name="statusCode">The HResult status code.</param>
             <param name="requestId">The request id, if any.</param>
             <param name="dispositionCode">The disposition code returned by the certificate authority, if any.</param>
-            <param name="dispositionMessage">The disposition message text, if any.</param>
             <param name="certificate">The certificate, if any.</param>
-        </member>
-        <member name="P:AdcsToRest.Models.SubmissionResponse.StatusCode">
-            <summary>
-                Status code for the connection to the certificate authority. Contains HResult error codes as defined in WinErr.h.
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.SubmissionResponse.StatusMessage">
-            <summary>
-                A textual description of the HResult error code in statusCode.
-            </summary>
         </member>
         <member name="P:AdcsToRest.Models.SubmissionResponse.RequestId">
             <summary>
                 The request ID of the issued certificate, or the pending request.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.SubmissionResponse.DispositionCode">
+        <member name="P:AdcsToRest.Models.SubmissionResponse.Disposition">
             <summary>
-                The disposition code returned by the certificate authority for the certificate request as defined in CertCli.h.
-                Can be one of: 0 (Request did not complete), 1 (Request failed), 2 (Request denied), 3 (Certificate issued), 4
-                (Certificate issued separately), 5 (Request taken under submission).
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.SubmissionResponse.DispositionMessage">
-            <summary>
-                A textual description of the disposition status returned by the certificate authority.
+                The disposition status of the submission or retrieval request.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.SubmissionResponse.Certificate">
             <summary>
-                The issued X.509 V3 certificate, if issued by the certificate authority. Always returned as BASE64-encoded DER
-                with header (also known as PEM).
+                The issued X.509 V3 certificate, if issued by the certificate authority, as BASE64-encoded DER.
             </summary>
         </member>
     </members>

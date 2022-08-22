@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
+using System;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Web.Http;
@@ -29,100 +29,24 @@ namespace AdcsToRest.Controllers
         /// <summary>
         ///     Retrieves a collection of all available certificate authorities.
         /// </summary>
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
         [HttpGet]
         [Authorize]
-        [Route("v1/ca")]
-        public List<CertificateAuthority> GetCaInfoList()
+        public CertificateAuthorityCollection GetAllCas([FromUri] bool prettyPrintCertificate = false)
         {
-            return ActiveDirectory.GetCertificateAuthorityList();
+            return ActiveDirectory.GetCertificateAuthorityList(prettyPrintCertificate);
         }
 
         /// <summary>
         ///     Retrieves details for a certificate authority.
         /// </summary>
         /// <param name="caName">The common name of the target certificate authority.</param>
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
         [HttpGet]
         [Authorize]
-        [Route("v1/ca/{caName}")]
-        public CertificateAuthority GetCaInfo(string caName)
+        public CertificateAuthority GetCaByName(string caName, [FromUri] bool prettyPrintCertificate = false)
         {
-            return ActiveDirectory.GetCertificateAuthority(caName);
-        }
-
-        /// <summary>
-        ///     Retrieves the current certificate authority certificate for a certificate authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certificate authority.</param>
-        /// <param name="includeCertificateChain">
-        ///     When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-        ///     instead of a plain certificate.
-        /// </param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/ca/{caName}/ca-certificate")]
-        public SubmissionResponse GetCaCertificate(string caName,
-            [FromUri] bool includeCertificateChain = false)
-        {
-            var configString = ActiveDirectory.GetConfigString(caName);
-            var certRequestInterface = new CCertRequest();
-            var result = certRequestInterface.GetCaCertificate2(configString, includeCertificateChain);
-            Marshal.ReleaseComObject(certRequestInterface);
-            return result;
-        }
-
-        /// <summary>
-        ///     Retrieves the current certificate authority exchange certificate for a certificate authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certificate authority.</param>
-        /// <param name="includeCertificateChain">
-        ///     When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-        ///     instead of a plain certificate.
-        /// </param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/ca/{caName}/ca-exchange-certificate")]
-        public SubmissionResponse GetCaExchangeCertificate(string caName,
-            [FromUri] bool includeCertificateChain = false)
-        {
-            var configString = ActiveDirectory.GetConfigString(caName);
-            var certRequestInterface = new CCertRequest();
-            var result = certRequestInterface.GetCaCertificate2(configString, includeCertificateChain, true);
-            Marshal.ReleaseComObject(certRequestInterface);
-            return result;
-        }
-
-        /// <summary>
-        ///     Retrieves a collection of certificate revocation list distribution points for a certificate authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certificate authority.</param>
-        /// <returns></returns>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/ca/{caName}/crldp")]
-        public List<CertificateRevocationListDistributionPoint> GetCrlDp(string caName)
-        {
-            var configString = ActiveDirectory.GetConfigString(caName);
-            var certRequestInterface = new CCertRequest();
-            var result = certRequestInterface.GetCrlDpCollection(configString);
-            Marshal.ReleaseComObject(certRequestInterface);
-            return result;
-        }
-
-        /// <summary>
-        ///     Retrieves a collection of authority information access distribution points for a certificate authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certificate authority.</param>
-        /// <returns></returns>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/ca/{caName}/aia")]
-        public List<AuthorityInformationAccess> GetAia(string caName)
-        {
-            var configString = ActiveDirectory.GetConfigString(caName);
-            var certRequestInterface = new CCertRequest();
-            var result = certRequestInterface.GetAiaCollection(configString);
-            Marshal.ReleaseComObject(certRequestInterface);
-            return result;
+            return ActiveDirectory.GetCertificateAuthority(caName, prettyPrintCertificate);
         }
 
         /// <summary>
@@ -130,22 +54,21 @@ namespace AdcsToRest.Controllers
         /// </summary>
         /// <param name="caName">The common name of the target certificate authority.</param>
         /// <param name="requestId">The request ID of the certificate to retrieve.</param>
-        /// <param name="includeCertificateChain">
-        ///     When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-        ///     instead of a plain certificate.
-        /// </param>
+        /// <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
         [HttpGet]
         [Authorize]
-        [Route("v1/ca/{caName}/request/{requestId}")]
-        public SubmissionResponse GetCertificate(string caName, int requestId,
-            [FromUri] bool includeCertificateChain = false)
+        public SubmissionResponse GetCertificateByRequestId(string caName, int requestId,
+            [FromUri] bool includeCertificateChain = false,
+            [FromUri] bool prettyPrintCertificate = false)
         {
             var configString = ActiveDirectory.GetConfigString(caName);
 
             using (((WindowsIdentity) User.Identity).Impersonate())
             {
                 var certRequestInterface = new CCertRequest();
-                var result = certRequestInterface.RetrievePending2(configString, requestId, includeCertificateChain);
+                var result = certRequestInterface.RetrievePending(configString, requestId, includeCertificateChain,
+                    prettyPrintCertificate);
                 Marshal.ReleaseComObject(certRequestInterface);
                 return result;
             }
@@ -157,17 +80,15 @@ namespace AdcsToRest.Controllers
         /// <param name="caName">The common name of the target certificate authority.</param>
         /// <param name="certificateRequest">The data structure containing the certificate request and optional settings.</param>
         /// <param name="certificateTemplate">The certificate template the certificate request shall be assigned to.</param>
-        /// <param name="includeCertificateChain">
-        ///     When set to true, the Certificate response property will be a PKCS#7 container including the certificate chain
-        ///     instead of a plain certificate.
-        /// </param>
+        /// <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
         [HttpPost]
         [Authorize]
-        [Route("v1/ca/{caName}/request")]
-        public SubmissionResponse PostCertificateRequest(string caName,
+        public SubmissionResponse SubmitCertificateRequest(string caName,
             CertificateRequest certificateRequest,
             [FromUri] string certificateTemplate = null,
-            [FromUri] bool includeCertificateChain = false)
+            [FromUri] bool includeCertificateChain = false,
+            [FromUri] bool prettyPrintCertificate = false)
         {
             var requestType = CertificateRequestIntegrityChecks.DetectRequestType(certificateRequest.Request,
                 out var rawCertificateRequest);
@@ -184,8 +105,9 @@ namespace AdcsToRest.Controllers
             using (((WindowsIdentity) User.Identity).Impersonate())
             {
                 var certRequestInterface = new CCertRequest();
-                var result = certRequestInterface.Submit2(configString, rawCertificateRequest,
-                    certificateRequest.RequestAttributes, submissionFlags, includeCertificateChain);
+                var result = certRequestInterface.Submit(configString, rawCertificateRequest,
+                    certificateRequest.RequestAttributes, submissionFlags, includeCertificateChain,
+                    prettyPrintCertificate);
                 Marshal.ReleaseComObject(certRequestInterface);
                 return result;
             }

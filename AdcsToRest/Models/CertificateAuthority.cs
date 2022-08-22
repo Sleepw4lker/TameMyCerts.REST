@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace AdcsToRest.Models
 {
@@ -27,16 +29,18 @@ namespace AdcsToRest.Models
         ///     Builds the object from a SearchResult containing a pKIEnrollmentService LDAP object.
         /// </summary>
         /// <param name="searchResult"></param>
-        public CertificateAuthority(SearchResult searchResult)
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        public CertificateAuthority(SearchResult searchResult, bool prettyPrintCertificate = false)
         {
-            var certificateTemplates =
+            Name = (string) searchResult.Properties["cn"][0];
+
+            Certificate = GetCertificate((byte[]) searchResult.Properties["cACertificate"][0], prettyPrintCertificate);
+
+            CertificateTemplates =
                 (from object certificateTemplate in searchResult.Properties["certificateTemplates"]
                     select certificateTemplate.ToString()).ToList();
 
-            certificateTemplates.Sort();
-
-            Name = (string) searchResult.Properties["cn"][0];
-            CertificateTemplates = certificateTemplates;
+            CertificateTemplates.Sort();
         }
 
         /// <summary>
@@ -48,5 +52,25 @@ namespace AdcsToRest.Models
         ///     A list of all certificate templates offered by the certificate authority.
         /// </summary>
         public List<string> CertificateTemplates { get; set; }
+
+        /// <summary>
+        ///     The current certificate authority certificate of the certificate authority.
+        /// </summary>
+        public string Certificate { get; set; }
+
+        private string GetCertificate(byte[] rawData, bool prettyPrintCertificate = false)
+        {
+            var certificate = Convert.ToBase64String(rawData);
+
+            if (!prettyPrintCertificate)
+            {
+                return certificate;
+            }
+
+            certificate = Regex.Replace(certificate, ".{64}", "$&\r\n");
+            certificate = $"-----BEGIN CERTIFICATE-----\r\n{certificate}\r\n-----END CERTIFICATE-----";
+
+            return certificate;
+        }
     }
 }

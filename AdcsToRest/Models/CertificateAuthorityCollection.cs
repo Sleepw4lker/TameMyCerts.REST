@@ -17,20 +17,22 @@ using System.Collections.Generic;
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     A data structure containing certificate revocation list distribution point information for a certificate authority.
+    ///     A collection of CertificateAuthority Objects.
     /// </summary>
-    public class CertificateRevocationListDistributionPoint
+    public class CertificateAuthorityCollection
     {
         /// <summary>
-        ///     A collection of uniform resource locators the certificate revocation list is distributed by the certificate
-        ///     authority.
+        ///     Builds a CertificateAuthorityCollection.
         /// </summary>
-        public List<string> Urls { get; set; }
+        /// <param name="certificateAuthorities">The collection of certificate authorities.</param>
+        public CertificateAuthorityCollection(List<CertificateAuthority> certificateAuthorities)
+        {
+            CertificateAuthorities = certificateAuthorities;
+        }
 
         /// <summary>
-        ///     The X.509 V2 certificate revocation list. Always returned as BASE64-encoded DER with header (also known
-        ///     as PEM).
+        ///     A collection of CertificateAuthority Objects.
         /// </summary>
-        public string Crl { get; set; }
+        public List<CertificateAuthority> CertificateAuthorities { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace AdcsToRest
 
             routes.MapRoute(
                 "Default",
-                "{controller}/{action}/{id}",
+                string.Empty,
                 new {controller = "Home", action = "Index", id = UrlParameter.Optional}
             );
         }

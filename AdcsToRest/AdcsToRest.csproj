@@ -147,10 +147,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>LocalizedStrings.resx</DependentUpon>
     </Compile>
-    <Compile Include="Models\AuthorityInformationAccess.cs" />
     <Compile Include="Models\CertificateAuthority.cs" />
+    <Compile Include="Models\CertificateAuthorityCollection.cs" />
     <Compile Include="Models\CertificateRequest.cs" />
-    <Compile Include="Models\CertificateRevocationListDistributionPoint.cs" />
+    <Compile Include="Models\Status.cs" />
     <Compile Include="Models\SubmissionResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

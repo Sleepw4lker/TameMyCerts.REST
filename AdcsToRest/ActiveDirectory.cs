@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
 using System.Net;
@@ -31,11 +30,12 @@ namespace AdcsToRest
         ///     Retrieves a certification authority and the templates bound to it from Active Directory.
         /// </summary>
         /// <param name="certificateAuthority">The name of the target certificate authority.</param>
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
         /// <exception cref="HttpResponseException">
-        ///     Throws a HTTP 404 error if the specified certificate authority was not found in
-        ///     Active Directory.
+        ///     Throws a HTTP 404 error if the specified certificate authority was not found in Active Directory.
         /// </exception>
-        public static CertificateAuthority GetCertificateAuthority(string certificateAuthority)
+        public static CertificateAuthority GetCertificateAuthority(string certificateAuthority,
+            bool prettyPrintCertificate = false)
         {
             var searchResults = GetEnrollmentServiceCollection(certificateAuthority);
 
@@ -48,18 +48,19 @@ namespace AdcsToRest
                 });
             }
 
-            return new CertificateAuthority(searchResults[0]);
+            return new CertificateAuthority(searchResults[0], prettyPrintCertificate);
         }
 
         /// <summary>
         ///     Retrieves a list of all certificate authorities in the Active Directory forest, and the templates bound to each.
         /// </summary>
-        public static List<CertificateAuthority> GetCertificateAuthorityList()
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        public static CertificateAuthorityCollection GetCertificateAuthorityList(bool prettyPrintCertificate = false)
         {
             var searchResults = GetEnrollmentServiceCollection();
 
-            return (from SearchResult searchResult in searchResults select new CertificateAuthority(searchResult))
-                .ToList();
+            return new CertificateAuthorityCollection((from SearchResult searchResult in searchResults
+                select new CertificateAuthority(searchResult, prettyPrintCertificate)).ToList());
         }
 
         /// <summary>
@@ -119,7 +120,7 @@ namespace AdcsToRest
             {
                 Filter = $"(&{additionalCriteria}(objectCategory=pKIEnrollmentService))",
                 Sort = new SortOption("cn", SortDirection.Ascending),
-                PropertiesToLoad = {"cn", "certificateTemplates", "dNSHostName"}
+                PropertiesToLoad = {"cn", "certificateTemplates", "dNSHostName", "cACertificate"}
             };
 
             return directorySearcher.FindAll();

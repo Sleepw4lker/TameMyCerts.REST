@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
-using Newtonsoft.Json;
-
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     A data structure containing a certificate request and a list of optional request attributes.
+    ///     Additional status information about the outcome of the submission process.
     /// </summary>
-    public class CertificateRequest
+    public class Status
     {
-        /// <summary>
-        ///     The X.509 certificate signing request as BASE64 encoded DER. Request types are detected automatically.
-        /// </summary>
-        [JsonRequired]
-        public string Request { get; set; }
+        public Status(int code, string description)
+        {
+            Code = code;
+            Description = description;
+        }
 
         /// <summary>
-        ///     Optional request attributes as a collection of strings.
+        ///     The disposition code returned by the certificate authority for the certificate request as defined in CertCli.h.
         /// </summary>
-        public List<string> RequestAttributes { get; set; } = new List<string>();
+        public int Code { get; set; }
+
+        /// <summary>
+        ///     The message the certification authority returned alongside with the disposition.
+        /// </summary>
+        public string Description { get; set; }
     }
 }

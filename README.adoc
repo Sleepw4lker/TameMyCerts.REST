@@ -71,28 +71,16 @@ NOTE: The API incorporates Swagger for automated documentation of the API operat
 |===
 |Operation |Description
 
-|GET /v1/ca
+|GET /v1/CertificateAuthority
 |Retrieves a collection of all available certificate authorities.
 
-|GET /v1/ca/{caName}
+|GET /v1/CertificateAuthority/{caName}
 |Retrieves details for a certificate authority.
 
-|GET /v1/ca/{caName}/ca-certificate
-|Retrieves the current certificate authority certificate for a certificate authority.
-
-|GET /v1/ca/{caName}/ca-exchange-certificate
-|Retrieves the current certificate authority exchange certificate for a certificate authority.
-
-|GET /v1/ca/{caName}/crldp
-|Retrieves a collection of certificate revocation list distribution points for a certificate authority.
-
-|GET /v1/ca/{caName}/aia
-|Retrieves a collection of authority information access distribution points for a certificate authority.
-
-|GET /v1/ca/{caName}/request/{requestId}
+|GET /v1/CertificateAuthority/{caName}/{requestId}
 |Retrieves an issued certificate from a certificate authority.
 
-|POST /v1/ca/{caName}/request
+|POST /v1/CertificateAuthority/{caName}
 |Submits a certificate signing request to a certificate authority.
 
 |===

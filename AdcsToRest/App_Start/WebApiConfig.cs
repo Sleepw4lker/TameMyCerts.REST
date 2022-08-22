@@ -1,4 +1,7 @@
-﻿using System.Web.Http;
+﻿using System.Net.Http.Headers;
+using System.Web.Http;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
 namespace AdcsToRest
@@ -7,26 +10,26 @@ namespace AdcsToRest
     {
         public static void Register(HttpConfiguration config)
         {
-            // Web API configuration and services
-
-            // Web API routes
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
                 "DefaultApi",
-                "{controller}/{id}",
-                new {id = RouteParameter.Optional}
+                "v1/{controller}/{caName}/{requestId}",
+                new {caName = RouteParameter.Optional, requestId = RouteParameter.Optional }
             );
-
-            #region this converts pascal-cased .NET objects to JSON camelcase
 
             config.Formatters.Remove(config.Formatters.XmlFormatter);
 
-            var json = GlobalConfiguration.Configuration.Formatters.JsonFormatter;
-            json.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            var jsonFormatter = GlobalConfiguration.Configuration.Formatters.JsonFormatter;
 
-            #endregion
+            jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            jsonFormatter.SerializerSettings.Converters.Add(new StringEnumConverter(new CamelCaseNamingStrategy(),
+                false));
+            jsonFormatter.SerializerSettings.Formatting = Formatting.Indented;
+            jsonFormatter.SupportedMediaTypes.Clear();
+            jsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json"));
 
+            config.Formatters.Add(jsonFormatter);
         }
     }
 }
