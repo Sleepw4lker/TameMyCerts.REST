@@ -55,7 +55,8 @@ namespace AdcsToRest
         ///     Retrieves a list of all certificate authorities in the Active Directory forest, and the templates bound to each.
         /// </summary>
         /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
-        public static CertificateAuthorityCollection GetCertificateAuthorityList(bool prettyPrintCertificate = false)
+        public static CertificateAuthorityCollection GetCertificateAuthorityCollection(
+            bool prettyPrintCertificate = false)
         {
             var searchResults = GetEnrollmentServiceCollection();
 
@@ -137,6 +138,72 @@ namespace AdcsToRest
             {
                 return null;
             }
+        }
+
+
+        public static SearchResultCollection GetCertificateTemplateSearchResults(string cn = null)
+        {
+            var domainPath = GetForestRootDomain();
+
+            if (null == domainPath)
+            {
+                return null;
+            }
+
+            var additionalCriteria = string.Empty;
+
+            if (cn != null)
+            {
+                additionalCriteria += $"(cn={cn})";
+            }
+
+            var enrollmentContainer =
+                $"LDAP://CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,{domainPath}";
+
+            var directoryEntry = new DirectoryEntry(enrollmentContainer);
+
+            var directorySearcher = new DirectorySearcher(directoryEntry)
+            {
+                Filter =
+                    $"(&{additionalCriteria}(objectCategory=pKICertificateTemplate)(mspki-template-schema-version>=2))",
+                Sort = new SortOption("cn", SortDirection.Ascending),
+                PropertiesToLoad =
+                {
+                    "cn",
+                    "msPKI-minimal-Key-Size",
+                    "revision",
+                    "msPKI-Template-Minor-Revision",
+                    "msPKI-Cert-Template-OID",
+                    "msPKI-Certificate-Application-Policy",
+                    "msPKI-RA-Application-Policies"
+                }
+            };
+
+            return directorySearcher.FindAll();
+        }
+
+        public static CertificateTemplate GetCertificateTemplate(string certificateTemplate)
+        {
+            var searchResults = GetCertificateTemplateSearchResults(certificateTemplate);
+
+            if (searchResults.Count != 1)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_TEMPLATE,
+                        certificateTemplate))
+                });
+            }
+
+            return new CertificateTemplate(searchResults[0]);
+        }
+
+        public static CertificateTemplateCollection GetCertificateTemplateCollection()
+        {
+            var searchResults = GetCertificateTemplateSearchResults();
+
+            return new CertificateTemplateCollection((from SearchResult searchResult in searchResults
+                select new CertificateTemplate(searchResult)).ToList());
         }
     }
 }

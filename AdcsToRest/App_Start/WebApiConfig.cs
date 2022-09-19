@@ -12,12 +12,6 @@ namespace AdcsToRest
         {
             config.MapHttpAttributeRoutes();
 
-            config.Routes.MapHttpRoute(
-                "DefaultApi",
-                "v1/{controller}/{caName}/{requestId}",
-                new {caName = RouteParameter.Optional, requestId = RouteParameter.Optional }
-            );
-
             config.Formatters.Remove(config.Formatters.XmlFormatter);
 
             var jsonFormatter = GlobalConfiguration.Configuration.Formatters.JsonFormatter;

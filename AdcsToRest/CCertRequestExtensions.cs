@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
@@ -136,6 +137,181 @@ namespace AdcsToRest
             result.Certificate = certRequestInterface.GetCertificate(outputFlags);
 
             return result;
+        }
+
+        /// <summary>
+        ///     Retrieves certificate revocation list distribution point information from a certificate authority.
+        /// </summary>
+        /// <param name="certRequestInterface"></param>
+        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
+        public static List<CertificateRevocationListDistributionPoint> GetCrlDpCollection(
+            this CCertRequest certRequestInterface,
+            string configString, bool prettyPrintCertificate = false)
+        {
+            var outputFlags = 0;
+
+            if (!prettyPrintCertificate)
+            {
+                outputFlags |= CertView.CV_OUT_BASE64;
+                outputFlags |= CertView.CV_OUT_NOCRLF;
+            }
+            else
+            {
+                outputFlags |= CertView.CV_OUT_BASE64X509CRLHEADER;
+            }
+
+            try
+            {
+                int caCertCount = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERTCOUNT, 0,
+                    CertSrv.PROPTYPE_LONG, 0);
+
+                var crlList = new List<CertificateRevocationListDistributionPoint>();
+
+                for (var index = caCertCount - 1; index >= 0; index--)
+                {
+                    int crlState = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CRLSTATE, index,
+                        CertSrv.PROPTYPE_LONG, 0);
+
+                    if (crlState != CertAdm.CA_DISP_VALID)
+                    {
+                        continue;
+                    }
+
+                    string crlDistributionPoints = certRequestInterface.GetCAProperty(configString,
+                        CertCli.CR_PROP_CERTCDPURLS, index,
+                        CertSrv.PROPTYPE_STRING, 0);
+
+                    crlList.Add(new CertificateRevocationListDistributionPoint
+                    {
+                        CertificateRevocationList = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_BASECRL, index,
+                            CertSrv.PROPTYPE_BINARY, outputFlags),
+                        Urls = crlDistributionPoints.Split(new[] {"\n"},
+                            StringSplitOptions.RemoveEmptyEntries).ToList()
+                    });
+                }
+
+                return crlList;
+            }
+            catch (Exception ex)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
+                });
+            }
+        }
+
+        /// <summary>
+        ///     Retrieves authority information access information from a certificate authority.
+        /// </summary>
+        /// <param name="certRequestInterface"></param>
+        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
+        public static List<AuthorityInformationAccess> GetAiaCollection(this CCertRequest certRequestInterface,
+            string configString, bool prettyPrintCertificate = false)
+        {
+            try
+            {
+                int caCertCount = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERTCOUNT, 0,
+                    CertSrv.PROPTYPE_LONG, 0);
+
+                var aiaList = new List<AuthorityInformationAccess>();
+
+                var outputFlags = 0;
+
+                if (!prettyPrintCertificate)
+                {
+                    outputFlags |= CertView.CV_OUT_BASE64;
+                    outputFlags |= CertView.CV_OUT_NOCRLF;
+                }
+                else
+                {
+                    outputFlags |= CertView.CV_OUT_BASE64HEADER;
+                }
+
+                for (var index = caCertCount - 1; index >= 0; index--)
+                {
+                    string aiaUrls = certRequestInterface.GetCAProperty(configString,
+                        CertCli.CR_PROP_CERTAIAURLS, index,
+                        CertSrv.PROPTYPE_STRING, 0);
+
+                    string aiaOcspUrls = certRequestInterface.GetCAProperty(configString,
+                        CertCli.CR_PROP_CERTAIAOCSPURLS, index,
+                        CertSrv.PROPTYPE_STRING, 0);
+
+                    aiaList.Add(new AuthorityInformationAccess
+                    {
+                        Certificate = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERT, index,
+                            CertSrv.PROPTYPE_BINARY, outputFlags),
+                        Urls = aiaUrls.Split(new[] {"\n"},
+                            StringSplitOptions.RemoveEmptyEntries).ToList(),
+                        OcspUrls = aiaOcspUrls.Split(new[] {"\n"},
+                            StringSplitOptions.RemoveEmptyEntries).ToList()
+                    });
+                }
+
+                return aiaList;
+            }
+            catch (Exception ex)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
+                });
+            }
+        }
+
+        /// <summary>
+        ///     Retrieves a CA or CA exchange certificate from a certificate authority.
+        /// </summary>
+        /// <param name="certRequestInterface"></param>
+        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <param name="includeCertificateChain">
+        ///     Specifies if the certificate shall be returned as a PKCS#7 container that
+        ///     includes the entire certificate chain.
+        /// </param>
+        /// <param name="caExchangeCertificate">Returns the CA exchange certificate instead of the CA certificate.</param>
+        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
+        public static SubmissionResponse GetCaCertificate(this CCertRequest certRequestInterface, string configString,
+            bool includeCertificateChain,
+            bool prettyPrintCertificate = false, bool caExchangeCertificate = false)
+        {
+            try
+            {
+                var outputFlags = 0;
+
+                if (!prettyPrintCertificate)
+                {
+                    outputFlags |= CertCli.CR_OUT_BASE64;
+                    outputFlags |= CertCli.CR_OUT_NOCRLF;
+                }
+                else
+                {
+                    outputFlags |= CertCli.CR_OUT_BASE64HEADER;
+                }
+
+                if (includeCertificateChain)
+                {
+                    outputFlags |= CertCli.CR_OUT_CHAIN;
+                }
+
+                return new SubmissionResponse
+                (
+                    WinError.ERROR_SUCCESS, 0, (int) SubmissionResponse.DispositionCode.Issued,
+                    certRequestInterface.GetCACertificate(caExchangeCertificate ? 1 : 0, configString, outputFlags)
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
+                });
+            }
         }
     }
 }

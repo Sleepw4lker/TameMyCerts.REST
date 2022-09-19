@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Web.Http;
@@ -21,34 +20,9 @@ using CERTCLILib;
 
 namespace AdcsToRest.Controllers
 {
-    /// <summary>
-    ///     An API controller for all operations related to a certificate authority.
-    /// </summary>
-    public class CertificateAuthorityController : ApiController
+    public class CertificatesController : ApiController
     {
-        /// <summary>
-        ///     Retrieves a collection of all available certificate authorities.
-        /// </summary>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
-        [HttpGet]
-        [Authorize]
-        public CertificateAuthorityCollection GetAllCas([FromUri] bool prettyPrintCertificate = false)
-        {
-            return ActiveDirectory.GetCertificateAuthorityList(prettyPrintCertificate);
-        }
-
-        /// <summary>
-        ///     Retrieves details for a certificate authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certificate authority.</param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
-        [HttpGet]
-        [Authorize]
-        public CertificateAuthority GetCaByName(string caName, [FromUri] bool prettyPrintCertificate = false)
-        {
-            return ActiveDirectory.GetCertificateAuthority(caName, prettyPrintCertificate);
-        }
-
+        // TODO: Implement getting a certificate by serial number
         /// <summary>
         ///     Retrieves an issued certificate from a certificate authority.
         /// </summary>
@@ -58,6 +32,7 @@ namespace AdcsToRest.Controllers
         /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
         [HttpGet]
         [Authorize]
+        [Route("v1/certificates/{caName}/{requestId}")]
         public SubmissionResponse GetCertificateByRequestId(string caName, int requestId,
             [FromUri] bool includeCertificateChain = false,
             [FromUri] bool prettyPrintCertificate = false)
@@ -84,6 +59,7 @@ namespace AdcsToRest.Controllers
         /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
         [HttpPost]
         [Authorize]
+        [Route("v1/certificates/{caName}")]
         public SubmissionResponse SubmitCertificateRequest(string caName,
             CertificateRequest certificateRequest,
             [FromUri] string certificateTemplate = null,

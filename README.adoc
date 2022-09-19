@@ -42,10 +42,10 @@ For Windows Server 2016 and below, link:https://support.microsoft.com/en-us/topi
 
 === Installing IIS
 
-Install IIS with the following basic feature set.
+Install IIS with the following feature set.
 
 ....
-Add-WindowsFeature -Name Web-Server,Web-Asp-Net45,Web-Basic-Auth,Web-Filtering -IncludeManagementTools
+Add-WindowsFeature -Name Web-Server,Web-Asp-Net45,Web-Basic-Auth,Web-Filtering,Web-IP-Security -IncludeManagementTools
 ....
 
 Ensure you have a SSL certificate installed and require SSL on the web site you plan to install the API onto.
@@ -71,17 +71,36 @@ NOTE: The API incorporates Swagger for automated documentation of the API operat
 |===
 |Operation |Description
 
-|GET /v1/CertificateAuthority
+
+|GET /v1/certificate-authorities
 |Retrieves a collection of all available certificate authorities.
 
-|GET /v1/CertificateAuthority/{caName}
+|GET /v1/certificate-authorities/{caName}
 |Retrieves details for a certificate authority.
 
-|GET /v1/CertificateAuthority/{caName}/{requestId}
+|GET /v1/certificate-authorities/{caName}/ca-certificate
+|Retrieves the current certificate authority certificate for a certificate authority.
+
+|GET /v1/certificate-authorities/{caName}/ca-exchange-certificate
+|Retrieves the current certificate authority exchange certificate for a certificate authority.
+
+|GET /v1/certificate-authorities/{caName}/crl-distribution-points
+|Retrieves a collection of certificate revocation list distribution points for a certificate authority.
+
+|GET /v1/certificate-authorities/{caName}/authority-information-access
+|Retrieves a collection of authority information access distribution points for a certificate authority.
+
+|GET /v1/certificates/{caName}/{requestId}
 |Retrieves an issued certificate from a certificate authority.
 
-|POST /v1/CertificateAuthority/{caName}
+|POST /v1/certificates/{caName}
 |Submits a certificate signing request to a certificate authority.
+
+|GET /v1/certificate-templates
+|Retrieves a list of all certificate templates in the underlying Active Directory environment.
+
+|GET /v1/certificate-templates/{certificateTemplate}
+|Retrieves details for a certificate template.
 
 |===
 
