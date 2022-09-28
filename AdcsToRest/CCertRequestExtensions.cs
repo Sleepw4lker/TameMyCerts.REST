@@ -29,19 +29,21 @@ namespace AdcsToRest
     public static class CCertRequestExtensions
     {
         /// <summary>
-        ///     Retrieves a certificate from a certificate authority.
+        ///     Retrieves a certificate from a certification authority.
         /// </summary>
         /// <param name="certRequestInterface"></param>
-        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <param name="configString">The configuration string of the certification authority.</param>
         /// <param name="requestId"></param>
         /// <param name="includeCertificateChain">
         ///     Specifies if the certificate shall be returned as a PKCS#7 container that
         ///     includes the entire certificate chain.
         /// </param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
         /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static SubmissionResponse RetrievePending(this CCertRequest certRequestInterface, string configString,
-            int requestId, bool includeCertificateChain = false, bool prettyPrintCertificate = false)
+            int requestId, bool includeCertificateChain = false, bool textualEncoding = false)
         {
             try
             {
@@ -49,7 +51,7 @@ namespace AdcsToRest
                     certRequestInterface.RetrievePending(requestId, configString);
 
                 return certRequestInterface.ProcessEnrollmentResult(submissionResult, includeCertificateChain,
-                    prettyPrintCertificate);
+                    textualEncoding);
             }
             catch (Exception ex)
             {
@@ -61,10 +63,10 @@ namespace AdcsToRest
         }
 
         /// <summary>
-        ///     Submits a certificate request to a certificate authority.
+        ///     Submits a certificate request to a certification authority.
         /// </summary>
         /// <param name="certRequestInterface"></param>
-        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <param name="configString">The configuration string of the certification authority.</param>
         /// <param name="rawCertificateRequest">The certificate request as BASE64 without headers.</param>
         /// <param name="requestAttributes">
         ///     An optional list of request attributes that shall be passed to the certificate
@@ -75,11 +77,13 @@ namespace AdcsToRest
         ///     Specifies if the certificate shall be returned as a PKCS#7 container that
         ///     includes the entire certificate chain.
         /// </param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
         /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static SubmissionResponse Submit(this CCertRequest certRequestInterface, string configString,
             string rawCertificateRequest, List<string> requestAttributes, int submissionFlags,
-            bool includeCertificateChain, bool prettyPrintCertificate = false)
+            bool includeCertificateChain, bool textualEncoding = false)
         {
             try
             {
@@ -91,7 +95,7 @@ namespace AdcsToRest
                 );
 
                 return certRequestInterface.ProcessEnrollmentResult(submissionResult,
-                    includeCertificateChain, prettyPrintCertificate);
+                    includeCertificateChain, textualEncoding);
             }
             catch (Exception ex)
             {
@@ -103,7 +107,7 @@ namespace AdcsToRest
         }
 
         private static SubmissionResponse ProcessEnrollmentResult(this CCertRequest certRequestInterface,
-            int disposition, bool includeCertificateChain = false, bool prettyPrintCertificate = false)
+            int disposition, bool includeCertificateChain = false, bool textualEncoding = false)
         {
             var result = new SubmissionResponse
             (
@@ -112,14 +116,14 @@ namespace AdcsToRest
                 disposition
             );
 
-            if (disposition != CertCli.CR_DISP_ISSUED)
+            if (!(disposition == CertCli.CR_DISP_ISSUED || disposition == CertCli.CR_DISP_REVOKED))
             {
                 return result;
             }
 
             var outputFlags = 0;
 
-            if (!prettyPrintCertificate)
+            if (!textualEncoding)
             {
                 outputFlags |= CertCli.CR_OUT_BASE64;
                 outputFlags |= CertCli.CR_OUT_NOCRLF;
@@ -140,19 +144,21 @@ namespace AdcsToRest
         }
 
         /// <summary>
-        ///     Retrieves certificate revocation list distribution point information from a certificate authority.
+        ///     Retrieves certificate revocation list distribution point information from a certification authority.
         /// </summary>
         /// <param name="certRequestInterface"></param>
-        /// <param name="configString">The configuration string of the certificate authority.</param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <param name="configString">The configuration string of the certification authority.</param>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
         /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
-        public static List<CertificateRevocationListDistributionPoint> GetCrlDpCollection(
+        public static CertificateRevocationListDistributionPointCollection GetCrlDpCollection(
             this CCertRequest certRequestInterface,
-            string configString, bool prettyPrintCertificate = false)
+            string configString, bool textualEncoding = false)
         {
             var outputFlags = 0;
 
-            if (!prettyPrintCertificate)
+            if (!textualEncoding)
             {
                 outputFlags |= CertView.CV_OUT_BASE64;
                 outputFlags |= CertView.CV_OUT_NOCRLF;
@@ -185,14 +191,15 @@ namespace AdcsToRest
 
                     crlList.Add(new CertificateRevocationListDistributionPoint
                     {
-                        CertificateRevocationList = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_BASECRL, index,
+                        CertificateRevocationList = certRequestInterface.GetCAProperty(configString,
+                            CertCli.CR_PROP_BASECRL, index,
                             CertSrv.PROPTYPE_BINARY, outputFlags),
                         Urls = crlDistributionPoints.Split(new[] {"\n"},
                             StringSplitOptions.RemoveEmptyEntries).ToList()
                     });
                 }
 
-                return crlList;
+                return new CertificateRevocationListDistributionPointCollection(crlList);
             }
             catch (Exception ex)
             {
@@ -204,14 +211,16 @@ namespace AdcsToRest
         }
 
         /// <summary>
-        ///     Retrieves authority information access information from a certificate authority.
+        ///     Retrieves authority information access information from a certification authority.
         /// </summary>
         /// <param name="certRequestInterface"></param>
-        /// <param name="configString">The configuration string of the certificate authority.</param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <param name="configString">The configuration string of the certification authority.</param>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
         /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
-        public static List<AuthorityInformationAccess> GetAiaCollection(this CCertRequest certRequestInterface,
-            string configString, bool prettyPrintCertificate = false)
+        public static AuthorityInformationAccessCollection GetAiaCollection(this CCertRequest certRequestInterface,
+            string configString, bool textualEncoding = false)
         {
             try
             {
@@ -222,7 +231,7 @@ namespace AdcsToRest
 
                 var outputFlags = 0;
 
-                if (!prettyPrintCertificate)
+                if (!textualEncoding)
                 {
                     outputFlags |= CertView.CV_OUT_BASE64;
                     outputFlags |= CertView.CV_OUT_NOCRLF;
@@ -253,7 +262,7 @@ namespace AdcsToRest
                     });
                 }
 
-                return aiaList;
+                return new AuthorityInformationAccessCollection(aiaList);
             }
             catch (Exception ex)
             {
@@ -265,26 +274,28 @@ namespace AdcsToRest
         }
 
         /// <summary>
-        ///     Retrieves a CA or CA exchange certificate from a certificate authority.
+        ///     Retrieves a CA or CA exchange certificate from a certification authority.
         /// </summary>
         /// <param name="certRequestInterface"></param>
-        /// <param name="configString">The configuration string of the certificate authority.</param>
+        /// <param name="configString">The configuration string of the certification authority.</param>
         /// <param name="includeCertificateChain">
         ///     Specifies if the certificate shall be returned as a PKCS#7 container that
         ///     includes the entire certificate chain.
         /// </param>
         /// <param name="caExchangeCertificate">Returns the CA exchange certificate instead of the CA certificate.</param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
         /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static SubmissionResponse GetCaCertificate(this CCertRequest certRequestInterface, string configString,
             bool includeCertificateChain,
-            bool prettyPrintCertificate = false, bool caExchangeCertificate = false)
+            bool textualEncoding = false, bool caExchangeCertificate = false)
         {
             try
             {
                 var outputFlags = 0;
 
-                if (!prettyPrintCertificate)
+                if (!textualEncoding)
                 {
                     outputFlags |= CertCli.CR_OUT_BASE64;
                     outputFlags |= CertCli.CR_OUT_NOCRLF;

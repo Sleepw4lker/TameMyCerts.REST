@@ -136,7 +136,7 @@
     </Compile>
     <Compile Include="CCertRequestExtensions.cs" />
     <Compile Include="CertificateRequestIntegrityChecks.cs" />
-    <Compile Include="Controllers\CertificateAuthoritiesController.cs" />
+    <Compile Include="Controllers\CertificationAuthoritiesController.cs" />
     <Compile Include="Controllers\CertificatesController.cs" />
     <Compile Include="Controllers\CertificateTemplatesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -150,12 +150,15 @@
       <DependentUpon>LocalizedStrings.resx</DependentUpon>
     </Compile>
     <Compile Include="Models\AuthorityInformationAccess.cs" />
-    <Compile Include="Models\CertificateAuthority.cs" />
-    <Compile Include="Models\CertificateAuthorityCollection.cs" />
+    <Compile Include="Models\AuthorityInformationAccessCollection.cs" />
+    <Compile Include="Models\CertificateRevocationListDistributionPointCollection.cs" />
+    <Compile Include="Models\CertificationAuthority.cs" />
+    <Compile Include="Models\CertificationAuthorityCollection.cs" />
     <Compile Include="Models\CertificateRequest.cs" />
     <Compile Include="Models\CertificateRevocationListDistributionPoint.cs" />
     <Compile Include="Models\CertificateTemplate.cs" />
     <Compile Include="Models\CertificateTemplateCollection.cs" />
+    <Compile Include="Models\ExtendedKeyUsage.cs" />
     <Compile Include="Models\Status.cs" />
     <Compile Include="Models\SubmissionResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -185,6 +188,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
     <COMReference Include="CERTCLILib">
       <Guid>{372FCE32-4324-11D0-8810-00A0C903B83C}</Guid>
       <VersionMajor>1</VersionMajor>
@@ -203,9 +209,6 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

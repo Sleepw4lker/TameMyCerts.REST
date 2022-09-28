@@ -54,30 +54,31 @@ namespace AdcsToRest.Models
             /// <summary>
             ///     Request taken under submission
             /// </summary>
-            Pending = 5
+            Pending = 5,
+
+            /// <summary>
+            ///     The certificate has been revoked by the certification authority.
+            /// </summary>
+            Revoked = 6
         }
 
         /// <summary>
         ///     Builds a SubmissionResponse data structure.
         /// </summary>
         /// <param name="statusCode">The HResult status code.</param>
-        /// <param name="requestId">The request id, if any.</param>
-        /// <param name="dispositionCode">The disposition code returned by the certificate authority, if any.</param>
+        /// <param name="requestId">The request identifier, if any.</param>
+        /// <param name="dispositionCode">The disposition code returned by the certification authority, if any.</param>
         /// <param name="certificate">The certificate, if any.</param>
         public SubmissionResponse(int statusCode, int requestId = 0, int dispositionCode = 0, string certificate = null)
         {
-            var statusMessage = new Win32Exception(statusCode).Message;
-            Status = new Status(statusCode,
-                statusCode == WinError.ERROR_SUCCESS
-                    ? statusMessage
-                    : $"{statusMessage}. 0x{statusCode:X} ({statusCode})");
+            Status = new Status(statusCode);
             RequestId = requestId;
             Certificate = certificate;
             Disposition = (DispositionCode) dispositionCode;
         }
 
         /// <summary>
-        ///     The request ID of the issued certificate, or the pending request.
+        ///     The request identifier of the issued certificate, or the pending request.
         /// </summary>
         public int RequestId { get; set; }
 
@@ -92,7 +93,7 @@ namespace AdcsToRest.Models
         public Status Status { get; set; }
 
         /// <summary>
-        ///     The issued X.509 V3 certificate, if issued by the certificate authority, as BASE64-encoded DER.
+        ///     The issued PKIX certificate, if issued by the certification authority, as BASE64-encoded DER.
         /// </summary>
         public string Certificate { get; set; }
     }

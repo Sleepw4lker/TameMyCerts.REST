@@ -22,6 +22,7 @@ namespace AdcsToRest
         public const int CR_DISP_ISSUED = 3;
         public const int CR_DISP_ISSUED_OUT_OF_BAND = 4;
         public const int CR_DISP_UNDER_SUBMISSION = 5;
+        public const int CR_DISP_REVOKED = 6;
 
         public const int CR_PROP_CASIGCERTCOUNT = 11;
         public const int CR_PROP_CASIGCERT = 12;

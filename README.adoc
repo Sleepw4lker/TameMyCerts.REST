@@ -4,25 +4,23 @@ A simple, yet powerful REST API for submitting certificates to one or more Micro
 
 == Introduction
 
-The API allows for requesting certificates from systems that are not joined to the same Active Directory domain as the certification authorities (or not joined to any domain at all). It can serve any client operating system that is capable of submitting a REST API call. It converts certificate requests submitted via REST to the DCOM protocol. Therefore it is perfectly suited for certificate issuance scenarios from Linux, BSD, cloud services and the like. It can also be used to connect cloud-native certificate management solutions (like link:https://cert-manager.io/[cert-manager^]) or open source implementations of the ACME protocol (like link:https://github.com/dvtirol/serles-acme[Serles^]) to a Microsoft certificate authority with this API.
+The API allows for requesting certificates from systems that are not joined to the same Active Directory domain as the certification authorities (or not joined to any domain at all). It can serve any client operating system that is capable of submitting a REST API call. It converts certificate requests submitted via REST to the DCOM protocol. Therefore it is perfectly suited for certificate issuance scenarios from Linux, BSD, cloud services and the like. It can also be used to connect cloud-native certificate management solutions (like link:https://cert-manager.io/[cert-manager^]) or open source implementations of the ACME protocol (like link:https://github.com/dvtirol/serles-acme[Serles^]) to a Microsoft certification authority with this API.
 
 == Installing
-
-Please note that the API is still in development. Binary packages will be available on the releases page as soon as it will reach release-stadium.
 
 === Security and Implementation considerations
 
 You don't need a service account. The integrated IIS application pool identity is sufficient if you use HTTP basic authentication (link:https://datatracker.ietf.org/doc/html/rfc7617[RFC 7617^]). The chosen service account must have the SeImpersonatePrivilege ("Impersonate a client after authentication") on the API web server, which by default is granted through membership of the local IIS_IUSRS security group.
 
-Submitted certificate requests appear on the certificate authority under the security context of the Active Directory user who submitted them via the API. So permissions are handled on the CA/Template level, exactly as you would do with DCOM. You may want to combine the API with the link:https://github.com/Sleepw4lker/TameMyCerts[TameMyCerts policy module^] on your certification authorities to be able to strictly restrict requested certificate content.
+Certificate requests appear on the certification authority under the security context of the Active Directory user who submitted them via the API. So permissions are handled on the CA/Template level, exactly as you would do with DCOM. You may want to combine the API with the link:https://github.com/Sleepw4lker/TameMyCerts[TameMyCerts policy module^] on your certification authorities to be able to strictly restrict requested certificate content.
 
-I suggest using the API with link:https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/basic-authentication[Basic Authentication^]. Windows Authentication (NTLM/Kerberos) and Client Certificate Authentication work as well, but I advise against these because you will need Kerberos Delegation which can be a very dangerous topic that should be used with extreme caution.
+I suggest using the API with link:https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/basic-authentication[HTTP basic authentication^]. Windows Authentication (NTLM/Kerberos) and Client Certificate Authentication work as well, but I advise against these because you will need Kerberos Delegation which can be a very dangerous topic that should be used with extreme caution.
 
 As the API requires authentication, it should only be used over HTTPS.
 
-You should easily be able to implement a high-availability setup behind a loadbalancer, as all API calls are stateless.
+You should easily be able to implement a high-availability setup behind a load balancer, as all API calls are stateless.
 
-The API web server must be a domain member and able to contact both Active Directory Domain Controllers as well as each certificate authority. For API to CA communications, you must allow ports 135/tcp and 49152-65535/tcp. 
+The API web server must be a domain member and able to contact both Active Directory Domain Controllers as well as each certification authority. For API to CA communications, you must allow ports 135/tcp and 49152-65535/tcp. 
 
 === Supported Operating Systems and Prerequisites
 
@@ -54,6 +52,8 @@ Ensure you have a SSL certificate installed and require SSL on the web site you 
 
 Simply copy the files into the designated Web Root. No application configuration required.
 
+NOTE: If you plan to use the API behind a load balancer, you might want to tweak or disable the dynamicIpSecurity section in the link:AdcsToRest/Web.config[Web.config] file.
+
 === Configuring IIS
 
 Configure your SSL Binding and ensure the "Require SSL" configuration parameter is set.
@@ -66,41 +66,43 @@ For Basic Authentication, on the web site, in authentication settings, do the fo
 
 == Using the API
 
-NOTE: The API incorporates Swagger for automated documentation of the API operations. You can reach it under the /swagger directory, which is the default directory when you access it via browser. Consult this resource for detailled information. You can find the API specification link:v1.json[here].
+NOTE: The API incorporates Swagger for automated documentation of the API operations. You can reach it under the /swagger directory, which is the default directory when you access it via browser. Consult this resource for detailled information. You can find the API specification link:AdcsToRest/v1.json[here].
 
 |===
 |Operation |Description
 
-
-|GET /v1/certificate-authorities
-|Retrieves a collection of all available certificate authorities.
-
-|GET /v1/certificate-authorities/{caName}
-|Retrieves details for a certificate authority.
-
-|GET /v1/certificate-authorities/{caName}/ca-certificate
-|Retrieves the current certificate authority certificate for a certificate authority.
-
-|GET /v1/certificate-authorities/{caName}/ca-exchange-certificate
-|Retrieves the current certificate authority exchange certificate for a certificate authority.
-
-|GET /v1/certificate-authorities/{caName}/crl-distribution-points
-|Retrieves a collection of certificate revocation list distribution points for a certificate authority.
-
-|GET /v1/certificate-authorities/{caName}/authority-information-access
-|Retrieves a collection of authority information access distribution points for a certificate authority.
-
 |GET /v1/certificates/{caName}/{requestId}
-|Retrieves an issued certificate from a certificate authority.
+|Retrieves an issued certificate from a certification authority.
 
 |POST /v1/certificates/{caName}
-|Submits a certificate signing request to a certificate authority.
+|Submits a certificate signing request to a certification authority.
 
 |GET /v1/certificate-templates
 |Retrieves a list of all certificate templates in the underlying Active Directory environment.
 
 |GET /v1/certificate-templates/{certificateTemplate}
 |Retrieves details for a certificate template.
+
+|GET /v1/certificate-templates/{certificateTemplate}/issuers
+|Retrieves certification authorities that issue certificates for a given certificate template.
+
+|GET /v1/certification-authorities
+|Retrieves a collection of all available certification authorities.
+
+|GET /v1/certification-authorities/{caName}
+|Retrieves details for a certification authority.
+
+|GET /v1/certification-authorities/{caName}/ca-certificate
+|Retrieves the current certification authority certificate for a certification authority.
+
+|GET /v1/certification-authorities/{caName}/ca-exchange-certificate
+|Retrieves the current certification authority exchange certificate for a certification authority.
+
+|GET /v1/certification-authorities/{caName}/crl-distribution-points
+|Retrieves a collection of certificate revocation list distribution points for a certification authority.
+
+|GET /v1/certification-authorities/{caName}/authority-information-access
+|Retrieves a collection of authority information access distribution points for a certification authority.
 
 |===
 

@@ -17,7 +17,7 @@ using System.Collections.Generic;
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     A data structure containing certificate revocation list distribution point information for a certificate authority.
+    ///     A data structure containing certificate revocation list distribution point information for a certification authority.
     /// </summary>
     public class CertificateRevocationListDistributionPoint
     {
@@ -28,8 +28,7 @@ namespace AdcsToRest.Models
         public List<string> Urls { get; set; }
 
         /// <summary>
-        ///     The X.509 V2 certificate revocation list. Always returned as BASE64-encoded DER with header (also known
-        ///     as PEM).
+        ///     The PKIX certificate revocation list.
         /// </summary>
         public string CertificateRevocationList { get; set; }
     }

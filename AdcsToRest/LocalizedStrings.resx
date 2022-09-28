@@ -121,7 +121,7 @@
     <value>Unable to parse the given certificate request.</value>
   </data>
   <data name="DESC_MISSING_CA" xml:space="preserve">
-    <value>The certificate authority {0} was not found.</value>
+    <value>The certification authority {0} was not found.</value>
   </data>
   <data name="DESC_MISSING_PARAMETER" xml:space="preserve">
     <value>The {0} parameter is missing or invalid.</value>
@@ -130,6 +130,9 @@
     <value>The certificate template {0} was not found.</value>
   </data>
   <data name="DESC_SUBMISSION_FAILED" xml:space="preserve">
-    <value>Unable to connect to certificate authority because {0}.</value>
+    <value>Unable to connect to certification authority because {0}.</value>
+  </data>
+  <data name="UNKNOWN" xml:space="preserve">
+    <value>unknown</value>
   </data>
 </root>

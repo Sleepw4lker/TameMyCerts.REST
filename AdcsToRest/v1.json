@@ -1,0 +1,690 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "v1",
+    "title": "The \"bring ADCS to REST\" API"
+  },
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/v1/certificates/{caName}/{requestId}": {
+      "get": {
+        "tags": [
+          "Certificates"
+        ],
+        "summary": "Retrieves an issued certificate from a certification authority.",
+        "operationId": "Certificates_GetCertificateByRequestId",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "caName",
+            "in": "path",
+            "description": "The common name of the target certification authority.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "requestId",
+            "in": "path",
+            "description": "The request identifier of the certificate to retrieve.",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "includeCertificateChain",
+            "in": "query",
+            "description": "Causes the response to be a PKCS#7 container including the certificate chain.",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "textualEncoding",
+            "in": "query",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64\r\nstream.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SubmissionResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certificates/{caName}": {
+      "post": {
+        "tags": [
+          "Certificates"
+        ],
+        "summary": "Submits a certificate signing request to a certification authority.",
+        "operationId": "Certificates_SubmitCertificateRequest",
+        "consumes": [
+          "application/json",
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "caName",
+            "in": "path",
+            "description": "The common name of the target certification authority.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "certificateRequest",
+            "in": "body",
+            "description": "The data structure containing the certificate request and optional settings.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CertificateRequest"
+            }
+          },
+          {
+            "name": "certificateTemplate",
+            "in": "query",
+            "description": "The certificate template the certificate request shall be assigned to.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "includeCertificateChain",
+            "in": "query",
+            "description": "Causes the response to be a PKCS#7 container including the certificate chain.",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "textualEncoding",
+            "in": "query",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SubmissionResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certificate-templates": {
+      "get": {
+        "tags": [
+          "CertificateTemplates"
+        ],
+        "summary": "Retrieves a list of all certificate templates in the underlying Active Directory environment.",
+        "operationId": "CertificateTemplates_GetCertificateTemplateCollection",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CertificateTemplateCollection"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certificate-templates/{certificateTemplate}": {
+      "get": {
+        "tags": [
+          "CertificateTemplates"
+        ],
+        "summary": "Retrieves details for a certificate template.",
+        "operationId": "CertificateTemplates_GetCertificateTemplate",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "certificateTemplate",
+            "in": "path",
+            "description": "The name of the target certificate template.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CertificateTemplate"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certificate-templates/{certificateTemplate}/issuers": {
+      "get": {
+        "tags": [
+          "CertificateTemplates"
+        ],
+        "summary": "Retrieves certification authorities that issue certificates for a given certificate template.",
+        "operationId": "CertificateTemplates_GetCertificateTemplateIssuers",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "certificateTemplate",
+            "in": "path",
+            "description": "The name of the target certificate template.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "textualEncoding",
+            "in": "query",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CertificationAuthorityCollection"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certification-authorities": {
+      "get": {
+        "tags": [
+          "CertificationAuthorities"
+        ],
+        "summary": "Retrieves a collection of all available certification authorities.",
+        "operationId": "CertificationAuthorities_GetAllCas",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "textualEncoding",
+            "in": "query",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CertificationAuthorityCollection"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certification-authorities/{caName}": {
+      "get": {
+        "tags": [
+          "CertificationAuthorities"
+        ],
+        "summary": "Retrieves details for a certification authority.",
+        "operationId": "CertificationAuthorities_GetCaByName",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "caName",
+            "in": "path",
+            "description": "The common name of the target certification authority.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "textualEncoding",
+            "in": "query",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CertificationAuthority"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certification-authorities/{caName}/ca-certificate": {
+      "get": {
+        "tags": [
+          "CertificationAuthorities"
+        ],
+        "summary": "Retrieves the current certification authority certificate for a certification authority.",
+        "operationId": "CertificationAuthorities_GetCaCertificate",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "caName",
+            "in": "path",
+            "description": "The common name of the target certification authority.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "includeCertificateChain",
+            "in": "query",
+            "description": "Causes the response to be a PKCS#7 container including the certificate chain.",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "textualEncoding",
+            "in": "query",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SubmissionResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certification-authorities/{caName}/ca-exchange-certificate": {
+      "get": {
+        "tags": [
+          "CertificationAuthorities"
+        ],
+        "summary": "Retrieves the current certification authority exchange certificate for a certification authority.",
+        "operationId": "CertificationAuthorities_GetCaExchangeCertificate",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "caName",
+            "in": "path",
+            "description": "The common name of the target certification authority.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "includeCertificateChain",
+            "in": "query",
+            "description": "Causes the response to be a PKCS#7 container including the certificate chain.",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "textualEncoding",
+            "in": "query",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/SubmissionResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certification-authorities/{caName}/crl-distribution-points": {
+      "get": {
+        "tags": [
+          "CertificationAuthorities"
+        ],
+        "summary": "Retrieves a collection of certificate revocation list distribution points for a certification authority.",
+        "operationId": "CertificationAuthorities_GetCrlDp",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "caName",
+            "in": "path",
+            "description": "The common name of the target certification authority.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "textualEncoding",
+            "in": "query",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CertificateRevocationListDistributionPointCollection"
+            }
+          }
+        }
+      }
+    },
+    "/v1/certification-authorities/{caName}/authority-information-access": {
+      "get": {
+        "tags": [
+          "CertificationAuthorities"
+        ],
+        "summary": "Retrieves a collection of authority information access distribution points for a certification authority.",
+        "operationId": "CertificationAuthorities_GetAia",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "caName",
+            "in": "path",
+            "description": "The common name of the target certification authority.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "textualEncoding",
+            "in": "query",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/AuthorityInformationAccessCollection"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "SubmissionResponse": {
+      "description": "A data structure containing the result of an operation against a certification authority.",
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "format": "int32",
+          "description": "The request identifier of the issued certificate, or the pending request.",
+          "type": "integer"
+        },
+        "disposition": {
+          "description": "The disposition status of the submission or retrieval request.",
+          "enum": [
+            "incomplete",
+            "failed",
+            "denied",
+            "issued",
+            "issuedSeparately",
+            "pending",
+            "revoked"
+          ],
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/Status",
+          "description": "Additional status information about the outcome of the submission process."
+        },
+        "certificate": {
+          "description": "The issued PKIX certificate, if issued by the certification authority, as BASE64-encoded DER.",
+          "type": "string"
+        }
+      }
+    },
+    "Status": {
+      "description": "Additional status information about the outcome of the submission process.",
+      "type": "object",
+      "properties": {
+        "statusCode": {
+          "format": "int32",
+          "description": "The result code returned by the certification authority during the submission process.",
+          "type": "integer"
+        },
+        "description": {
+          "description": "The message the certification authority returned alongside with the result code.",
+          "type": "string"
+        }
+      }
+    },
+    "CertificateRequest": {
+      "description": "A data structure containing a certificate request and a list of optional request attributes.",
+      "required": [
+        "request"
+      ],
+      "type": "object",
+      "properties": {
+        "request": {
+          "description": "The PKIX certificate signing request as BASE64 encoded DER. Request type gets detected automatically.",
+          "type": "string"
+        },
+        "requestAttributes": {
+          "description": "Optional request attributes as a collection of strings.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "CertificateTemplateCollection": {
+      "description": "A collection of CertificateTemplate Objects.",
+      "type": "object",
+      "properties": {
+        "certificateTemplates": {
+          "description": "A collection of CertificateTemplate Objects.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CertificateTemplate"
+          }
+        }
+      }
+    },
+    "CertificateTemplate": {
+      "description": "Information about a certificate template.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The common name of the certificate template.",
+          "type": "string"
+        },
+        "minimumKeyLength": {
+          "format": "int32",
+          "description": "The minimum accepted key length of the certificate template.",
+          "type": "integer"
+        },
+        "majorVersion": {
+          "format": "int32",
+          "description": "The major version of the certificate template.",
+          "type": "integer"
+        },
+        "minorVersion": {
+          "format": "int32",
+          "description": "The minor version of the certificate template.",
+          "type": "integer"
+        },
+        "oid": {
+          "description": "The object identifier of the certificate template.",
+          "type": "string"
+        },
+        "extendedKeyUsages": {
+          "description": "A list of extended key usages of the certificate template.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ExtendedKeyUsage"
+          }
+        },
+        "keyAlgorithm": {
+          "description": "Specifies the key algorithm the certificate will be signed with.",
+          "enum": [
+            "rSA",
+            "eCDSA_P256",
+            "eCDSA_P384",
+            "eCDSA_P521",
+            "eCDH_P256",
+            "eCDH_P384",
+            "eCDH_P521"
+          ],
+          "type": "string"
+        }
+      }
+    },
+    "ExtendedKeyUsage": {
+      "description": "Information about an extended key usage.",
+      "type": "object",
+      "properties": {
+        "oid": {
+          "description": "The object identifier of the extended key usage.",
+          "type": "string"
+        },
+        "friendlyName": {
+          "description": "The friendly name of the extended key usage.",
+          "type": "string"
+        }
+      }
+    },
+    "CertificationAuthorityCollection": {
+      "description": "A collection of CertificationAuthority Objects.",
+      "type": "object",
+      "properties": {
+        "certificationAuthorities": {
+          "description": "A collection of CertificationAuthority Objects.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CertificationAuthority"
+          }
+        }
+      }
+    },
+    "CertificationAuthority": {
+      "description": "A data structure holding information about a certification authority.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The common name of the certification authority.",
+          "type": "string"
+        },
+        "certificateTemplates": {
+          "description": "A list of all certificate templates offered by the certification authority.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "certificate": {
+          "description": "The current certification authority certificate of the certification authority.",
+          "type": "string"
+        }
+      }
+    },
+    "CertificateRevocationListDistributionPointCollection": {
+      "description": "Contains a list of certificate revocation list distribution points.",
+      "type": "object",
+      "properties": {
+        "certificateRevocationListDistributionPoints": {
+          "description": "Contains a list of certificate revocation list distribution points.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CertificateRevocationListDistributionPoint"
+          }
+        }
+      }
+    },
+    "CertificateRevocationListDistributionPoint": {
+      "description": "A data structure containing certificate revocation list distribution point information for a certification authority.",
+      "type": "object",
+      "properties": {
+        "urls": {
+          "description": "A collection of uniform resource locators the certificate revocation list is distributed by the certificate\r\nauthority.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "certificateRevocationList": {
+          "description": "The PKIX certificate revocation list.",
+          "type": "string"
+        }
+      }
+    },
+    "AuthorityInformationAccessCollection": {
+      "description": "Contains a list of authority information access distribution points.",
+      "type": "object",
+      "properties": {
+        "authorityInformationAccess": {
+          "description": "Contains a list of authority information access distribution points.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AuthorityInformationAccess"
+          }
+        }
+      }
+    },
+    "AuthorityInformationAccess": {
+      "description": "A data structure containing authority information access for a certification authority.",
+      "type": "object",
+      "properties": {
+        "urls": {
+          "description": "A collection of authority information access urls that are available for the certification authority certificate.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ocspUrls": {
+          "description": "A collection of online certificate status protocol urls that are available for the certification authority\r\ncertificate.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "certificate": {
+          "description": "The PKIX certification authority certificate.",
+          "type": "string"
+        }
+      }
+    }
+  }
+}

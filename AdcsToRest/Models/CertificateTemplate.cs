@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
+using System.Linq;
 
 namespace AdcsToRest.Models
 {
@@ -24,40 +25,61 @@ namespace AdcsToRest.Models
     public class CertificateTemplate
     {
         /// <summary>
-        ///     TODO
+        ///     Supported public key algorithm types.
         /// </summary>
         public enum KeyAlgorithmType
         {
+            /// <summary>
+            ///     The RSA algorithm.
+            /// </summary>
             RSA = 1,
+
+            /// <summary>
+            ///     The elliptic curve digital signature algorithm using the nistp256 curve.
+            /// </summary>
             ECDSA_P256 = 2,
+
+            /// <summary>
+            ///     The elliptic curve digital signature algorithm using the nistp384 curve.
+            /// </summary>
             ECDSA_P384 = 3,
+
+            /// <summary>
+            ///     The elliptic curve digital signature algorithm using the nistp521 curve.
+            /// </summary>
             ECDSA_P521 = 4,
+
+            /// <summary>
+            ///     The elliptic curve diffie hellman algorithm using the nistp256 curve.
+            /// </summary>
             ECDH_P256 = 5,
+
+            /// <summary>
+            ///     The elliptic curve diffie hellman algorithm using the nistp384 curve.
+            /// </summary>
             ECDH_P384 = 6,
+
+            /// <summary>
+            ///     The elliptic curve diffie hellman algorithm using the nistp521 curve.
+            /// </summary>
             ECDH_P521 = 7
         }
 
         /// <summary>
-        ///     TODO
+        ///     An object holding information about a certificate template.
         /// </summary>
-        /// <param name="searchResult"></param>
+        /// <param name="searchResult">The searchResult from which the object is built.</param>
         public CertificateTemplate(SearchResult searchResult)
         {
-            var extendedKeyUsages = new List<string>();
-
-            foreach (var extendedKeyUsage in searchResult.Properties["msPKI-Certificate-Application-Policy"])
-            {
-                extendedKeyUsages.Add(extendedKeyUsage.ToString());
-            }
-
-            extendedKeyUsages.Sort();
-
             Name = (string) searchResult.Properties["cn"][0];
             MinimumKeyLength = (int) searchResult.Properties["msPKI-minimal-Key-Size"][0];
             MajorVersion = (int) searchResult.Properties["revision"][0];
             MinorVersion = (int) searchResult.Properties["msPKI-Template-Minor-Revision"][0];
             Oid = (string) searchResult.Properties["msPKI-Cert-Template-OID"][0];
-            ExtendedKeyUsages = extendedKeyUsages;
+            ExtendedKeyUsages =
+                (from object extendedKeyUsage in searchResult.Properties["msPKI-Certificate-Application-Policy"]
+                    select new ExtendedKeyUsage(extendedKeyUsage.ToString()))
+                .OrderBy(extendedKeyUsage => extendedKeyUsage.FriendlyName).ToList();
             KeyAlgorithm = GetKeyAlgorithm(searchResult.Properties["msPKI-RA-Application-Policies"]);
         }
 
@@ -86,11 +108,10 @@ namespace AdcsToRest.Models
         /// </summary>
         public string Oid { get; set; }
 
-        // TODO: Enumerate OIDs and translate to friendly name as well
         /// <summary>
         ///     A list of extended key usages of the certificate template.
         /// </summary>
-        public List<string> ExtendedKeyUsages { get; set; }
+        public List<ExtendedKeyUsage> ExtendedKeyUsages { get; set; }
 
         /// <summary>
         ///     Specifies the key algorithm the certificate will be signed with.

@@ -21,20 +21,20 @@ using System.Text.RegularExpressions;
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     A data structure holding information about a certificate authority.
+    ///     A data structure holding information about a certification authority.
     /// </summary>
-    public class CertificateAuthority
+    public class CertificationAuthority
     {
         /// <summary>
         ///     Builds the object from a SearchResult containing a pKIEnrollmentService LDAP object.
         /// </summary>
         /// <param name="searchResult"></param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
-        public CertificateAuthority(SearchResult searchResult, bool prettyPrintCertificate = false)
+        /// <param name="textualEncoding">Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.</param>
+        public CertificationAuthority(SearchResult searchResult, bool textualEncoding = false)
         {
             Name = (string) searchResult.Properties["cn"][0];
 
-            Certificate = GetCertificate((byte[]) searchResult.Properties["cACertificate"][0], prettyPrintCertificate);
+            Certificate = GetCertificate((byte[]) searchResult.Properties["cACertificate"][0], textualEncoding);
 
             CertificateTemplates =
                 (from object certificateTemplate in searchResult.Properties["certificateTemplates"]
@@ -44,25 +44,25 @@ namespace AdcsToRest.Models
         }
 
         /// <summary>
-        ///     The common name of the certificate authority.
+        ///     The common name of the certification authority.
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        ///     A list of all certificate templates offered by the certificate authority.
+        ///     A list of all certificate templates offered by the certification authority.
         /// </summary>
         public List<string> CertificateTemplates { get; set; }
 
         /// <summary>
-        ///     The current certificate authority certificate of the certificate authority.
+        ///     The current certification authority certificate of the certification authority.
         /// </summary>
         public string Certificate { get; set; }
 
-        private string GetCertificate(byte[] rawData, bool prettyPrintCertificate = false)
+        private string GetCertificate(byte[] rawData, bool textualEncoding = false)
         {
             var certificate = Convert.ToBase64String(rawData);
 
-            if (!prettyPrintCertificate)
+            if (!textualEncoding)
             {
                 return certificate;
             }

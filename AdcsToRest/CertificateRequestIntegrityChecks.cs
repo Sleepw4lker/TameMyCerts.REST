@@ -23,7 +23,7 @@ namespace AdcsToRest
     /// <summary>
     ///     A class that helps identifying the type of the certificate request and harmonizing it for further processing.
     /// </summary>
-    public class CertificateRequestIntegrityChecks
+    public static class CertificateRequestIntegrityChecks
     {
         /// <summary>
         ///     Verifies if the certificate request can be parsed as defined by the requestType.
@@ -122,11 +122,10 @@ namespace AdcsToRest
         ///     Identifies the type of a given certificate request.
         /// </summary>
         /// <param name="certificateRequest">
-        ///     The input certificate request as BASE64 encoded string (aka PEM), with headers or
-        ///     without.
+        ///     The input certificate request as BASE64 encoded DER.
         /// </param>
-        /// <param name="rawCertificateRequest">The input certificate request as BASE64 encoded string (aka PEM) without headers.</param>
-        /// <returns>The request type to be used with ICertRequest::Submit</returns>
+        /// <param name="rawCertificateRequest">The output certificate request as BASE64 encoded DER.</param>
+        /// <returns>The request type to be used with ICertRequest::Submit.</returns>
         public static int DetectRequestType(string certificateRequest, out string rawCertificateRequest)
         {
             int[] validRequestTypes =

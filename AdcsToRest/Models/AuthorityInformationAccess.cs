@@ -17,7 +17,7 @@ using System.Collections.Generic;
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     A data structure containing authority information access for a certificate authority.
+    ///     A data structure containing authority information access for a certification authority.
     /// </summary>
     public class AuthorityInformationAccess
     {
@@ -33,8 +33,7 @@ namespace AdcsToRest.Models
         public List<string> OcspUrls { get; set; }
 
         /// <summary>
-        ///     The X.509 V3 certification authority certificate. Always returned as BASE64-encoded DER with header (also known
-        ///     as PEM).
+        ///     The PKIX certification authority certificate.
         /// </summary>
         public string Certificate { get; set; }
     }

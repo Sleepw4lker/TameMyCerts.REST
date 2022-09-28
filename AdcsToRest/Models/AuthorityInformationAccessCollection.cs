@@ -1,6 +1,4 @@
-﻿// Copyright 2022 Uwe Gradenegger
-
-// Licensed under the Apache License, Version 2.0 (the "License");
+﻿// Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 
@@ -17,22 +15,21 @@ using System.Collections.Generic;
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     A collection of CertificateAuthority Objects.
+    ///     Contains a list of authority information access distribution points.
     /// </summary>
-    public class CertificateAuthorityCollection
+    public class AuthorityInformationAccessCollection
     {
         /// <summary>
-        ///     Builds a CertificateAuthorityCollection.
+        ///     Builds the collection out of a given list of authority information access distribution points.
         /// </summary>
-        /// <param name="certificateAuthorities">The collection of certificate authorities.</param>
-        public CertificateAuthorityCollection(List<CertificateAuthority> certificateAuthorities)
+        public AuthorityInformationAccessCollection(List<AuthorityInformationAccess> authorityInformationAccess)
         {
-            CertificateAuthorities = certificateAuthorities;
+            AuthorityInformationAccess = authorityInformationAccess;
         }
 
         /// <summary>
-        ///     A collection of CertificateAuthority Objects.
+        ///     Contains a list of authority information access distribution points.
         /// </summary>
-        public List<CertificateAuthority> CertificateAuthorities { get; set; }
+        public List<AuthorityInformationAccess> AuthorityInformationAccess { get; set; }
     }
 }

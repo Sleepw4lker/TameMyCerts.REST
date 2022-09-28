@@ -13,24 +13,26 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using Newtonsoft.Json;
 
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     A data structure containing a certificate request and a list of optional request attributes.
+    ///     A collection of CertificationAuthority Objects.
     /// </summary>
-    public class CertificateRequest
+    public class CertificationAuthorityCollection
     {
         /// <summary>
-        ///     The PKIX certificate signing request as BASE64 encoded DER. Request type gets detected automatically.
+        ///     Builds a CertificationAuthorityCollection.
         /// </summary>
-        [JsonRequired]
-        public string Request { get; set; }
+        /// <param name="certificationAuthorities">The collection of certification authorities.</param>
+        public CertificationAuthorityCollection(List<CertificationAuthority> certificationAuthorities)
+        {
+            CertificationAuthorities = certificationAuthorities;
+        }
 
         /// <summary>
-        ///     Optional request attributes as a collection of strings.
+        ///     A collection of CertificationAuthority Objects.
         /// </summary>
-        public List<string> RequestAttributes { get; set; } = new List<string>();
+        public List<CertificationAuthority> CertificationAuthorities { get; set; }
     }
 }

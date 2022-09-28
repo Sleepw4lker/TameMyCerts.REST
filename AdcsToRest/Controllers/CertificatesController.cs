@@ -20,22 +20,26 @@ using CERTCLILib;
 
 namespace AdcsToRest.Controllers
 {
+    /// <summary>
+    ///     An API controller for all operations related to PKIX certificates.
+    /// </summary>
     public class CertificatesController : ApiController
     {
-        // TODO: Implement getting a certificate by serial number
         /// <summary>
-        ///     Retrieves an issued certificate from a certificate authority.
+        ///     Retrieves an issued certificate from a certification authority.
         /// </summary>
-        /// <param name="caName">The common name of the target certificate authority.</param>
-        /// <param name="requestId">The request ID of the certificate to retrieve.</param>
+        /// <param name="caName">The common name of the target certification authority.</param>
+        /// <param name="requestId">The request identifier of the certificate to retrieve.</param>
         /// <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
         [HttpGet]
         [Authorize]
         [Route("v1/certificates/{caName}/{requestId}")]
         public SubmissionResponse GetCertificateByRequestId(string caName, int requestId,
             [FromUri] bool includeCertificateChain = false,
-            [FromUri] bool prettyPrintCertificate = false)
+            [FromUri] bool textualEncoding = false)
         {
             var configString = ActiveDirectory.GetConfigString(caName);
 
@@ -43,20 +47,22 @@ namespace AdcsToRest.Controllers
             {
                 var certRequestInterface = new CCertRequest();
                 var result = certRequestInterface.RetrievePending(configString, requestId, includeCertificateChain,
-                    prettyPrintCertificate);
+                    textualEncoding);
                 Marshal.ReleaseComObject(certRequestInterface);
                 return result;
             }
         }
 
         /// <summary>
-        ///     Submits a certificate signing request to a certificate authority.
+        ///     Submits a certificate signing request to a certification authority.
         /// </summary>
-        /// <param name="caName">The common name of the target certificate authority.</param>
+        /// <param name="caName">The common name of the target certification authority.</param>
         /// <param name="certificateRequest">The data structure containing the certificate request and optional settings.</param>
         /// <param name="certificateTemplate">The certificate template the certificate request shall be assigned to.</param>
         /// <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
         [HttpPost]
         [Authorize]
         [Route("v1/certificates/{caName}")]
@@ -64,7 +70,7 @@ namespace AdcsToRest.Controllers
             CertificateRequest certificateRequest,
             [FromUri] string certificateTemplate = null,
             [FromUri] bool includeCertificateChain = false,
-            [FromUri] bool prettyPrintCertificate = false)
+            [FromUri] bool textualEncoding = false)
         {
             var requestType = CertificateRequestIntegrityChecks.DetectRequestType(certificateRequest.Request,
                 out var rawCertificateRequest);
@@ -83,7 +89,7 @@ namespace AdcsToRest.Controllers
                 var certRequestInterface = new CCertRequest();
                 var result = certRequestInterface.Submit(configString, rawCertificateRequest,
                     certificateRequest.RequestAttributes, submissionFlags, includeCertificateChain,
-                    prettyPrintCertificate);
+                    textualEncoding);
                 Marshal.ReleaseComObject(certRequestInterface);
                 return result;
             }

@@ -28,8 +28,6 @@ namespace AdcsToRestTests
     [TestClass]
     public class CertificateRequestIntegrityChecksTests
     {
-        private const string NoCsr = "this is not a csr";
-
         private const string CsrPkcs10 =
             "-----BEGIN NEW CERTIFICATE REQUEST-----\n" +
             "MIIDbTCCAlUCAQAwIDEeMBwGA1UEAxMVaW50cmFuZXQuYWRjc2xhYm9yLmRlMIIB\n" +
@@ -169,7 +167,7 @@ namespace AdcsToRestTests
             "-----END NEW CERTIFICATE REQUEST-----";
 
         [TestMethod]
-        public void TestAutoDetectPkcs10()
+        public void Detect_Pkcs10()
         {
             var result =
                 CertificateRequestIntegrityChecks.DetectRequestType(CsrPkcs10, out _);
@@ -178,7 +176,88 @@ namespace AdcsToRestTests
         }
 
         [TestMethod]
-        public void TestAutoDetectPkcs7()
+        public void Detect_Pkcs10_No_CrLf()
+        {
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(CsrPkcs10.Replace("\n", string.Empty), out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_PKCS10);
+        }
+
+        [TestMethod]
+        public void Detect_Pkcs10_Alt_Header()
+        {
+            var csrPkcs10 = CsrPkcs10;
+
+            csrPkcs10 = csrPkcs10.Replace(
+                "-----BEGIN NEW CERTIFICATE REQUEST-----",
+                "-----BEGIN CERTIFICATE REQUEST-----"
+            );
+
+            csrPkcs10 = csrPkcs10.Replace(
+                "-----END NEW CERTIFICATE REQUEST-----",
+                "-----END CERTIFICATE REQUEST-----"
+            );
+
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(csrPkcs10, out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_PKCS10);
+        }
+
+        [TestMethod]
+        public void Detect_Pkcs10_Additional_Text()
+        {
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType($"Hello\n{CsrPkcs10}\nHello", out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_PKCS10);
+        }
+
+        [TestMethod]
+        public void Detect_Pkcs10_Unknown_Header()
+        {
+            var csrPkcs10 = CsrPkcs10;
+
+            csrPkcs10 = csrPkcs10.Replace(
+                "-----BEGIN NEW CERTIFICATE REQUEST-----",
+                "-----BEGIN UNKNOWN HEADER-----"
+            );
+
+            csrPkcs10 = csrPkcs10.Replace(
+                "-----END NEW CERTIFICATE REQUEST-----",
+                "-----END UNKNOWN HEADER-----"
+            );
+
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(csrPkcs10, out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_PKCS10);
+        }
+
+        [TestMethod]
+        public void Detect_Pkcs10_No_Header()
+        {
+            var csrPkcs10 = CsrPkcs10;
+
+            csrPkcs10 = csrPkcs10.Replace(
+                "-----BEGIN NEW CERTIFICATE REQUEST-----\n",
+                string.Empty
+            );
+
+            csrPkcs10 = csrPkcs10.Replace(
+                "-----END NEW CERTIFICATE REQUEST-----",
+                string.Empty
+            );
+
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(csrPkcs10, out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_PKCS10);
+        }
+
+        [TestMethod]
+        public void Detect_Pkcs7()
         {
             var result =
                 CertificateRequestIntegrityChecks.DetectRequestType(CsrPkcs7, out _);
@@ -187,10 +266,151 @@ namespace AdcsToRestTests
         }
 
         [TestMethod]
-        public void TestAutoDetectCmc()
+        public void Detect_Pkcs7_No_CrLf()
+        {
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(CsrPkcs7.Replace("\n", string.Empty), out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_PKCS7);
+        }
+
+        [TestMethod]
+        public void Detect_Pkcs7_Additional_Text()
+        {
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType($"Hello\n{CsrPkcs7}\nHello", out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_PKCS7);
+        }
+
+        [TestMethod]
+        public void Detect_Pkcs7_Unknown_Header()
+        {
+            var csrPkcs7 = CsrPkcs7;
+
+            csrPkcs7 = csrPkcs7.Replace(
+                "-----BEGIN PKCS #7 SIGNED DATA-----",
+                "-----BEGIN UNKNOWN HEADER-----"
+            );
+
+            csrPkcs7 = csrPkcs7.Replace(
+                "-----END PKCS #7 SIGNED DATA-----",
+                "-----END UNKNOWN HEADER-----"
+            );
+
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(csrPkcs7, out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_PKCS7);
+        }
+
+        [TestMethod]
+        public void Detect_Pkcs7_No_Header()
+        {
+            var csrPkcs7 = CsrPkcs7;
+
+            csrPkcs7 = csrPkcs7.Replace(
+                "-----BEGIN PKCS #7 SIGNED DATA-----\n",
+                string.Empty
+            );
+
+            csrPkcs7 = csrPkcs7.Replace(
+                "-----END PKCS #7 SIGNED DATA-----",
+                string.Empty
+            );
+
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(csrPkcs7, out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_PKCS7);
+        }
+
+        [TestMethod]
+        public void Detect_Cmc()
         {
             var result =
                 CertificateRequestIntegrityChecks.DetectRequestType(CsrCmc, out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_CMC);
+        }
+
+        [TestMethod]
+        public void Detect_Cmc_No_CrLf()
+        {
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(CsrCmc.Replace("\n", string.Empty), out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_CMC);
+        }
+
+        [TestMethod]
+        public void Detect_Cmc_Additional_Text()
+        {
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType($"Hello\n{CsrCmc}\nHello", out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_CMC);
+        }
+
+        [TestMethod]
+        public void Detect_Cmc_Unknown_Header()
+        {
+            var csrCmc = CsrCmc;
+
+            csrCmc = csrCmc.Replace(
+                "-----BEGIN NEW CERTIFICATE REQUEST-----",
+                "-----BEGIN UNKNOWN HEADER-----"
+            );
+
+            csrCmc = csrCmc.Replace(
+                "-----END NEW CERTIFICATE REQUEST-----",
+                "-----END UNKNOWN HEADER-----"
+            );
+
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(csrCmc, out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_CMC);
+        }
+
+        [TestMethod]
+        public void Detect_Cmc_Alt_Header()
+        {
+            var csrCmc = CsrCmc;
+
+            csrCmc = csrCmc.Replace(
+                "-----BEGIN NEW CERTIFICATE REQUEST-----",
+                "-----BEGIN CERTIFICATE REQUEST-----"
+            );
+
+            csrCmc = csrCmc.Replace(
+                "-----END NEW CERTIFICATE REQUEST-----",
+                "-----END CERTIFICATE REQUEST-----"
+            );
+
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(csrCmc, out _);
+
+            Assert.IsTrue(result == CertCli.CR_IN_CMC);
+        }
+
+        [TestMethod]
+        public void Detect_Cmc_No_Header()
+        {
+            var csrCmc = CsrCmc;
+
+            csrCmc = csrCmc.Replace(
+                "-----BEGIN NEW CERTIFICATE REQUEST-----\n",
+                string.Empty
+            );
+
+            csrCmc = csrCmc.Replace(
+                "-----BEGIN NEW CERTIFICATE REQUEST-----",
+                string.Empty
+            );
+
+            var result =
+                CertificateRequestIntegrityChecks.DetectRequestType(csrCmc, out _);
 
             Assert.IsTrue(result == CertCli.CR_IN_CMC);
         }

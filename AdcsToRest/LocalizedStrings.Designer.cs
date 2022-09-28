@@ -70,7 +70,7 @@ namespace AdcsToRest {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The certificate authority {0} was not found..
+        ///   Looks up a localized string similar to The certification authority {0} was not found..
         /// </summary>
         internal static string DESC_MISSING_CA {
             get {
@@ -97,11 +97,20 @@ namespace AdcsToRest {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to connect to certificate authority because {0}..
+        ///   Looks up a localized string similar to Unable to connect to certification authority because {0}..
         /// </summary>
         internal static string DESC_SUBMISSION_FAILED {
             get {
                 return ResourceManager.GetString("DESC_SUBMISSION_FAILED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unknown.
+        /// </summary>
+        internal static string UNKNOWN {
+            get {
+                return ResourceManager.GetString("UNKNOWN", resourceCulture);
             }
         }
     }

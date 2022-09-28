@@ -24,74 +24,78 @@ namespace AdcsToRest
     /// <summary>
     ///     A class holding methods that help acquiring PKI related information from Active Directory.
     /// </summary>
-    public class ActiveDirectory
+    public static class ActiveDirectory
     {
         /// <summary>
         ///     Retrieves a certification authority and the templates bound to it from Active Directory.
         /// </summary>
-        /// <param name="certificateAuthority">The name of the target certificate authority.</param>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
+        /// <param name="certificationAuthority">The name of the target certification authority.</param>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
         /// <exception cref="HttpResponseException">
-        ///     Throws a HTTP 404 error if the specified certificate authority was not found in Active Directory.
+        ///     Throws a HTTP 404 error if the specified certification authority was not found in Active Directory.
         /// </exception>
-        public static CertificateAuthority GetCertificateAuthority(string certificateAuthority,
-            bool prettyPrintCertificate = false)
+        public static CertificationAuthority GetCertificationAuthority(string certificationAuthority,
+            bool textualEncoding = false)
         {
-            var searchResults = GetEnrollmentServiceCollection(certificateAuthority);
+            var searchResults = GetEnrollmentServiceCollection(certificationAuthority);
 
             if (searchResults.Count != 1)
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        certificateAuthority))
+                        certificationAuthority))
                 });
             }
 
-            return new CertificateAuthority(searchResults[0], prettyPrintCertificate);
+            return new CertificationAuthority(searchResults[0], textualEncoding);
         }
 
         /// <summary>
-        ///     Retrieves a list of all certificate authorities in the Active Directory forest, and the templates bound to each.
+        ///     Retrieves a list of all certification authorities in the Active Directory forest, and the templates bound to each.
         /// </summary>
-        /// <param name="prettyPrintCertificate">Causes returned certificates to contain headers and line breaks.</param>
-        public static CertificateAuthorityCollection GetCertificateAuthorityCollection(
-            bool prettyPrintCertificate = false)
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
+        public static CertificationAuthorityCollection GetCertificationAuthorityCollection(
+            bool textualEncoding = false)
         {
             var searchResults = GetEnrollmentServiceCollection();
 
-            return new CertificateAuthorityCollection((from SearchResult searchResult in searchResults
-                select new CertificateAuthority(searchResult, prettyPrintCertificate)).ToList());
+            return new CertificationAuthorityCollection((from SearchResult searchResult in searchResults
+                select new CertificationAuthority(searchResult, textualEncoding)).ToList());
         }
 
         /// <summary>
-        ///     Retrieves the configuration string for a certificate authority.
+        ///     Retrieves the configuration string for a certification authority.
         /// </summary>
-        /// <param name="certificateAuthority">The name of the target certificate authority.</param>
+        /// <param name="certificationAuthority">The name of the target certification authority.</param>
         /// <returns>The configuration string, built from the CA's DNS name and the CA common name.</returns>
         /// <exception cref="HttpResponseException">
-        ///     Throws a HTTP 404 error if the specified certificate authority was not found in
+        ///     Throws a HTTP 404 error if the specified certification authority was not found in
         ///     Active Directory.
         /// </exception>
-        public static string GetConfigString(string certificateAuthority)
+        public static string GetConfigString(string certificationAuthority)
         {
-            var certificateAuthorityServerName = GetCertificateAuthorityServerName(certificateAuthority);
+            var certificationAuthorityServerName = GetCertificationAuthorityServerName(certificationAuthority);
 
-            if (null == certificateAuthorityServerName)
+            if (null == certificationAuthorityServerName)
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        certificateAuthority))
+                        certificationAuthority))
                 });
             }
 
-            return $"{certificateAuthorityServerName}\\{certificateAuthority}";
+            return $"{certificationAuthorityServerName}\\{certificationAuthority}";
         }
 
-        private static string GetCertificateAuthorityServerName(string certificateAuthority)
+        private static string GetCertificationAuthorityServerName(string certificationAuthority)
         {
-            var searchResults = GetEnrollmentServiceCollection(certificateAuthority);
+            var searchResults = GetEnrollmentServiceCollection(certificationAuthority);
 
             return searchResults.Count == 1 ? searchResults[0].Properties["dNSHostName"][0].ToString() : null;
         }
@@ -140,8 +144,7 @@ namespace AdcsToRest
             }
         }
 
-
-        public static SearchResultCollection GetCertificateTemplateSearchResults(string cn = null)
+        private static SearchResultCollection GetCertificateTemplateSearchResults(string cn = null)
         {
             var domainPath = GetForestRootDomain();
 
@@ -165,7 +168,7 @@ namespace AdcsToRest
             var directorySearcher = new DirectorySearcher(directoryEntry)
             {
                 Filter =
-                    $"(&{additionalCriteria}(objectCategory=pKICertificateTemplate)(mspki-template-schema-version>=2))",
+                    $"(&{additionalCriteria}(objectCategory=pKICertificateTemplate)(msPKI-Template-Schema-Version>=2))",
                 Sort = new SortOption("cn", SortDirection.Ascending),
                 PropertiesToLoad =
                 {
@@ -182,6 +185,15 @@ namespace AdcsToRest
             return directorySearcher.FindAll();
         }
 
+        /// <summary>
+        ///     Retrieves information for a single certificate template from the directory.
+        /// </summary>
+        /// <param name="certificateTemplate"></param>
+        /// <returns>A CertificateTemplate Object.</returns>
+        /// <exception cref="HttpResponseException">
+        ///     Throws a HTTP 404 error when no certificate template with the given name was
+        ///     found in the directory.
+        /// </exception>
         public static CertificateTemplate GetCertificateTemplate(string certificateTemplate)
         {
             var searchResults = GetCertificateTemplateSearchResults(certificateTemplate);
@@ -198,6 +210,10 @@ namespace AdcsToRest
             return new CertificateTemplate(searchResults[0]);
         }
 
+        /// <summary>
+        ///     Retrieves information for all certificate templates from the directory.
+        /// </summary>
+        /// <returns>A CertificateTemplateCollection Object.</returns>
         public static CertificateTemplateCollection GetCertificateTemplateCollection()
         {
             var searchResults = GetCertificateTemplateSearchResults();

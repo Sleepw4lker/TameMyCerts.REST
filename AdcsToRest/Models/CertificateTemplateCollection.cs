@@ -24,7 +24,7 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     Builds a CertificateTemplateCollection.
         /// </summary>
-        /// <param name="certificateTemplates">The collection of certificate authorities.</param>
+        /// <param name="certificateTemplates">The collection of certification authorities.</param>
         public CertificateTemplateCollection(List<CertificateTemplate> certificateTemplates)
         {
             CertificateTemplates = certificateTemplates;

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.ComponentModel;
+
 namespace AdcsToRest.Models
 {
     /// <summary>
@@ -19,19 +21,23 @@ namespace AdcsToRest.Models
     /// </summary>
     public class Status
     {
-        public Status(int code, string description)
+        public Status(int statusCode)
         {
-            Code = code;
-            Description = description;
+            var statusMessage = new Win32Exception(statusCode).Message;
+
+            StatusCode = statusCode;
+            Description = statusCode == WinError.ERROR_SUCCESS
+                ? statusMessage
+                : $"{statusMessage}. 0x{statusCode:X} ({statusCode})";
         }
 
         /// <summary>
-        ///     The disposition code returned by the certificate authority for the certificate request as defined in CertCli.h.
+        ///     The result code returned by the certification authority during the submission process.
         /// </summary>
-        public int Code { get; set; }
+        public int StatusCode { get; set; }
 
         /// <summary>
-        ///     The message the certification authority returned alongside with the disposition.
+        ///     The message the certification authority returned alongside with the result code.
         /// </summary>
         public string Description { get; set; }
     }
