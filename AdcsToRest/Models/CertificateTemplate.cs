@@ -14,8 +14,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
 using System.Linq;
+using Microsoft.Win32;
 
 namespace AdcsToRest.Models
 {
@@ -68,19 +68,35 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     An object holding information about a certificate template.
         /// </summary>
-        /// <param name="searchResult">The searchResult from which the object is built.</param>
-        public CertificateTemplate(SearchResult searchResult)
+        /// <param name="certificateTemplate">The name of the certificate template from which the object is built.</param>
+        public CertificateTemplate(string certificateTemplate)
         {
-            Name = (string) searchResult.Properties["cn"][0];
-            MinimumKeyLength = (int) searchResult.Properties["msPKI-minimal-Key-Size"][0];
-            MajorVersion = (int) searchResult.Properties["revision"][0];
-            MinorVersion = (int) searchResult.Properties["msPKI-Template-Minor-Revision"][0];
-            Oid = (string) searchResult.Properties["msPKI-Cert-Template-OID"][0];
-            ExtendedKeyUsages =
-                (from object extendedKeyUsage in searchResult.Properties["msPKI-Certificate-Application-Policy"]
-                    select new ExtendedKeyUsage(extendedKeyUsage.ToString()))
+            var machineBaseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            var templateBaseKey =
+                machineBaseKey.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography\\CertificateTemplateCache");
+
+            var templateSubKey = templateBaseKey?.OpenSubKey(certificateTemplate);
+
+            if (templateSubKey == null)
+            {
+                throw new ArgumentException(string.Format(LocalizedStrings.DESC_MISSING_TEMPLATE, certificateTemplate));
+            }
+
+            Name = certificateTemplate;
+            MinimumKeyLength = (int) templateSubKey.GetValue("msPKI-Minimal-Key-Size");
+            MajorVersion = (int) templateSubKey.GetValue("Revision");
+            MinorVersion = (int) templateSubKey.GetValue("msPKI-Template-Minor-Revision");
+            Oid = ((string[])templateSubKey.GetValue("msPKI-Cert-Template-OID"))[0];
+
+            ExtendedKeyUsages = (from string extendedKeyUsage in (string[]) templateSubKey.GetValue("ExtKeyUsageSyntax")
+                    select new ExtendedKeyUsage(extendedKeyUsage))
                 .OrderBy(extendedKeyUsage => extendedKeyUsage.FriendlyName).ToList();
-            KeyAlgorithm = GetKeyAlgorithm(searchResult.Properties["msPKI-RA-Application-Policies"]);
+            
+            var applicationPoliciesValueData = (string[]) templateSubKey.GetValue("msPKI-RA-Application-Policies");
+
+            KeyAlgorithm = applicationPoliciesValueData.Length > 0
+                ? GetKeyAlgorithm(applicationPoliciesValueData[0])
+                : KeyAlgorithmType.RSA;
         }
 
         /// <summary>
@@ -118,16 +134,11 @@ namespace AdcsToRest.Models
         /// </summary>
         public KeyAlgorithmType KeyAlgorithm { get; set; }
 
-        private KeyAlgorithmType GetKeyAlgorithm(ResultPropertyValueCollection resultPropertyValueCollection)
+        private KeyAlgorithmType GetKeyAlgorithm(string keyAlgorithmString)
         {
-            if (resultPropertyValueCollection.Count == 0)
-            {
-                return KeyAlgorithmType.RSA;
-            }
-
             foreach (var algorithmName in Enum.GetNames(typeof(KeyAlgorithmType)))
             {
-                if (((string) resultPropertyValueCollection[0]).Contains(algorithmName))
+                if (keyAlgorithmString.Contains(algorithmName))
                 {
                     return (KeyAlgorithmType) Enum.Parse(typeof(KeyAlgorithmType), algorithmName);
                 }

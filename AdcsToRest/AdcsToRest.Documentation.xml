@@ -40,23 +40,6 @@
                 Active Directory.
             </exception>
         </member>
-        <member name="M:AdcsToRest.ActiveDirectory.GetCertificateTemplate(System.String)">
-            <summary>
-                Retrieves information for a single certificate template from the directory.
-            </summary>
-            <param name="certificateTemplate"></param>
-            <returns>A CertificateTemplate Object.</returns>
-            <exception cref="T:System.Web.Http.HttpResponseException">
-                Throws a HTTP 404 error when no certificate template with the given name was
-                found in the directory.
-            </exception>
-        </member>
-        <member name="M:AdcsToRest.ActiveDirectory.GetCertificateTemplateCollection">
-            <summary>
-                Retrieves information for all certificate templates from the directory.
-            </summary>
-            <returns>A CertificateTemplateCollection Object.</returns>
-        </member>
         <member name="T:AdcsToRest.CCertRequestExtensions">
             <summary>
                 A class that extends the functionality if ICertRequest for the needs of our API.
@@ -74,8 +57,7 @@
                 includes the entire certificate chain.
             </param>
             <param name="textualEncoding">
-                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64
-                stream.
+                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
             <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
@@ -96,8 +78,7 @@
                 includes the entire certificate chain.
             </param>
             <param name="textualEncoding">
-                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64
-                stream.
+                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
             <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
@@ -108,8 +89,7 @@
             <param name="certRequestInterface"></param>
             <param name="configString">The configuration string of the certification authority.</param>
             <param name="textualEncoding">
-                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64
-                stream.
+                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
             <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
@@ -120,8 +100,7 @@
             <param name="certRequestInterface"></param>
             <param name="configString">The configuration string of the certification authority.</param>
             <param name="textualEncoding">
-                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64
-                stream.
+                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
             <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
@@ -137,8 +116,7 @@
             </param>
             <param name="caExchangeCertificate">Returns the CA exchange certificate instead of the CA certificate.</param>
             <param name="textualEncoding">
-                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64
-                stream.
+                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
             <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
@@ -497,11 +475,11 @@
                 The elliptic curve diffie hellman algorithm using the nistp521 curve.
             </summary>
         </member>
-        <member name="M:AdcsToRest.Models.CertificateTemplate.#ctor(System.DirectoryServices.SearchResult)">
+        <member name="M:AdcsToRest.Models.CertificateTemplate.#ctor(System.String)">
             <summary>
                 An object holding information about a certificate template.
             </summary>
-            <param name="searchResult">The searchResult from which the object is built.</param>
+            <param name="certificateTemplate">The name of the certificate template from which the object is built.</param>
         </member>
         <member name="P:AdcsToRest.Models.CertificateTemplate.Name">
             <summary>
@@ -543,11 +521,10 @@
                 A collection of CertificateTemplate Objects.
             </summary>
         </member>
-        <member name="M:AdcsToRest.Models.CertificateTemplateCollection.#ctor(System.Collections.Generic.List{AdcsToRest.Models.CertificateTemplate})">
+        <member name="M:AdcsToRest.Models.CertificateTemplateCollection.#ctor">
             <summary>
                 Builds a CertificateTemplateCollection.
             </summary>
-            <param name="certificateTemplates">The collection of certification authorities.</param>
         </member>
         <member name="P:AdcsToRest.Models.CertificateTemplateCollection.CertificateTemplates">
             <summary>

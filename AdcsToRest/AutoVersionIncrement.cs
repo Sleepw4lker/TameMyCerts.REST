@@ -9,5 +9,5 @@ using System.Reflection;
 //      Build Number
 //      Revision
 
-[assembly: AssemblyVersion("1.0.635.1008")]
-[assembly: AssemblyFileVersion("1.0.635.1008")]
+[assembly: AssemblyVersion("1.0.637.586")]
+[assembly: AssemblyFileVersion("1.0.637.586")]

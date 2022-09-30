@@ -14,6 +14,8 @@
 
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Web.Http;
 using AdcsToRest.Models;
 
@@ -32,7 +34,7 @@ namespace AdcsToRest.Controllers
         [Route("v1/certificate-templates")]
         public CertificateTemplateCollection GetCertificateTemplateCollection()
         {
-            return ActiveDirectory.GetCertificateTemplateCollection();
+            return new CertificateTemplateCollection();
         }
 
         /// <summary>
@@ -44,7 +46,17 @@ namespace AdcsToRest.Controllers
         [Route("v1/certificate-templates/{certificateTemplate}")]
         public CertificateTemplate GetCertificateTemplate(string certificateTemplate)
         {
-            return ActiveDirectory.GetCertificateTemplate(certificateTemplate);
+            try
+            {
+                return new CertificateTemplate(certificateTemplate);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent(ex.Message)
+                });
+            }
         }
 
         /// <summary>

@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Win32;
 
 namespace AdcsToRest.Models
 {
@@ -24,10 +26,19 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     Builds a CertificateTemplateCollection.
         /// </summary>
-        /// <param name="certificateTemplates">The collection of certification authorities.</param>
-        public CertificateTemplateCollection(List<CertificateTemplate> certificateTemplates)
+        public CertificateTemplateCollection()
         {
-            CertificateTemplates = certificateTemplates;
+            var machineBaseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            var templateBaseKey =
+                machineBaseKey.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography\\CertificateTemplateCache");
+
+            if (templateBaseKey == null)
+            {
+                return;
+            }
+
+            CertificateTemplates = templateBaseKey.GetSubKeyNames()
+                .Select(templateName => new CertificateTemplate(templateName)).ToList();
         }
 
         /// <summary>
