@@ -15,6 +15,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Microsoft.Win32;
 
 namespace AdcsToRest.Models
@@ -86,17 +88,43 @@ namespace AdcsToRest.Models
             MinimumKeyLength = (int) templateSubKey.GetValue("msPKI-Minimal-Key-Size");
             MajorVersion = (int) templateSubKey.GetValue("Revision");
             MinorVersion = (int) templateSubKey.GetValue("msPKI-Template-Minor-Revision");
-            Oid = ((string[])templateSubKey.GetValue("msPKI-Cert-Template-OID"))[0];
+            SchemaVersion = (int) templateSubKey.GetValue("msPKI-Template-Schema-Version");
+            Oid = ((string[]) templateSubKey.GetValue("msPKI-Cert-Template-OID"))[0];
 
             ExtendedKeyUsages = (from string extendedKeyUsage in (string[]) templateSubKey.GetValue("ExtKeyUsageSyntax")
                     select new ExtendedKeyUsage(extendedKeyUsage))
                 .OrderBy(extendedKeyUsage => extendedKeyUsage.FriendlyName).ToList();
-            
+
             var applicationPoliciesValueData = (string[]) templateSubKey.GetValue("msPKI-RA-Application-Policies");
 
             KeyAlgorithm = applicationPoliciesValueData.Length > 0
                 ? GetKeyAlgorithm(applicationPoliciesValueData[0])
                 : KeyAlgorithmType.RSA;
+
+            var rawSecurityDescriptor = new RawSecurityDescriptor((byte[]) templateSubKey.GetValue("Security"), 0);
+
+            foreach (var genericAce in rawSecurityDescriptor.DiscretionaryAcl)
+            {
+                if (!(genericAce is ObjectAce objectAce))
+                {
+                    continue;
+                }
+
+                if (objectAce.ObjectAceType != new Guid("0E10C968-78FB-11D2-90D4-00C04F79DC55"))
+                {
+                    continue;
+                }
+
+                switch (objectAce.AceType)
+                {
+                    case AceType.AccessAllowedObject:
+                        AllowedPrincipals.Add(objectAce.SecurityIdentifier.ToString());
+                        break;
+                    case AceType.AccessDeniedObject:
+                        DisallowedPrincipals.Add(objectAce.SecurityIdentifier.ToString());
+                        break;
+                }
+            }
         }
 
         /// <summary>
@@ -120,6 +148,11 @@ namespace AdcsToRest.Models
         public int MinorVersion { get; set; }
 
         /// <summary>
+        ///     The Active Directory schema version of the certificate template.
+        /// </summary>
+        public int SchemaVersion { get; set; }
+
+        /// <summary>
         ///     The object identifier of the certificate template.
         /// </summary>
         public string Oid { get; set; }
@@ -134,7 +167,41 @@ namespace AdcsToRest.Models
         /// </summary>
         public KeyAlgorithmType KeyAlgorithm { get; set; }
 
-        private KeyAlgorithmType GetKeyAlgorithm(string keyAlgorithmString)
+        private List<string> AllowedPrincipals { get; } = new List<string>();
+        private List<string> DisallowedPrincipals { get; } = new List<string>();
+
+        /// <summary>
+        ///     Determines whether a given WindowsIdentity may enroll for this certificate template.
+        /// </summary>
+        /// <param name="identity">The Windows identity to check for permissions.</param>
+        /// <param name="explicitlyPermitted">Return true only if the identity is explicitly mentioned in the acl.</param>
+        /// <returns></returns>
+        public bool AllowsForEnrollment(WindowsIdentity identity, bool explicitlyPermitted = false)
+        {
+            var isAllowed = false;
+            var isDenied = false;
+
+            var userSid = identity.User?.ToString();
+            var ignoreCase = StringComparer.InvariantCultureIgnoreCase;
+
+            if (!explicitlyPermitted)
+            {
+                for (var index = 0; index < identity.Groups?.Count; index++)
+                {
+                    var group = identity.Groups[index].ToString();
+
+                    isAllowed = AllowedPrincipals.Contains(group, ignoreCase) || isAllowed;
+                    isDenied = DisallowedPrincipals.Contains(group, ignoreCase) || isDenied;
+                }
+            }
+
+            isAllowed = AllowedPrincipals.Contains(userSid, ignoreCase) || isAllowed;
+            isDenied = DisallowedPrincipals.Contains(userSid, ignoreCase) || isDenied;
+
+            return isAllowed && !isDenied;
+        }
+
+        private static KeyAlgorithmType GetKeyAlgorithm(string keyAlgorithmString)
         {
             foreach (var algorithmName in Enum.GetNames(typeof(KeyAlgorithmType)))
             {

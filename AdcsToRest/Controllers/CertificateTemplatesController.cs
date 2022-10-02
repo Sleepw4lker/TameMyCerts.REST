@@ -16,6 +16,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Principal;
 using System.Web.Http;
 using AdcsToRest.Models;
 
@@ -34,7 +35,9 @@ namespace AdcsToRest.Controllers
         [Route("v1/certificate-templates")]
         public CertificateTemplateCollection GetCertificateTemplateCollection()
         {
-            return new CertificateTemplateCollection();
+            return new CertificateTemplateCollection(new CertificateTemplateCollection().CertificateTemplates
+                .Where(certificateTemplate => certificateTemplate.AllowsForEnrollment((WindowsIdentity) User.Identity))
+                .ToList());
         }
 
         /// <summary>
@@ -46,9 +49,11 @@ namespace AdcsToRest.Controllers
         [Route("v1/certificate-templates/{certificateTemplate}")]
         public CertificateTemplate GetCertificateTemplate(string certificateTemplate)
         {
+            CertificateTemplate certificateTemplateObject;
+
             try
             {
-                return new CertificateTemplate(certificateTemplate);
+                certificateTemplateObject = new CertificateTemplate(certificateTemplate);
             }
             catch (ArgumentException ex)
             {
@@ -57,6 +62,19 @@ namespace AdcsToRest.Controllers
                     Content = new StringContent(ex.Message)
                 });
             }
+
+            if (certificateTemplateObject.SchemaVersion < 2 ||
+                !certificateTemplateObject.AllowsForEnrollment((WindowsIdentity) User.Identity)
+               )
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
+                {
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED,
+                        certificateTemplate))
+                });
+            }
+
+            return certificateTemplateObject;
         }
 
         /// <summary>

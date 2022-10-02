@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using AdcsToRest.Models;
 using CERTCLILib;
@@ -41,25 +39,14 @@ namespace AdcsToRest
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
-        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static SubmissionResponse RetrievePending(this CCertRequest certRequestInterface, string configString,
             int requestId, bool includeCertificateChain = false, bool textualEncoding = false)
         {
-            try
-            {
-                var submissionResult =
-                    certRequestInterface.RetrievePending(requestId, configString);
+            var submissionResult =
+                certRequestInterface.RetrievePending(requestId, configString);
 
-                return certRequestInterface.ProcessEnrollmentResult(submissionResult, includeCertificateChain,
-                    textualEncoding);
-            }
-            catch (Exception ex)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
-                });
-            }
+            return certRequestInterface.ProcessEnrollmentResult(submissionResult, includeCertificateChain,
+                textualEncoding);
         }
 
         /// <summary>
@@ -80,30 +67,19 @@ namespace AdcsToRest
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
-        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static SubmissionResponse Submit(this CCertRequest certRequestInterface, string configString,
             string rawCertificateRequest, List<string> requestAttributes, int submissionFlags,
             bool includeCertificateChain, bool textualEncoding = false)
         {
-            try
-            {
-                var submissionResult = certRequestInterface.Submit(
-                    submissionFlags,
-                    rawCertificateRequest,
-                    string.Join(Environment.NewLine, requestAttributes.ToArray()),
-                    configString
-                );
+            var submissionResult = certRequestInterface.Submit(
+                submissionFlags,
+                rawCertificateRequest,
+                string.Join(Environment.NewLine, requestAttributes.ToArray()),
+                configString
+            );
 
-                return certRequestInterface.ProcessEnrollmentResult(submissionResult,
-                    includeCertificateChain, textualEncoding);
-            }
-            catch (Exception ex)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
-                });
-            }
+            return certRequestInterface.ProcessEnrollmentResult(submissionResult,
+                includeCertificateChain, textualEncoding);
         }
 
         private static SubmissionResponse ProcessEnrollmentResult(this CCertRequest certRequestInterface,
@@ -151,7 +127,6 @@ namespace AdcsToRest
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
-        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static CertificateRevocationListDistributionPointCollection GetCrlDpCollection(
             this CCertRequest certRequestInterface,
             string configString, bool textualEncoding = false)
@@ -168,46 +143,36 @@ namespace AdcsToRest
                 outputFlags |= CertView.CV_OUT_BASE64X509CRLHEADER;
             }
 
-            try
+            int caCertCount = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERTCOUNT, 0,
+                CertSrv.PROPTYPE_LONG, 0);
+
+            var crlList = new List<CertificateRevocationListDistributionPoint>();
+
+            for (var index = caCertCount - 1; index >= 0; index--)
             {
-                int caCertCount = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERTCOUNT, 0,
+                int crlState = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CRLSTATE, index,
                     CertSrv.PROPTYPE_LONG, 0);
 
-                var crlList = new List<CertificateRevocationListDistributionPoint>();
-
-                for (var index = caCertCount - 1; index >= 0; index--)
+                if (crlState != CertAdm.CA_DISP_VALID)
                 {
-                    int crlState = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CRLSTATE, index,
-                        CertSrv.PROPTYPE_LONG, 0);
-
-                    if (crlState != CertAdm.CA_DISP_VALID)
-                    {
-                        continue;
-                    }
-
-                    string crlDistributionPoints = certRequestInterface.GetCAProperty(configString,
-                        CertCli.CR_PROP_CERTCDPURLS, index,
-                        CertSrv.PROPTYPE_STRING, 0);
-
-                    crlList.Add(new CertificateRevocationListDistributionPoint
-                    {
-                        CertificateRevocationList = certRequestInterface.GetCAProperty(configString,
-                            CertCli.CR_PROP_BASECRL, index,
-                            CertSrv.PROPTYPE_BINARY, outputFlags),
-                        Urls = crlDistributionPoints.Split(new[] {"\n"},
-                            StringSplitOptions.RemoveEmptyEntries).ToList()
-                    });
+                    continue;
                 }
 
-                return new CertificateRevocationListDistributionPointCollection(crlList);
-            }
-            catch (Exception ex)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                string crlDistributionPoints = certRequestInterface.GetCAProperty(configString,
+                    CertCli.CR_PROP_CERTCDPURLS, index,
+                    CertSrv.PROPTYPE_STRING, 0);
+
+                crlList.Add(new CertificateRevocationListDistributionPoint
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
+                    CertificateRevocationList = certRequestInterface.GetCAProperty(configString,
+                        CertCli.CR_PROP_BASECRL, index,
+                        CertSrv.PROPTYPE_BINARY, outputFlags),
+                    Urls = crlDistributionPoints.Split(new[] {"\n"},
+                        StringSplitOptions.RemoveEmptyEntries).ToList()
                 });
             }
+
+            return new CertificateRevocationListDistributionPointCollection(crlList);
         }
 
         /// <summary>
@@ -218,59 +183,48 @@ namespace AdcsToRest
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
-        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static AuthorityInformationAccessCollection GetAiaCollection(this CCertRequest certRequestInterface,
             string configString, bool textualEncoding = false)
         {
-            try
+            int caCertCount = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERTCOUNT, 0,
+                CertSrv.PROPTYPE_LONG, 0);
+
+            var aiaList = new List<AuthorityInformationAccess>();
+
+            var outputFlags = 0;
+
+            if (!textualEncoding)
             {
-                int caCertCount = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERTCOUNT, 0,
-                    CertSrv.PROPTYPE_LONG, 0);
-
-                var aiaList = new List<AuthorityInformationAccess>();
-
-                var outputFlags = 0;
-
-                if (!textualEncoding)
-                {
-                    outputFlags |= CertView.CV_OUT_BASE64;
-                    outputFlags |= CertView.CV_OUT_NOCRLF;
-                }
-                else
-                {
-                    outputFlags |= CertView.CV_OUT_BASE64HEADER;
-                }
-
-                for (var index = caCertCount - 1; index >= 0; index--)
-                {
-                    string aiaUrls = certRequestInterface.GetCAProperty(configString,
-                        CertCli.CR_PROP_CERTAIAURLS, index,
-                        CertSrv.PROPTYPE_STRING, 0);
-
-                    string aiaOcspUrls = certRequestInterface.GetCAProperty(configString,
-                        CertCli.CR_PROP_CERTAIAOCSPURLS, index,
-                        CertSrv.PROPTYPE_STRING, 0);
-
-                    aiaList.Add(new AuthorityInformationAccess
-                    {
-                        Certificate = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERT, index,
-                            CertSrv.PROPTYPE_BINARY, outputFlags),
-                        Urls = aiaUrls.Split(new[] {"\n"},
-                            StringSplitOptions.RemoveEmptyEntries).ToList(),
-                        OcspUrls = aiaOcspUrls.Split(new[] {"\n"},
-                            StringSplitOptions.RemoveEmptyEntries).ToList()
-                    });
-                }
-
-                return new AuthorityInformationAccessCollection(aiaList);
+                outputFlags |= CertView.CV_OUT_BASE64;
+                outputFlags |= CertView.CV_OUT_NOCRLF;
             }
-            catch (Exception ex)
+            else
             {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                outputFlags |= CertView.CV_OUT_BASE64HEADER;
+            }
+
+            for (var index = caCertCount - 1; index >= 0; index--)
+            {
+                string aiaUrls = certRequestInterface.GetCAProperty(configString,
+                    CertCli.CR_PROP_CERTAIAURLS, index,
+                    CertSrv.PROPTYPE_STRING, 0);
+
+                string aiaOcspUrls = certRequestInterface.GetCAProperty(configString,
+                    CertCli.CR_PROP_CERTAIAOCSPURLS, index,
+                    CertSrv.PROPTYPE_STRING, 0);
+
+                aiaList.Add(new AuthorityInformationAccess
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
+                    Certificate = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERT, index,
+                        CertSrv.PROPTYPE_BINARY, outputFlags),
+                    Urls = aiaUrls.Split(new[] {"\n"},
+                        StringSplitOptions.RemoveEmptyEntries).ToList(),
+                    OcspUrls = aiaOcspUrls.Split(new[] {"\n"},
+                        StringSplitOptions.RemoveEmptyEntries).ToList()
                 });
             }
+
+            return new AuthorityInformationAccessCollection(aiaList);
         }
 
         /// <summary>
@@ -286,43 +240,32 @@ namespace AdcsToRest
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
-        /// <exception cref="HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         public static SubmissionResponse GetCaCertificate(this CCertRequest certRequestInterface, string configString,
             bool includeCertificateChain,
             bool textualEncoding = false, bool caExchangeCertificate = false)
         {
-            try
+            var outputFlags = 0;
+
+            if (!textualEncoding)
             {
-                var outputFlags = 0;
-
-                if (!textualEncoding)
-                {
-                    outputFlags |= CertCli.CR_OUT_BASE64;
-                    outputFlags |= CertCli.CR_OUT_NOCRLF;
-                }
-                else
-                {
-                    outputFlags |= CertCli.CR_OUT_BASE64HEADER;
-                }
-
-                if (includeCertificateChain)
-                {
-                    outputFlags |= CertCli.CR_OUT_CHAIN;
-                }
-
-                return new SubmissionResponse
-                (
-                    WinError.ERROR_SUCCESS, 0, (int) SubmissionResponse.DispositionCode.Issued,
-                    certRequestInterface.GetCACertificate(caExchangeCertificate ? 1 : 0, configString, outputFlags)
-                );
+                outputFlags |= CertCli.CR_OUT_BASE64;
+                outputFlags |= CertCli.CR_OUT_NOCRLF;
             }
-            catch (Exception ex)
+            else
             {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
-                });
+                outputFlags |= CertCli.CR_OUT_BASE64HEADER;
             }
+
+            if (includeCertificateChain)
+            {
+                outputFlags |= CertCli.CR_OUT_CHAIN;
+            }
+
+            return new SubmissionResponse
+            (
+                WinError.ERROR_SUCCESS, 0, (int) SubmissionResponse.DispositionCode.Issued,
+                certRequestInterface.GetCACertificate(caExchangeCertificate ? 1 : 0, configString, outputFlags)
+            );
         }
     }
 }

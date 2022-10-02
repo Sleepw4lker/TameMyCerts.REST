@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Net;
-using System.Net.Http;
+using System;
 using System.Runtime.InteropServices;
-using System.Web.Http;
 using CERTENROLLLib;
 
 namespace AdcsToRest
@@ -145,10 +143,7 @@ namespace AdcsToRest
                 }
             }
 
-            throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
-            {
-                Content = new StringContent(string.Format(LocalizedStrings.DESC_INVALID_CSR))
-            });
+            throw new ArgumentException(string.Format(LocalizedStrings.DESC_INVALID_CSR));
         }
     }
 }

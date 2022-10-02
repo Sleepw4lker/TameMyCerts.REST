@@ -61,6 +61,15 @@ namespace AdcsToRest {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to request certificates from {0}..
+        /// </summary>
+        internal static string DESC_CA_DENIED {
+            get {
+                return ResourceManager.GetString("DESC_CA_DENIED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to parse the given certificate request..
         /// </summary>
         internal static string DESC_INVALID_CSR {
@@ -102,6 +111,15 @@ namespace AdcsToRest {
         internal static string DESC_SUBMISSION_FAILED {
             get {
                 return ResourceManager.GetString("DESC_SUBMISSION_FAILED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to enroll for {0}..
+        /// </summary>
+        internal static string DESC_TEMPLATED_DENIED {
+            get {
+                return ResourceManager.GetString("DESC_TEMPLATED_DENIED", resourceCulture);
             }
         }
         

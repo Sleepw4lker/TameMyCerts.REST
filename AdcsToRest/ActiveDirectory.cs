@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.DirectoryServices;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using AdcsToRest.Models;
 
@@ -43,11 +42,7 @@ namespace AdcsToRest
 
             if (searchResults.Count != 1)
             {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        certificationAuthority))
-                });
+                throw new ArgumentException(LocalizedStrings.DESC_MISSING_CA);
             }
 
             return new CertificationAuthority(searchResults[0], textualEncoding);
@@ -66,38 +61,6 @@ namespace AdcsToRest
 
             return new CertificationAuthorityCollection((from SearchResult searchResult in searchResults
                 select new CertificationAuthority(searchResult, textualEncoding)).ToList());
-        }
-
-        /// <summary>
-        ///     Retrieves the configuration string for a certification authority.
-        /// </summary>
-        /// <param name="certificationAuthority">The name of the target certification authority.</param>
-        /// <returns>The configuration string, built from the CA's DNS name and the CA common name.</returns>
-        /// <exception cref="HttpResponseException">
-        ///     Throws a HTTP 404 error if the specified certification authority was not found in
-        ///     Active Directory.
-        /// </exception>
-        public static string GetConfigString(string certificationAuthority)
-        {
-            var certificationAuthorityServerName = GetCertificationAuthorityServerName(certificationAuthority);
-
-            if (null == certificationAuthorityServerName)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA,
-                        certificationAuthority))
-                });
-            }
-
-            return $"{certificationAuthorityServerName}\\{certificationAuthority}";
-        }
-
-        private static string GetCertificationAuthorityServerName(string certificationAuthority)
-        {
-            var searchResults = GetEnrollmentServiceCollection(certificationAuthority);
-
-            return searchResults.Count == 1 ? searchResults[0].Properties["dNSHostName"][0].ToString() : null;
         }
 
         private static SearchResultCollection GetEnrollmentServiceCollection(string cn = null)
@@ -125,7 +88,9 @@ namespace AdcsToRest
             {
                 Filter = $"(&{additionalCriteria}(objectCategory=pKIEnrollmentService))",
                 Sort = new SortOption("cn", SortDirection.Ascending),
-                PropertiesToLoad = {"cn", "certificateTemplates", "dNSHostName", "cACertificate"}
+                PropertiesToLoad =
+                    {"cn", "certificateTemplates", "dNSHostName", "cACertificate", "ntSecurityDescriptor"},
+                SecurityMasks = SecurityMasks.Dacl
             };
 
             return directorySearcher.FindAll();

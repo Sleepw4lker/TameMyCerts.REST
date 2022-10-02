@@ -29,17 +29,6 @@
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
         </member>
-        <member name="M:AdcsToRest.ActiveDirectory.GetConfigString(System.String)">
-            <summary>
-                Retrieves the configuration string for a certification authority.
-            </summary>
-            <param name="certificationAuthority">The name of the target certification authority.</param>
-            <returns>The configuration string, built from the CA's DNS name and the CA common name.</returns>
-            <exception cref="T:System.Web.Http.HttpResponseException">
-                Throws a HTTP 404 error if the specified certification authority was not found in
-                Active Directory.
-            </exception>
-        </member>
         <member name="T:AdcsToRest.CCertRequestExtensions">
             <summary>
                 A class that extends the functionality if ICertRequest for the needs of our API.
@@ -59,7 +48,6 @@
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
-            <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
         <member name="M:AdcsToRest.CCertRequestExtensions.Submit(CERTCLILib.CCertRequest,System.String,System.String,System.Collections.Generic.List{System.String},System.Int32,System.Boolean,System.Boolean)">
             <summary>
@@ -80,7 +68,6 @@
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
-            <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
         <member name="M:AdcsToRest.CCertRequestExtensions.GetCrlDpCollection(CERTCLILib.CCertRequest,System.String,System.Boolean)">
             <summary>
@@ -91,7 +78,6 @@
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
-            <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
         <member name="M:AdcsToRest.CCertRequestExtensions.GetAiaCollection(CERTCLILib.CCertRequest,System.String,System.Boolean)">
             <summary>
@@ -102,7 +88,6 @@
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
-            <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
         <member name="M:AdcsToRest.CCertRequestExtensions.GetCaCertificate(CERTCLILib.CCertRequest,System.String,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
@@ -118,7 +103,6 @@
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
-            <exception cref="T:System.Web.Http.HttpResponseException">Throws a HTTP 500 error if not successful.</exception>
         </member>
         <member name="T:AdcsToRest.CertificateRequestIntegrityChecks">
             <summary>
@@ -163,7 +147,7 @@
             <summary>
                 Retrieves details for a certification authority.
             </summary>
-            <param name="caName">The common name of the target certification authority.</param>
+            <param name="certificationAuthority">The common name of the target certification authority.</param>
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
@@ -172,7 +156,7 @@
             <summary>
                 Retrieves the current certification authority certificate for a certification authority.
             </summary>
-            <param name="caName">The common name of the target certification authority.</param>
+            <param name="certificationAuthority">The common name of the target certification authority.</param>
             <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
@@ -182,7 +166,7 @@
             <summary>
                 Retrieves the current certification authority exchange certificate for a certification authority.
             </summary>
-            <param name="caName">The common name of the target certification authority.</param>
+            <param name="certificationAuthority">The common name of the target certification authority.</param>
             <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
@@ -192,7 +176,7 @@
             <summary>
                 Retrieves a collection of certificate revocation list distribution points for a certification authority.
             </summary>
-            <param name="caName">The common name of the target certification authority.</param>
+            <param name="certificationAuthority">The common name of the target certification authority.</param>
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
@@ -201,7 +185,7 @@
             <summary>
                 Retrieves a collection of authority information access distribution points for a certification authority.
             </summary>
-            <param name="caName">The common name of the target certification authority.</param>
+            <param name="certificationAuthority">The common name of the target certification authority.</param>
             <param name="textualEncoding">
                 Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
             </param>
@@ -215,7 +199,7 @@
             <summary>
                 Retrieves an issued certificate from a certification authority.
             </summary>
-            <param name="caName">The common name of the target certification authority.</param>
+            <param name="certificationAuthority">The common name of the target certification authority.</param>
             <param name="requestId">The request identifier of the certificate to retrieve.</param>
             <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
             <param name="textualEncoding">
@@ -226,7 +210,7 @@
             <summary>
                 Submits a certificate signing request to a certification authority.
             </summary>
-            <param name="caName">The common name of the target certification authority.</param>
+            <param name="certificationAuthority">The common name of the target certification authority.</param>
             <param name="certificateRequest">The data structure containing the certificate request and optional settings.</param>
             <param name="certificateTemplate">The certificate template the certificate request shall be assigned to.</param>
             <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
@@ -275,6 +259,11 @@
               resource lookups using this strongly typed resource class.
             </summary>
         </member>
+        <member name="P:AdcsToRest.LocalizedStrings.DESC_CA_DENIED">
+            <summary>
+              Looks up a localized string similar to You do not have permission to request certificates from {0}..
+            </summary>
+        </member>
         <member name="P:AdcsToRest.LocalizedStrings.DESC_INVALID_CSR">
             <summary>
               Looks up a localized string similar to Unable to parse the given certificate request..
@@ -298,6 +287,11 @@
         <member name="P:AdcsToRest.LocalizedStrings.DESC_SUBMISSION_FAILED">
             <summary>
               Looks up a localized string similar to Unable to connect to certification authority because {0}..
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.LocalizedStrings.DESC_TEMPLATED_DENIED">
+            <summary>
+              Looks up a localized string similar to You do not have permission to enroll for {0}..
             </summary>
         </member>
         <member name="P:AdcsToRest.LocalizedStrings.UNKNOWN">
@@ -366,7 +360,10 @@
                 Builds the object from a SearchResult containing a pKIEnrollmentService LDAP object.
             </summary>
             <param name="searchResult"></param>
-            <param name="textualEncoding">Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.</param>
+            <param name="textualEncoding">
+                Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64
+                stream.
+            </param>
         </member>
         <member name="P:AdcsToRest.Models.CertificationAuthority.Name">
             <summary>
@@ -382,6 +379,14 @@
             <summary>
                 The current certification authority certificate of the certification authority.
             </summary>
+        </member>
+        <member name="M:AdcsToRest.Models.CertificationAuthority.AllowsForEnrollment(System.Security.Principal.WindowsIdentity,System.Boolean)">
+            <summary>
+                Determines whether a given WindowsIdentity may enroll for this certification authority.
+            </summary>
+            <param name="identity">The Windows identity to check for permissions.</param>
+            <param name="explicitlyPermitted">Return true only if the identity is explicitly mentioned in the acl.</param>
+            <returns></returns>
         </member>
         <member name="T:AdcsToRest.Models.CertificationAuthorityCollection">
             <summary>
@@ -501,6 +506,11 @@
                 The minor version of the certificate template.
             </summary>
         </member>
+        <member name="P:AdcsToRest.Models.CertificateTemplate.SchemaVersion">
+            <summary>
+                The Active Directory schema version of the certificate template.
+            </summary>
+        </member>
         <member name="P:AdcsToRest.Models.CertificateTemplate.Oid">
             <summary>
                 The object identifier of the certificate template.
@@ -516,12 +526,25 @@
                 Specifies the key algorithm the certificate will be signed with.
             </summary>
         </member>
+        <member name="M:AdcsToRest.Models.CertificateTemplate.AllowsForEnrollment(System.Security.Principal.WindowsIdentity,System.Boolean)">
+            <summary>
+                Determines whether a given WindowsIdentity may enroll for this certificate template.
+            </summary>
+            <param name="identity">The Windows identity to check for permissions.</param>
+            <param name="explicitlyPermitted">Return true only if the identity is explicitly mentioned in the acl.</param>
+            <returns></returns>
+        </member>
         <member name="T:AdcsToRest.Models.CertificateTemplateCollection">
             <summary>
                 A collection of CertificateTemplate Objects.
             </summary>
         </member>
         <member name="M:AdcsToRest.Models.CertificateTemplateCollection.#ctor">
+            <summary>
+                Builds a CertificateTemplateCollection.
+            </summary>
+        </member>
+        <member name="M:AdcsToRest.Models.CertificateTemplateCollection.#ctor(System.Collections.Generic.List{AdcsToRest.Models.CertificateTemplate})">
             <summary>
                 Builds a CertificateTemplateCollection.
             </summary>

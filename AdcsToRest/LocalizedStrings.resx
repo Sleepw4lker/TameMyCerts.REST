@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DESC_CA_DENIED" xml:space="preserve">
+    <value>You do not have permission to request certificates from {0}.</value>
+  </data>
   <data name="DESC_INVALID_CSR" xml:space="preserve">
     <value>Unable to parse the given certificate request.</value>
   </data>
@@ -131,6 +134,9 @@
   </data>
   <data name="DESC_SUBMISSION_FAILED" xml:space="preserve">
     <value>Unable to connect to certification authority because {0}.</value>
+  </data>
+  <data name="DESC_TEMPLATED_DENIED" xml:space="preserve">
+    <value>You do not have permission to enroll for {0}.</value>
   </data>
   <data name="UNKNOWN" xml:space="preserve">
     <value>unknown</value>

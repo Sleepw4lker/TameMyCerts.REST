@@ -23,6 +23,19 @@ namespace AdcsToRest.Models
     /// </summary>
     public class CertificateTemplateCollection
     {
+        private readonly string[] _defaultCertificateTemplates =
+        {
+            "CAExchange",
+            "CrossCA",
+            "DirectoryEmailReplication",
+            "DomainControllerAuthentication",
+            "KerberosAuthentication",
+            "KeyRecoveryAgent",
+            "OCSPResponseSigning",
+            "RASAndIASServer",
+            "Workstation"
+        };
+
         /// <summary>
         ///     Builds a CertificateTemplateCollection.
         /// </summary>
@@ -38,7 +51,17 @@ namespace AdcsToRest.Models
             }
 
             CertificateTemplates = templateBaseKey.GetSubKeyNames()
-                .Select(templateName => new CertificateTemplate(templateName)).ToList();
+                .Where(templateName => !_defaultCertificateTemplates.Contains(templateName))
+                .Select(templateName => new CertificateTemplate(templateName))
+                .Where(certificateTemplate => certificateTemplate.SchemaVersion > 1).ToList();
+        }
+
+        /// <summary>
+        ///     Builds a CertificateTemplateCollection.
+        /// </summary>
+        public CertificateTemplateCollection(List<CertificateTemplate> certificateTemplates)
+        {
+            CertificateTemplates = certificateTemplates;
         }
 
         /// <summary>
