@@ -21,6 +21,9 @@ namespace AdcsToRest.Models
     /// </summary>
     public class Status
     {
+        /// <summary>
+        ///     Additional status information about the outcome of the submission process.
+        /// </summary>
         public Status(int statusCode)
         {
             var statusMessage = new Win32Exception(statusCode).Message;
@@ -34,11 +37,11 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     The result code returned by the certification authority during the submission process.
         /// </summary>
-        public int StatusCode { get; set; }
+        public int StatusCode { get; }
 
         /// <summary>
         ///     The message the certification authority returned alongside with the result code.
         /// </summary>
-        public string Description { get; set; }
+        public string Description { get; }
     }
 }

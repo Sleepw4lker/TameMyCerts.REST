@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.Http;
 using AdcsToRest.Models;
 using CERTCLILib;
 
@@ -85,16 +84,14 @@ namespace AdcsToRest
         private static SubmissionResponse ProcessEnrollmentResult(this CCertRequest certRequestInterface,
             int disposition, bool includeCertificateChain = false, bool textualEncoding = false)
         {
-            var result = new SubmissionResponse
-            (
-                certRequestInterface.GetLastStatus(),
-                certRequestInterface.GetRequestId(),
-                disposition
-            );
-
-            if (!(disposition == CertCli.CR_DISP_ISSUED || disposition == CertCli.CR_DISP_REVOKED))
+            if (disposition != CertCli.CR_DISP_ISSUED && disposition != CertCli.CR_DISP_REVOKED)
             {
-                return result;
+                return new SubmissionResponse
+                (
+                    certRequestInterface.GetLastStatus(),
+                    certRequestInterface.GetRequestId(),
+                    disposition
+                );
             }
 
             var outputFlags = 0;
@@ -114,9 +111,13 @@ namespace AdcsToRest
                 outputFlags |= CertCli.CR_OUT_CHAIN;
             }
 
-            result.Certificate = certRequestInterface.GetCertificate(outputFlags);
-
-            return result;
+            return new SubmissionResponse
+            (
+                certRequestInterface.GetLastStatus(),
+                certRequestInterface.GetRequestId(),
+                disposition,
+                certRequestInterface.GetCertificate(outputFlags)
+            );
         }
 
         /// <summary>
@@ -162,14 +163,10 @@ namespace AdcsToRest
                     CertCli.CR_PROP_CERTCDPURLS, index,
                     CertSrv.PROPTYPE_STRING, 0);
 
-                crlList.Add(new CertificateRevocationListDistributionPoint
-                {
-                    CertificateRevocationList = certRequestInterface.GetCAProperty(configString,
-                        CertCli.CR_PROP_BASECRL, index,
-                        CertSrv.PROPTYPE_BINARY, outputFlags),
-                    Urls = crlDistributionPoints.Split(new[] {"\n"},
-                        StringSplitOptions.RemoveEmptyEntries).ToList()
-                });
+                crlList.Add(new CertificateRevocationListDistributionPoint(
+                    crlDistributionPoints.Split(new[] {"\n"}, StringSplitOptions.RemoveEmptyEntries).ToList(),
+                    certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_BASECRL, index,
+                        CertSrv.PROPTYPE_BINARY, outputFlags)));
             }
 
             return new CertificateRevocationListDistributionPointCollection(crlList);
@@ -213,15 +210,11 @@ namespace AdcsToRest
                     CertCli.CR_PROP_CERTAIAOCSPURLS, index,
                     CertSrv.PROPTYPE_STRING, 0);
 
-                aiaList.Add(new AuthorityInformationAccess
-                {
-                    Certificate = certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERT, index,
-                        CertSrv.PROPTYPE_BINARY, outputFlags),
-                    Urls = aiaUrls.Split(new[] {"\n"},
-                        StringSplitOptions.RemoveEmptyEntries).ToList(),
-                    OcspUrls = aiaOcspUrls.Split(new[] {"\n"},
-                        StringSplitOptions.RemoveEmptyEntries).ToList()
-                });
+                aiaList.Add(new AuthorityInformationAccess(
+                    aiaUrls.Split(new[] {"\n"}, StringSplitOptions.RemoveEmptyEntries).ToList(),
+                    aiaOcspUrls.Split(new[] {"\n"}, StringSplitOptions.RemoveEmptyEntries).ToList(),
+                    certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERT, index,
+                        CertSrv.PROPTYPE_BINARY, outputFlags)));
             }
 
             return new AuthorityInformationAccessCollection(aiaList);

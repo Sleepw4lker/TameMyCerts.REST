@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.ComponentModel;
-
 namespace AdcsToRest.Models
 {
     /// <summary>
@@ -80,21 +78,21 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     The request identifier of the issued certificate, or the pending request.
         /// </summary>
-        public int RequestId { get; set; }
+        public int RequestId { get; }
 
         /// <summary>
         ///     The disposition status of the submission or retrieval request.
         /// </summary>
-        public DispositionCode Disposition { get; set; }
+        public DispositionCode Disposition { get; }
 
         /// <summary>
         ///     Additional status information about the outcome of the submission process.
         /// </summary>
-        public Status Status { get; set; }
+        public Status Status { get; }
 
         /// <summary>
         ///     The issued PKIX certificate, if issued by the certification authority, as BASE64-encoded DER.
         /// </summary>
-        public string Certificate { get; set; }
+        public string Certificate { get; }
     }
 }

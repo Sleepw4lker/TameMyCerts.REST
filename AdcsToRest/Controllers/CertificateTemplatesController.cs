@@ -43,57 +43,48 @@ namespace AdcsToRest.Controllers
         /// <summary>
         ///     Retrieves details for a certificate template.
         /// </summary>
-        /// <param name="certificateTemplate">The name of the target certificate template.</param>
+        /// <param name="templateName">The name of the target certificate template.</param>
         [HttpGet]
         [Authorize]
-        [Route("v1/certificate-templates/{certificateTemplate}")]
-        public CertificateTemplate GetCertificateTemplate(string certificateTemplate)
+        [Route("v1/certificate-templates/{templateName}")]
+        public CertificateTemplate GetCertificateTemplate(string templateName)
         {
-            CertificateTemplate certificateTemplateObject;
-
-            try
-            {
-                certificateTemplateObject = new CertificateTemplate(certificateTemplate);
-            }
-            catch (ArgumentException ex)
+            if (!(CertificateTemplate.Create(templateName) is CertificateTemplate certificateTemplate))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
-                    Content = new StringContent(ex.Message)
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_TEMPLATE, templateName))
                 });
             }
 
-            if (certificateTemplateObject.SchemaVersion < 2 ||
-                !certificateTemplateObject.AllowsForEnrollment((WindowsIdentity) User.Identity)
-               )
+            if (!certificateTemplate.AllowsForEnrollment((WindowsIdentity) User.Identity))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED,
-                        certificateTemplate))
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName))
                 });
             }
 
-            return certificateTemplateObject;
+            return certificateTemplate;
         }
 
         /// <summary>
         ///     Retrieves a collection of certification authorities that issue certificates for a given certificate template.
         /// </summary>
-        /// <param name="certificateTemplate">The name of the target certificate template.</param>
+        /// <param name="templateName">The name of the target certificate template.</param>
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("v1/certificate-templates/{certificateTemplate}/issuers")]
-        public CertificationAuthorityCollection GetCertificateTemplateIssuers(string certificateTemplate,
+        [Route("v1/certificate-templates/{templateName}/issuers")]
+        public CertificationAuthorityCollection GetCertificateTemplateIssuers(string templateName,
             [FromUri] bool textualEncoding = false)
         {
-            return new CertificationAuthorityCollection(ActiveDirectory
-                .GetCertificationAuthorityCollection(textualEncoding).CertificationAuthorities.Where(
+            return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
+                .CertificationAuthorities.Where(
                     certificationAuthority =>
-                        certificationAuthority.CertificateTemplates.Contains(certificateTemplate,
+                        certificationAuthority.CertificateTemplates.Contains(templateName,
                             StringComparer.InvariantCultureIgnoreCase)).ToList());
         }
     }

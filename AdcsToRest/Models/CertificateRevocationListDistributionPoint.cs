@@ -17,19 +17,27 @@ using System.Collections.Generic;
 namespace AdcsToRest.Models
 {
     /// <summary>
-    ///     A data structure containing certificate revocation list distribution point information for a certification authority.
+    ///     A data structure containing CRL distribution point information for a certification authority.
     /// </summary>
     public class CertificateRevocationListDistributionPoint
     {
         /// <summary>
-        ///     A collection of uniform resource locators the certificate revocation list is distributed by the certificate
-        ///     authority.
+        ///     Initiates a CertificateRevocationListDistributionPoint object.
         /// </summary>
-        public List<string> Urls { get; set; }
+        public CertificateRevocationListDistributionPoint(List<string> urls, string certificateRevocationList)
+        {
+            Urls = urls;
+            CertificateRevocationList = certificateRevocationList;
+        }
+
+        /// <summary>
+        ///     A collection of addresses under which the CRL is distributed by the certification authority.
+        /// </summary>
+        public List<string> Urls { get; }
 
         /// <summary>
         ///     The PKIX certificate revocation list.
         /// </summary>
-        public string CertificateRevocationList { get; set; }
+        public string CertificateRevocationList { get; }
     }
 }

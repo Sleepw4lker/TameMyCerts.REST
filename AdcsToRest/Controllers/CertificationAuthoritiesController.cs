@@ -40,108 +40,84 @@ namespace AdcsToRest.Controllers
         [Route("v1/certification-authorities")]
         public CertificationAuthorityCollection GetAllCas([FromUri] bool textualEncoding = false)
         {
-            try
-            {
-                return new CertificationAuthorityCollection(ActiveDirectory
-                    .GetCertificationAuthorityCollection(textualEncoding).CertificationAuthorities
-                    .Where(certificationAuthority =>
-                        certificationAuthority.AllowsForEnrollment((WindowsIdentity) User.Identity))
-                    .ToList());
-            }
-            catch (Exception ex)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(ex.Message)
-                });
-            }
+            return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
+                .CertificationAuthorities.Where(certificationAuthority =>
+                    certificationAuthority.AllowsForEnrollment((WindowsIdentity) User.Identity)).ToList());
         }
 
         /// <summary>
         ///     Retrieves details for a certification authority.
         /// </summary>
-        /// <param name="certificationAuthority">The common name of the target certification authority.</param>
+        /// <param name="caName">The common name of the target certification authority.</param>
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("v1/certification-authorities/{certificationAuthority}")]
-        public CertificationAuthority GetCaByName(string certificationAuthority, [FromUri] bool textualEncoding = false)
+        [Route("v1/certification-authorities/{caName}")]
+        public CertificationAuthority GetCaByName(string caName, [FromUri] bool textualEncoding = false)
         {
-            CertificationAuthority certificationAuthorityObject;
-
-            try
-            {
-                certificationAuthorityObject =
-                    ActiveDirectory.GetCertificationAuthority(certificationAuthority, textualEncoding);
-            }
-            catch (Exception ex)
+            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
+                    certificationAuthority))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
-                    Content = new StringContent(ex.Message)
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
                 });
             }
 
-            if (!certificationAuthorityObject.AllowsForEnrollment((WindowsIdentity) User.Identity))
+            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity) User.Identity))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
                 {
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        certificationAuthority))
+                        caName))
                 });
             }
 
-            return certificationAuthorityObject;
+            return certificationAuthority;
         }
 
         /// <summary>
         ///     Retrieves the current certification authority certificate for a certification authority.
         /// </summary>
-        /// <param name="certificationAuthority">The common name of the target certification authority.</param>
+        /// <param name="caName">The common name of the target certification authority.</param>
         /// <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("v1/certification-authorities/{certificationAuthority}/ca-certificate")]
-        public SubmissionResponse GetCaCertificate(string certificationAuthority,
+        [Route("v1/certification-authorities/{caName}/ca-certificate")]
+        public SubmissionResponse GetCaCertificate(string caName,
             [FromUri] bool includeCertificateChain = false, [FromUri] bool textualEncoding = false)
         {
-            CertificationAuthority certificationAuthorityObject;
-
-            try
-            {
-                certificationAuthorityObject =
-                    ActiveDirectory.GetCertificationAuthority(certificationAuthority, textualEncoding);
-            }
-            catch (Exception ex)
+            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
+                    certificationAuthority))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
-                    Content = new StringContent(ex.Message)
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
                 });
             }
 
-            if (!certificationAuthorityObject.AllowsForEnrollment((WindowsIdentity) User.Identity))
+            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity) User.Identity))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
                 {
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        certificationAuthority))
+                        caName))
                 });
             }
 
             try
             {
                 var certRequestInterface = new CCertRequest();
-                var result =
-                    certRequestInterface.GetCaCertificate(certificationAuthorityObject.ConfigString,
+                var submissionResponse =
+                    certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString,
                         includeCertificateChain, textualEncoding);
                 Marshal.ReleaseComObject(certRequestInterface);
-                return result;
+                return submissionResponse;
             }
             catch (Exception ex)
             {
@@ -155,49 +131,43 @@ namespace AdcsToRest.Controllers
         /// <summary>
         ///     Retrieves the current certification authority exchange certificate for a certification authority.
         /// </summary>
-        /// <param name="certificationAuthority">The common name of the target certification authority.</param>
+        /// <param name="caName">The common name of the target certification authority.</param>
         /// <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("v1/certification-authorities/{certificationAuthority}/ca-exchange-certificate")]
-        public SubmissionResponse GetCaExchangeCertificate(string certificationAuthority,
+        [Route("v1/certification-authorities/{caName}/ca-exchange-certificate")]
+        public SubmissionResponse GetCaExchangeCertificate(string caName,
             [FromUri] bool includeCertificateChain = false, [FromUri] bool textualEncoding = false)
         {
-            CertificationAuthority certificationAuthorityObject;
-
-            try
-            {
-                certificationAuthorityObject =
-                    ActiveDirectory.GetCertificationAuthority(certificationAuthority, textualEncoding);
-            }
-            catch (Exception ex)
+            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
+                    certificationAuthority))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
-                    Content = new StringContent(ex.Message)
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
                 });
             }
 
-            if (!certificationAuthorityObject.AllowsForEnrollment((WindowsIdentity) User.Identity))
+            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity) User.Identity))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
                 {
                     Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        certificationAuthority))
+                        caName))
                 });
             }
 
             try
             {
                 var certRequestInterface = new CCertRequest();
-                var result = certRequestInterface.GetCaCertificate(certificationAuthorityObject.ConfigString,
+                var submissionResponse = certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString,
                     includeCertificateChain,
                     textualEncoding, true);
                 Marshal.ReleaseComObject(certRequestInterface);
-                return result;
+                return submissionResponse;
             }
             catch (Exception ex)
             {
@@ -211,47 +181,41 @@ namespace AdcsToRest.Controllers
         /// <summary>
         ///     Retrieves a collection of certificate revocation list distribution points for a certification authority.
         /// </summary>
-        /// <param name="certificationAuthority">The common name of the target certification authority.</param>
+        /// <param name="caName">The common name of the target certification authority.</param>
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("v1/certification-authorities/{certificationAuthority}/crl-distribution-points")]
-        public CertificateRevocationListDistributionPointCollection GetCrlDp(string certificationAuthority,
+        [Route("v1/certification-authorities/{caName}/crl-distribution-points")]
+        public CertificateRevocationListDistributionPointCollection GetCrlDp(string caName,
             [FromUri] bool textualEncoding = false)
         {
-            CertificationAuthority certificationAuthorityObject;
-
-            try
-            {
-                certificationAuthorityObject =
-                    ActiveDirectory.GetCertificationAuthority(certificationAuthority, textualEncoding);
-            }
-            catch (Exception ex)
+            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
+                    certificationAuthority))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
-                    Content = new StringContent(ex.Message)
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
                 });
             }
 
-            if (!certificationAuthorityObject.AllowsForEnrollment((WindowsIdentity) User.Identity))
+            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity) User.Identity))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        certificationAuthority))
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED, caName))
                 });
             }
 
             try
             {
                 var certRequestInterface = new CCertRequest();
-                var result =
-                    certRequestInterface.GetCrlDpCollection(certificationAuthorityObject.ConfigString, textualEncoding);
+                var certificateRevocationListDistributionPointCollection =
+                    certRequestInterface.GetCrlDpCollection(certificationAuthority.ConfigurationString,
+                        textualEncoding);
                 Marshal.ReleaseComObject(certRequestInterface);
-                return result;
+                return certificateRevocationListDistributionPointCollection;
             }
             catch (Exception ex)
             {
@@ -265,47 +229,40 @@ namespace AdcsToRest.Controllers
         /// <summary>
         ///     Retrieves a collection of authority information access distribution points for a certification authority.
         /// </summary>
-        /// <param name="certificationAuthority">The common name of the target certification authority.</param>
+        /// <param name="caName">The common name of the target certification authority.</param>
         /// <param name="textualEncoding">
         ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("v1/certification-authorities/{certificationAuthority}/authority-information-access")]
-        public AuthorityInformationAccessCollection GetAia(string certificationAuthority,
+        [Route("v1/certification-authorities/{caName}/authority-information-access")]
+        public AuthorityInformationAccessCollection GetAia(string caName,
             [FromUri] bool textualEncoding = false)
         {
-            CertificationAuthority certificationAuthorityObject;
-
-            try
-            {
-                certificationAuthorityObject =
-                    ActiveDirectory.GetCertificationAuthority(certificationAuthority, textualEncoding);
-            }
-            catch (Exception ex)
+            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
+                    certificationAuthority))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
-                    Content = new StringContent(ex.Message)
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
                 });
             }
 
-            if (!certificationAuthorityObject.AllowsForEnrollment((WindowsIdentity) User.Identity))
+            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity) User.Identity))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        certificationAuthority))
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED, caName))
                 });
             }
 
             try
             {
                 var certRequestInterface = new CCertRequest();
-                var result =
-                    certRequestInterface.GetAiaCollection(certificationAuthorityObject.ConfigString, textualEncoding);
+                var authorityInformationAccessCollection =
+                    certRequestInterface.GetAiaCollection(certificationAuthority.ConfigurationString, textualEncoding);
                 Marshal.ReleaseComObject(certRequestInterface);
-                return result;
+                return authorityInformationAccessCollection;
             }
             catch (Exception ex)
             {

@@ -45,7 +45,7 @@
           {
             "name": "textualEncoding",
             "in": "query",
-            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64\r\nstream.",
+            "description": "Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.",
             "required": false,
             "type": "boolean"
           }
@@ -128,7 +128,7 @@
         "tags": [
           "CertificateTemplates"
         ],
-        "summary": "Retrieves a list of all certificate templates in the underlying Active Directory environment.",
+        "summary": "Retrieves a collection of all certificate templates in the underlying Active Directory environment.",
         "operationId": "CertificateTemplates_GetCertificateTemplateCollection",
         "consumes": [],
         "produces": [
@@ -144,7 +144,7 @@
         }
       }
     },
-    "/v1/certificate-templates/{certificateTemplate}": {
+    "/v1/certificate-templates/{templateName}": {
       "get": {
         "tags": [
           "CertificateTemplates"
@@ -157,7 +157,7 @@
         ],
         "parameters": [
           {
-            "name": "certificateTemplate",
+            "name": "templateName",
             "in": "path",
             "description": "The name of the target certificate template.",
             "required": true,
@@ -174,12 +174,12 @@
         }
       }
     },
-    "/v1/certificate-templates/{certificateTemplate}/issuers": {
+    "/v1/certificate-templates/{templateName}/issuers": {
       "get": {
         "tags": [
           "CertificateTemplates"
         ],
-        "summary": "Retrieves certification authorities that issue certificates for a given certificate template.",
+        "summary": "Retrieves a collection of certification authorities that issue certificates for a given certificate template.",
         "operationId": "CertificateTemplates_GetCertificateTemplateIssuers",
         "consumes": [],
         "produces": [
@@ -187,7 +187,7 @@
         ],
         "parameters": [
           {
-            "name": "certificateTemplate",
+            "name": "templateName",
             "in": "path",
             "description": "The name of the target certificate template.",
             "required": true,
@@ -449,7 +449,8 @@
         "requestId": {
           "format": "int32",
           "description": "The request identifier of the issued certificate, or the pending request.",
-          "type": "integer"
+          "type": "integer",
+          "readOnly": true
         },
         "disposition": {
           "description": "The disposition status of the submission or retrieval request.",
@@ -462,15 +463,18 @@
             "pending",
             "revoked"
           ],
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         },
         "status": {
           "$ref": "#/definitions/Status",
-          "description": "Additional status information about the outcome of the submission process."
+          "description": "Additional status information about the outcome of the submission process.",
+          "readOnly": true
         },
         "certificate": {
           "description": "The issued PKIX certificate, if issued by the certification authority, as BASE64-encoded DER.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         }
       }
     },
@@ -481,11 +485,13 @@
         "statusCode": {
           "format": "int32",
           "description": "The result code returned by the certification authority during the submission process.",
-          "type": "integer"
+          "type": "integer",
+          "readOnly": true
         },
         "description": {
           "description": "The message the certification authority returned alongside with the result code.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         }
       }
     },
@@ -518,7 +524,8 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/CertificateTemplate"
-          }
+          },
+          "readOnly": true
         }
       }
     },
@@ -528,33 +535,39 @@
       "properties": {
         "name": {
           "description": "The common name of the certificate template.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         },
         "minimumKeyLength": {
           "format": "int32",
           "description": "The minimum accepted key length of the certificate template.",
-          "type": "integer"
+          "type": "integer",
+          "readOnly": true
         },
         "majorVersion": {
           "format": "int32",
           "description": "The major version of the certificate template.",
-          "type": "integer"
+          "type": "integer",
+          "readOnly": true
         },
         "minorVersion": {
           "format": "int32",
           "description": "The minor version of the certificate template.",
-          "type": "integer"
+          "type": "integer",
+          "readOnly": true
         },
         "oid": {
           "description": "The object identifier of the certificate template.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         },
         "extendedKeyUsages": {
           "description": "A list of extended key usages of the certificate template.",
           "type": "array",
           "items": {
             "$ref": "#/definitions/ExtendedKeyUsage"
-          }
+          },
+          "readOnly": true
         },
         "keyAlgorithm": {
           "description": "Specifies the key algorithm the certificate will be signed with.",
@@ -567,7 +580,18 @@
             "eCDH_P384",
             "eCDH_P521"
           ],
-          "type": "string"
+          "type": "string",
+          "readOnly": true
+        },
+        "validityPeriod": {
+          "description": "The validity period of issued certificates for this certificate template.",
+          "type": "string",
+          "readOnly": true
+        },
+        "renewalOverlap": {
+          "description": "The desired renewal overlap period for this certificate template.",
+          "type": "string",
+          "readOnly": true
         }
       }
     },
@@ -577,11 +601,13 @@
       "properties": {
         "oid": {
           "description": "The object identifier of the extended key usage.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         },
         "friendlyName": {
           "description": "The friendly name of the extended key usage.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         }
       }
     },
@@ -594,7 +620,8 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/CertificationAuthority"
-          }
+          },
+          "readOnly": true
         }
       }
     },
@@ -604,18 +631,21 @@
       "properties": {
         "name": {
           "description": "The common name of the certification authority.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         },
         "certificateTemplates": {
           "description": "A list of all certificate templates offered by the certification authority.",
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "readOnly": true
         },
         "certificate": {
           "description": "The current certification authority certificate of the certification authority.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         }
       }
     },
@@ -628,24 +658,27 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/CertificateRevocationListDistributionPoint"
-          }
+          },
+          "readOnly": true
         }
       }
     },
     "CertificateRevocationListDistributionPoint": {
-      "description": "A data structure containing certificate revocation list distribution point information for a certification authority.",
+      "description": "A data structure containing CRL distribution point information for a certification authority.",
       "type": "object",
       "properties": {
         "urls": {
-          "description": "A collection of uniform resource locators the certificate revocation list is distributed by the certificate\r\nauthority.",
+          "description": "A collection of addresses under which the CRL is distributed by the certification authority.",
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "readOnly": true
         },
         "certificateRevocationList": {
           "description": "The PKIX certificate revocation list.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         }
       }
     },
@@ -658,7 +691,8 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/AuthorityInformationAccess"
-          }
+          },
+          "readOnly": true
         }
       }
     },
@@ -671,18 +705,21 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "readOnly": true
         },
         "ocspUrls": {
-          "description": "A collection of online certificate status protocol urls that are available for the certification authority\r\ncertificate.",
+          "description": "A collection of available online certificate status protocol urls.",
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "readOnly": true
         },
         "certificate": {
           "description": "The PKIX certification authority certificate.",
-          "type": "string"
+          "type": "string",
+          "readOnly": true
         }
       }
     }

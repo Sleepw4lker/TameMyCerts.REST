@@ -31,7 +31,7 @@ namespace AdcsToRest.Controllers
         /// <summary>
         ///     Retrieves an issued certificate from a certification authority.
         /// </summary>
-        /// <param name="certificationAuthority">The common name of the target certification authority.</param>
+        /// <param name="caName">The common name of the target certification authority.</param>
         /// <param name="requestId">The request identifier of the certificate to retrieve.</param>
         /// <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
         /// <param name="textualEncoding">
@@ -39,32 +39,25 @@ namespace AdcsToRest.Controllers
         /// </param>
         [HttpGet]
         [Authorize]
-        [Route("v1/certificates/{certificationAuthority}/{requestId}")]
-        public SubmissionResponse GetCertificateByRequestId(string certificationAuthority, int requestId,
+        [Route("v1/certificates/{caName}/{requestId}")]
+        public SubmissionResponse GetCertificateByRequestId(string caName, int requestId,
             [FromUri] bool includeCertificateChain = false,
             [FromUri] bool textualEncoding = false)
         {
-            CertificationAuthority certificationAuthorityObject;
-
-            try
-            {
-                certificationAuthorityObject =
-                    ActiveDirectory.GetCertificationAuthority(certificationAuthority, textualEncoding);
-            }
-            catch (Exception ex)
+            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
+                    certificationAuthority))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
-                    Content = new StringContent(ex.Message)
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
                 });
             }
 
-            if (!certificationAuthorityObject.AllowsForEnrollment((WindowsIdentity) User.Identity))
+            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity) User.Identity))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        certificationAuthority))
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED, caName))
                 });
             }
 
@@ -73,11 +66,10 @@ namespace AdcsToRest.Controllers
                 using (((WindowsIdentity) User.Identity).Impersonate())
                 {
                     var certRequestInterface = new CCertRequest();
-                    var result = certRequestInterface.RetrievePending(certificationAuthorityObject.ConfigString,
-                        requestId, includeCertificateChain,
-                        textualEncoding);
+                    var submissionResponse = certRequestInterface.RetrievePending(certificationAuthority.ConfigurationString,
+                        requestId, includeCertificateChain, textualEncoding);
                     Marshal.ReleaseComObject(certRequestInterface);
-                    return result;
+                    return submissionResponse;
                 }
             }
             catch (Exception ex)
@@ -92,7 +84,7 @@ namespace AdcsToRest.Controllers
         /// <summary>
         ///     Submits a certificate signing request to a certification authority.
         /// </summary>
-        /// <param name="certificationAuthority">The common name of the target certification authority.</param>
+        /// <param name="caName">The common name of the target certification authority.</param>
         /// <param name="certificateRequest">The data structure containing the certificate request and optional settings.</param>
         /// <param name="certificateTemplate">The certificate template the certificate request shall be assigned to.</param>
         /// <param name="includeCertificateChain">Causes the response to be a PKCS#7 container including the certificate chain.</param>
@@ -101,34 +93,27 @@ namespace AdcsToRest.Controllers
         /// </param>
         [HttpPost]
         [Authorize]
-        [Route("v1/certificates/{certificationAuthority}")]
-        public SubmissionResponse SubmitCertificateRequest(string certificationAuthority,
+        [Route("v1/certificates/{caName}")]
+        public SubmissionResponse SubmitCertificateRequest(string caName,
             CertificateRequest certificateRequest,
             [FromUri] string certificateTemplate = null,
             [FromUri] bool includeCertificateChain = false,
             [FromUri] bool textualEncoding = false)
         {
-            CertificationAuthority certificationAuthorityObject;
-
-            try
-            {
-                certificationAuthorityObject =
-                    ActiveDirectory.GetCertificationAuthority(certificationAuthority, textualEncoding);
-            }
-            catch (Exception ex)
+            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
+                    certificationAuthority))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
                 {
-                    Content = new StringContent(ex.Message)
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
                 });
             }
 
-            if (!certificationAuthorityObject.AllowsForEnrollment((WindowsIdentity) User.Identity))
+            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity) User.Identity))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        certificationAuthority))
+                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED, caName))
                 });
             }
 
@@ -149,12 +134,11 @@ namespace AdcsToRest.Controllers
                 using (((WindowsIdentity) User.Identity).Impersonate())
                 {
                     var certRequestInterface = new CCertRequest();
-                    var result = certRequestInterface.Submit(certificationAuthorityObject.ConfigString,
-                        rawCertificateRequest,
-                        certificateRequest.RequestAttributes, submissionFlags, includeCertificateChain,
-                        textualEncoding);
+                    var submissionResponse = certRequestInterface.Submit(certificationAuthority.ConfigurationString,
+                        rawCertificateRequest, certificateRequest.RequestAttributes, submissionFlags,
+                        includeCertificateChain, textualEncoding);
                     Marshal.ReleaseComObject(certRequestInterface);
-                    return result;
+                    return submissionResponse;
                 }
             }
             catch (Exception ex)

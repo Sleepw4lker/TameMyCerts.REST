@@ -18,6 +18,7 @@ using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 
 namespace AdcsToRest.Models
 {
@@ -67,41 +68,31 @@ namespace AdcsToRest.Models
             ECDH_P521 = 7
         }
 
-        /// <summary>
-        ///     An object holding information about a certificate template.
-        /// </summary>
-        /// <param name="certificateTemplate">The name of the certificate template from which the object is built.</param>
-        public CertificateTemplate(string certificateTemplate)
+        private CertificateTemplate(string templateName, RegistryKey regKey)
         {
-            var machineBaseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            var templateBaseKey =
-                machineBaseKey.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography\\CertificateTemplateCache");
+            const string enrollPermission = "0E10C968-78FB-11D2-90D4-00C04F79DC55";
 
-            var templateSubKey = templateBaseKey?.OpenSubKey(certificateTemplate);
+            Name = templateName;
+            MinimumKeyLength = (int) regKey.GetValue("msPKI-Minimal-Key-Size");
+            MajorVersion = (int) regKey.GetValue("Revision");
+            MinorVersion = (int) regKey.GetValue("msPKI-Template-Minor-Revision");
+            SchemaVersion = (int) regKey.GetValue("msPKI-Template-Schema-Version");
+            Oid = ((string[]) regKey.GetValue("msPKI-Cert-Template-OID"))[0];
 
-            if (templateSubKey == null)
-            {
-                throw new ArgumentException(string.Format(LocalizedStrings.DESC_MISSING_TEMPLATE, certificateTemplate));
-            }
+            ValidityPeriod = PkiPeriodToTimeSpan((byte[]) regKey.GetValue("ValidityPeriod"));
+            RenewalOverlap = PkiPeriodToTimeSpan((byte[]) regKey.GetValue("RenewalOverlap"));
 
-            Name = certificateTemplate;
-            MinimumKeyLength = (int) templateSubKey.GetValue("msPKI-Minimal-Key-Size");
-            MajorVersion = (int) templateSubKey.GetValue("Revision");
-            MinorVersion = (int) templateSubKey.GetValue("msPKI-Template-Minor-Revision");
-            SchemaVersion = (int) templateSubKey.GetValue("msPKI-Template-Schema-Version");
-            Oid = ((string[]) templateSubKey.GetValue("msPKI-Cert-Template-OID"))[0];
-
-            ExtendedKeyUsages = (from string extendedKeyUsage in (string[]) templateSubKey.GetValue("ExtKeyUsageSyntax")
+            ExtendedKeyUsages = (from string extendedKeyUsage in (string[]) regKey.GetValue("ExtKeyUsageSyntax")
                     select new ExtendedKeyUsage(extendedKeyUsage))
                 .OrderBy(extendedKeyUsage => extendedKeyUsage.FriendlyName).ToList();
 
-            var applicationPoliciesValueData = (string[]) templateSubKey.GetValue("msPKI-RA-Application-Policies");
+            var applicationPoliciesValueData = (string[]) regKey.GetValue("msPKI-RA-Application-Policies");
 
             KeyAlgorithm = applicationPoliciesValueData.Length > 0
                 ? GetKeyAlgorithm(applicationPoliciesValueData[0])
                 : KeyAlgorithmType.RSA;
 
-            var rawSecurityDescriptor = new RawSecurityDescriptor((byte[]) templateSubKey.GetValue("Security"), 0);
+            var rawSecurityDescriptor = new RawSecurityDescriptor((byte[]) regKey.GetValue("Security"), 0);
 
             foreach (var genericAce in rawSecurityDescriptor.DiscretionaryAcl)
             {
@@ -110,7 +101,7 @@ namespace AdcsToRest.Models
                     continue;
                 }
 
-                if (objectAce.ObjectAceType != new Guid("0E10C968-78FB-11D2-90D4-00C04F79DC55"))
+                if (objectAce.ObjectAceType != new Guid(enrollPermission))
                 {
                     continue;
                 }
@@ -118,10 +109,10 @@ namespace AdcsToRest.Models
                 switch (objectAce.AceType)
                 {
                     case AceType.AccessAllowedObject:
-                        AllowedPrincipals.Add(objectAce.SecurityIdentifier.ToString());
+                        AllowedPrincipals.Add(objectAce.SecurityIdentifier);
                         break;
                     case AceType.AccessDeniedObject:
-                        DisallowedPrincipals.Add(objectAce.SecurityIdentifier.ToString());
+                        DisallowedPrincipals.Add(objectAce.SecurityIdentifier);
                         break;
                 }
             }
@@ -130,45 +121,74 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     The common name of the certificate template.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; }
 
         /// <summary>
         ///     The minimum accepted key length of the certificate template.
         /// </summary>
-        public int MinimumKeyLength { get; set; }
+        public int MinimumKeyLength { get; }
 
         /// <summary>
         ///     The major version of the certificate template.
         /// </summary>
-        public int MajorVersion { get; set; }
+        public int MajorVersion { get; }
 
         /// <summary>
         ///     The minor version of the certificate template.
         /// </summary>
-        public int MinorVersion { get; set; }
+        public int MinorVersion { get; }
 
         /// <summary>
         ///     The Active Directory schema version of the certificate template.
         /// </summary>
-        public int SchemaVersion { get; set; }
+        [JsonIgnore]
+        public int SchemaVersion { get; }
 
         /// <summary>
         ///     The object identifier of the certificate template.
         /// </summary>
-        public string Oid { get; set; }
+        public string Oid { get; }
 
         /// <summary>
         ///     A list of extended key usages of the certificate template.
         /// </summary>
-        public List<ExtendedKeyUsage> ExtendedKeyUsages { get; set; }
+        public List<ExtendedKeyUsage> ExtendedKeyUsages { get; }
 
         /// <summary>
         ///     Specifies the key algorithm the certificate will be signed with.
         /// </summary>
-        public KeyAlgorithmType KeyAlgorithm { get; set; }
+        public KeyAlgorithmType KeyAlgorithm { get; }
 
-        private List<string> AllowedPrincipals { get; } = new List<string>();
-        private List<string> DisallowedPrincipals { get; } = new List<string>();
+        /// <summary>
+        ///     The validity period of issued certificates for this certificate template.
+        /// </summary>
+        public TimeSpan ValidityPeriod { get; }
+
+        /// <summary>
+        ///     The desired renewal overlap period for this certificate template.
+        /// </summary>
+        public TimeSpan RenewalOverlap { get; }
+
+        private List<SecurityIdentifier> AllowedPrincipals { get; } = new List<SecurityIdentifier>();
+        private List<SecurityIdentifier> DisallowedPrincipals { get; } = new List<SecurityIdentifier>();
+
+        /// <summary>
+        ///     Builds a new CertificateTemplate object.
+        /// </summary>
+        /// <param name="templateName">The name of the certificate template from which the object is built.</param>
+        public static CertificateTemplate Create(string templateName)
+        {
+            var machineBaseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            var templateBaseKey =
+                machineBaseKey.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography\\CertificateTemplateCache");
+
+            if (templateBaseKey?.OpenSubKey(templateName) is RegistryKey templateSubKey)
+            {
+                return new CertificateTemplate(templateName, templateSubKey);
+            }
+
+            return null;
+        }
 
         /// <summary>
         ///     Determines whether a given WindowsIdentity may enroll for this certificate template.
@@ -181,22 +201,18 @@ namespace AdcsToRest.Models
             var isAllowed = false;
             var isDenied = false;
 
-            var userSid = identity.User?.ToString();
-            var ignoreCase = StringComparer.InvariantCultureIgnoreCase;
-
             if (!explicitlyPermitted)
             {
                 for (var index = 0; index < identity.Groups?.Count; index++)
                 {
-                    var group = identity.Groups[index].ToString();
-
-                    isAllowed = AllowedPrincipals.Contains(group, ignoreCase) || isAllowed;
-                    isDenied = DisallowedPrincipals.Contains(group, ignoreCase) || isDenied;
+                    var group = (SecurityIdentifier) identity.Groups[index];
+                    isAllowed = AllowedPrincipals.Contains(group) || isAllowed;
+                    isDenied = DisallowedPrincipals.Contains(group) || isDenied;
                 }
             }
 
-            isAllowed = AllowedPrincipals.Contains(userSid, ignoreCase) || isAllowed;
-            isDenied = DisallowedPrincipals.Contains(userSid, ignoreCase) || isDenied;
+            isAllowed = AllowedPrincipals.Contains(identity.User) || isAllowed;
+            isDenied = DisallowedPrincipals.Contains(identity.User) || isDenied;
 
             return isAllowed && !isDenied;
         }
@@ -212,6 +228,13 @@ namespace AdcsToRest.Models
             }
 
             return KeyAlgorithmType.RSA;
+        }
+
+        private static TimeSpan PkiPeriodToTimeSpan(byte[] value)
+        {
+            var period = BitConverter.ToInt64(value, 0);
+            period /= -10000000;
+            return TimeSpan.FromSeconds(period);
         }
     }
 }

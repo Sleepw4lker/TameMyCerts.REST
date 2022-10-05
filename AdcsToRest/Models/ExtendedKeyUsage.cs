@@ -50,11 +50,11 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     The object identifier of the extended key usage.
         /// </summary>
-        public string Oid { get; set; }
+        public string Oid { get; }
 
         /// <summary>
         ///     The friendly name of the extended key usage.
         /// </summary>
-        public string FriendlyName { get; set; }
+        public string FriendlyName { get; }
     }
 }

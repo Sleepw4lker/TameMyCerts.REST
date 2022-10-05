@@ -33,14 +33,15 @@ namespace AdcsToRest.Models
         /// </summary>
         /// <param name="searchResult"></param>
         /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64
-        ///     stream.
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
         /// </param>
         public CertificationAuthority(SearchResult searchResult, bool textualEncoding = false)
         {
+            const string enrollPermission = "0E10C968-78FB-11D2-90D4-00C04F79DC55";
+
             Name = (string) searchResult.Properties["cn"][0];
 
-            ConfigString = $"{searchResult.Properties["dNSHostName"][0]}\\{Name}";
+            ConfigurationString = $"{searchResult.Properties["dNSHostName"][0]}\\{Name}";
 
             Certificate = GetCertificate((byte[]) searchResult.Properties["cACertificate"][0], textualEncoding);
 
@@ -60,7 +61,7 @@ namespace AdcsToRest.Models
                     continue;
                 }
 
-                if (objectAce.ObjectAceType != new Guid("0E10C968-78FB-11D2-90D4-00C04F79DC55"))
+                if (objectAce.ObjectAceType != new Guid(enrollPermission))
                 {
                     continue;
                 }
@@ -68,10 +69,10 @@ namespace AdcsToRest.Models
                 switch (objectAce.AceType)
                 {
                     case AceType.AccessAllowedObject:
-                        AllowedPrincipals.Add(objectAce.SecurityIdentifier.ToString());
+                        AllowedPrincipals.Add(objectAce.SecurityIdentifier);
                         break;
                     case AceType.AccessDeniedObject:
-                        DisallowedPrincipals.Add(objectAce.SecurityIdentifier.ToString());
+                        DisallowedPrincipals.Add(objectAce.SecurityIdentifier);
                         break;
                 }
             }
@@ -80,26 +81,44 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     The common name of the certification authority.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; }
 
+        /// <summary>
+        ///     The configuration string for this certification authority.
+        /// </summary>
         [JsonIgnore]
-        public string ConfigString { get; set; }
+        public string ConfigurationString { get; }
 
         /// <summary>
         ///     A list of all certificate templates offered by the certification authority.
         /// </summary>
-        public List<string> CertificateTemplates { get; set; }
+        public List<string> CertificateTemplates { get; }
 
         /// <summary>
         ///     The current certification authority certificate of the certification authority.
         /// </summary>
-        public string Certificate { get; set; }
+        public string Certificate { get; }
 
-        private List<string> AllowedPrincipals { get; } = new List<string>();
-        private List<string> DisallowedPrincipals { get; } = new List<string>();
+        private List<SecurityIdentifier> AllowedPrincipals { get; } = new List<SecurityIdentifier>();
+        private List<SecurityIdentifier> DisallowedPrincipals { get; } = new List<SecurityIdentifier>();
 
         /// <summary>
-        ///     Determines whether a given WindowsIdentity may enroll for this certification authority.
+        ///     Builds a CertificationAuthority object out of a given name.
+        /// </summary>
+        /// <param name="caName">The name of the target certification authority.</param>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
+        public static CertificationAuthority Create(string caName,
+            bool textualEncoding = false)
+        {
+            var searchResults = ActiveDirectory.GetEnrollmentServiceCollection(caName);
+
+            return searchResults.Count == 1 ? new CertificationAuthority(searchResults[0], textualEncoding) : null;
+        }
+
+        /// <summary>
+        ///     Determines whether a given WindowsIdentity may enroll for certificates from this certification authority.
         /// </summary>
         /// <param name="identity">The Windows identity to check for permissions.</param>
         /// <param name="explicitlyPermitted">Return true only if the identity is explicitly mentioned in the acl.</param>
@@ -109,27 +128,23 @@ namespace AdcsToRest.Models
             var isAllowed = false;
             var isDenied = false;
 
-            var userSid = identity.User?.ToString();
-            var ignoreCase = StringComparer.InvariantCultureIgnoreCase;
-
             if (!explicitlyPermitted)
             {
                 for (var index = 0; index < identity.Groups?.Count; index++)
                 {
-                    var group = identity.Groups[index].ToString();
-
-                    isAllowed = AllowedPrincipals.Contains(group, ignoreCase) || isAllowed;
-                    isDenied = DisallowedPrincipals.Contains(group, ignoreCase) || isDenied;
+                    var group = (SecurityIdentifier) identity.Groups[index];
+                    isAllowed = AllowedPrincipals.Contains(group) || isAllowed;
+                    isDenied = DisallowedPrincipals.Contains(group) || isDenied;
                 }
             }
 
-            isAllowed = AllowedPrincipals.Contains(userSid, ignoreCase) || isAllowed;
-            isDenied = DisallowedPrincipals.Contains(userSid, ignoreCase) || isDenied;
+            isAllowed = AllowedPrincipals.Contains(identity.User) || isAllowed;
+            isDenied = DisallowedPrincipals.Contains(identity.User) || isDenied;
 
             return isAllowed && !isDenied;
         }
 
-        private string GetCertificate(byte[] rawData, bool textualEncoding = false)
+        private static string GetCertificate(byte[] rawData, bool textualEncoding = false)
         {
             var certificate = Convert.ToBase64String(rawData);
 

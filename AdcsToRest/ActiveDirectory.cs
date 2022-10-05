@@ -12,11 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.DirectoryServices;
-using System.Linq;
-using System.Web.Http;
-using AdcsToRest.Models;
 
 namespace AdcsToRest
 {
@@ -26,51 +22,14 @@ namespace AdcsToRest
     public static class ActiveDirectory
     {
         /// <summary>
-        ///     Retrieves a certification authority and the templates bound to it from Active Directory.
+        ///     Returns a SearchResultCollection holding pKIEnrollmentService objects found in the directory.
         /// </summary>
-        /// <param name="certificationAuthority">The name of the target certification authority.</param>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        /// <exception cref="HttpResponseException">
-        ///     Throws a HTTP 404 error if the specified certification authority was not found in Active Directory.
-        /// </exception>
-        public static CertificationAuthority GetCertificationAuthority(string certificationAuthority,
-            bool textualEncoding = false)
+        /// <param name="cn">Common name of a specific ca.</param>
+        /// <returns></returns>
+        public static SearchResultCollection GetEnrollmentServiceCollection(string cn = null)
         {
-            var searchResults = GetEnrollmentServiceCollection(certificationAuthority);
-
-            if (searchResults.Count != 1)
-            {
-                throw new ArgumentException(LocalizedStrings.DESC_MISSING_CA);
-            }
-
-            return new CertificationAuthority(searchResults[0], textualEncoding);
-        }
-
-        /// <summary>
-        ///     Retrieves a list of all certification authorities in the Active Directory forest, and the templates bound to each.
-        /// </summary>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        public static CertificationAuthorityCollection GetCertificationAuthorityCollection(
-            bool textualEncoding = false)
-        {
-            var searchResults = GetEnrollmentServiceCollection();
-
-            return new CertificationAuthorityCollection((from SearchResult searchResult in searchResults
-                select new CertificationAuthority(searchResult, textualEncoding)).ToList());
-        }
-
-        private static SearchResultCollection GetEnrollmentServiceCollection(string cn = null)
-        {
-            var domainPath = GetForestRootDomain();
-
-            if (domainPath == null)
-            {
-                return null;
-            }
+            var forestRootDomain = new DirectoryEntry("LDAP://RootDSE").Properties["rootDomainNamingContext"][0]
+                .ToString();
 
             var additionalCriteria = string.Empty;
 
@@ -80,7 +39,7 @@ namespace AdcsToRest
             }
 
             var enrollmentContainer =
-                $"LDAP://CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,{domainPath}";
+                $"LDAP://CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,{forestRootDomain}";
 
             var directoryEntry = new DirectoryEntry(enrollmentContainer);
 
@@ -94,19 +53,6 @@ namespace AdcsToRest
             };
 
             return directorySearcher.FindAll();
-        }
-
-        private static string GetForestRootDomain()
-        {
-            try
-            {
-                var directoryEntry = new DirectoryEntry("LDAP://RootDSE");
-                return directoryEntry.Properties["rootDomainNamingContext"][0].ToString();
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

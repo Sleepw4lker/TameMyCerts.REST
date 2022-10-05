@@ -22,19 +22,28 @@ namespace AdcsToRest.Models
     public class AuthorityInformationAccess
     {
         /// <summary>
-        ///     A collection of authority information access urls that are available for the certification authority certificate.
+        ///     Initiates an AuthorityInformationAccess object.
         /// </summary>
-        public List<string> Urls { get; set; }
+        public AuthorityInformationAccess(List<string> urls, List<string> ocspUrls, string certificate)
+        {
+            Urls = urls;
+            OcspUrls = ocspUrls;
+            Certificate = certificate;
+        }
 
         /// <summary>
-        ///     A collection of online certificate status protocol urls that are available for the certification authority
-        ///     certificate.
+        ///     A collection of authority information access urls that are available for the certification authority certificate.
         /// </summary>
-        public List<string> OcspUrls { get; set; }
+        public List<string> Urls { get; }
+
+        /// <summary>
+        ///     A collection of available online certificate status protocol urls.
+        /// </summary>
+        public List<string> OcspUrls { get; }
 
         /// <summary>
         ///     The PKIX certification authority certificate.
         /// </summary>
-        public string Certificate { get; set; }
+        public string Certificate { get; }
     }
 }

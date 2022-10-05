@@ -30,6 +30,6 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     Contains a list of authority information access distribution points.
         /// </summary>
-        public List<AuthorityInformationAccess> AuthorityInformationAccess { get; set; }
+        public List<AuthorityInformationAccess> AuthorityInformationAccess { get; }
     }
 }

@@ -23,7 +23,7 @@ namespace AdcsToRest.Models
     /// </summary>
     public class CertificateTemplateCollection
     {
-        private readonly string[] _defaultCertificateTemplates =
+        private readonly string[] _defaultVersion2CertificateTemplates =
         {
             "CAExchange",
             "CrossCA",
@@ -51,8 +51,8 @@ namespace AdcsToRest.Models
             }
 
             CertificateTemplates = templateBaseKey.GetSubKeyNames()
-                .Where(templateName => !_defaultCertificateTemplates.Contains(templateName))
-                .Select(templateName => new CertificateTemplate(templateName))
+                .Where(templateName => !_defaultVersion2CertificateTemplates.Contains(templateName))
+                .Select(CertificateTemplate.Create)
                 .Where(certificateTemplate => certificateTemplate.SchemaVersion > 1).ToList();
         }
 
@@ -67,6 +67,6 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     A collection of CertificateTemplate Objects.
         /// </summary>
-        public List<CertificateTemplate> CertificateTemplates { get; set; }
+        public List<CertificateTemplate> CertificateTemplates { get; }
     }
 }

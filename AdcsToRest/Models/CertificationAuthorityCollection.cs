@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System.DirectoryServices;
+using System.Linq;
 
 namespace AdcsToRest.Models
 {
@@ -22,7 +24,7 @@ namespace AdcsToRest.Models
     public class CertificationAuthorityCollection
     {
         /// <summary>
-        ///     Builds a CertificationAuthorityCollection.
+        ///     Builds a CertificationAuthorityCollection out of a given list.
         /// </summary>
         /// <param name="certificationAuthorities">The collection of certification authorities.</param>
         public CertificationAuthorityCollection(List<CertificationAuthority> certificationAuthorities)
@@ -31,8 +33,22 @@ namespace AdcsToRest.Models
         }
 
         /// <summary>
+        ///     Builds a CertificationAuthorityCollection out of the information available in Active Directory.
+        /// </summary>
+        /// <param name="textualEncoding">
+        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+        /// </param>
+        public CertificationAuthorityCollection(bool textualEncoding = false)
+        {
+            var searchResults = ActiveDirectory.GetEnrollmentServiceCollection();
+
+            CertificationAuthorities = (from SearchResult searchResult in searchResults
+                select new CertificationAuthority(searchResult, textualEncoding)).ToList();
+        }
+
+        /// <summary>
         ///     A collection of CertificationAuthority Objects.
         /// </summary>
-        public List<CertificationAuthority> CertificationAuthorities { get; set; }
+        public List<CertificationAuthority> CertificationAuthorities { get; }
     }
 }

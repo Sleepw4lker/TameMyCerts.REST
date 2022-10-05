@@ -31,10 +31,6 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     Contains a list of certificate revocation list distribution points.
         /// </summary>
-        public List<CertificateRevocationListDistributionPoint> CertificateRevocationListDistributionPoints
-        {
-            get;
-            set;
-        }
+        public List<CertificateRevocationListDistributionPoint> CertificateRevocationListDistributionPoints { get; }
     }
 }
