@@ -149,6 +149,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>LocalizedStrings.resx</DependentUpon>
     </Compile>
+    <Compile Include="Logger.cs" />
     <Compile Include="Models\AuthorityInformationAccess.cs" />
     <Compile Include="Models\AuthorityInformationAccessCollection.cs" />
     <Compile Include="Models\CertificateRevocationListDistributionPointCollection.cs" />
@@ -159,9 +160,13 @@
     <Compile Include="Models\CertificateTemplate.cs" />
     <Compile Include="Models\CertificateTemplateCollection.cs" />
     <Compile Include="Models\ExtendedKeyUsage.cs" />
+    <Compile Include="Models\ExtendedKeyUsageExtension.cs" />
+    <Compile Include="Models\KeyUsage.cs" />
+    <Compile Include="Models\KeyUsageExtension.cs" />
     <Compile Include="Models\Status.cs" />
     <Compile Include="Models\SubmissionResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Filters\UnhandledExceptionFilterAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AutoVersionIncrement.tt">

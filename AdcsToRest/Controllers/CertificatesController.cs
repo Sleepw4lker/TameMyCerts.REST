@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -61,23 +60,23 @@ namespace AdcsToRest.Controllers
                 });
             }
 
-            try
+
+            using (((WindowsIdentity) User.Identity).Impersonate())
             {
-                using (((WindowsIdentity) User.Identity).Impersonate())
+                var certRequestInterface = new CCertRequest();
+
+                try
                 {
-                    var certRequestInterface = new CCertRequest();
-                    var submissionResponse = certRequestInterface.RetrievePending(certificationAuthority.ConfigurationString,
-                        requestId, includeCertificateChain, textualEncoding);
-                    Marshal.ReleaseComObject(certRequestInterface);
+                    var submissionResponse = certRequestInterface.RetrievePending(
+                        certificationAuthority.ConfigurationString, requestId, includeCertificateChain,
+                        textualEncoding);
+
                     return submissionResponse;
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                finally
                 {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
-                });
+                    Marshal.ReleaseComObject(certRequestInterface);
+                }
             }
         }
 
@@ -117,36 +116,40 @@ namespace AdcsToRest.Controllers
                 });
             }
 
-            try
+            var requestType = CertificateRequestIntegrityChecks.DetectRequestType(certificateRequest.Request,
+                out var rawCertificateRequest);
+
+            if (requestType == 0)
             {
-                var requestType = CertificateRequestIntegrityChecks.DetectRequestType(certificateRequest.Request,
-                    out var rawCertificateRequest);
-
-                var submissionFlags = CertCli.CR_IN_BASE64;
-                submissionFlags |= requestType;
-
-                if (certificateTemplate != null)
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
                 {
-                    certificateRequest.RequestAttributes.Add($"CertificateTemplate:{certificateTemplate}");
-                }
+                    Content = new StringContent(LocalizedStrings.DESC_INVALID_CSR)
+                });
+            }
 
-                // Enroll with identity of logged on user
-                using (((WindowsIdentity) User.Identity).Impersonate())
+            var submissionFlags = CertCli.CR_IN_BASE64;
+            submissionFlags |= requestType;
+
+            if (certificateTemplate != null)
+            {
+                certificateRequest.RequestAttributes.Add($"CertificateTemplate:{certificateTemplate}");
+            }
+
+            using (((WindowsIdentity) User.Identity).Impersonate())
+            {
+                var certRequestInterface = new CCertRequest();
+
+                try
                 {
-                    var certRequestInterface = new CCertRequest();
                     var submissionResponse = certRequestInterface.Submit(certificationAuthority.ConfigurationString,
                         rawCertificateRequest, certificateRequest.RequestAttributes, submissionFlags,
                         includeCertificateChain, textualEncoding);
-                    Marshal.ReleaseComObject(certRequestInterface);
                     return submissionResponse;
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                finally
                 {
-                    Content = new StringContent(ex.Message)
-                });
+                    Marshal.ReleaseComObject(certRequestInterface);
+                }
             }
         }
     }

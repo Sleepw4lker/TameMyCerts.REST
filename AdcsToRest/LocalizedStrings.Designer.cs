@@ -106,20 +106,22 @@ namespace AdcsToRest {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to connect to certification authority because {0}..
-        /// </summary>
-        internal static string DESC_SUBMISSION_FAILED {
-            get {
-                return ResourceManager.GetString("DESC_SUBMISSION_FAILED", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to You do not have permission to enroll for {0}..
         /// </summary>
         internal static string DESC_TEMPLATED_DENIED {
             get {
                 return ResourceManager.GetString("DESC_TEMPLATED_DENIED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unhandled exception has occurred: {0}
+        ///
+        ///{1}.
+        /// </summary>
+        internal static string DESC_UNHANDLED_EXCEPTION {
+            get {
+                return ResourceManager.GetString("DESC_UNHANDLED_EXCEPTION", resourceCulture);
             }
         }
         

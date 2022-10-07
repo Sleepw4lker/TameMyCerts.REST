@@ -132,11 +132,13 @@
   <data name="DESC_MISSING_TEMPLATE" xml:space="preserve">
     <value>The certificate template {0} was not found.</value>
   </data>
-  <data name="DESC_SUBMISSION_FAILED" xml:space="preserve">
-    <value>Unable to connect to certification authority because {0}.</value>
-  </data>
   <data name="DESC_TEMPLATED_DENIED" xml:space="preserve">
     <value>You do not have permission to enroll for {0}.</value>
+  </data>
+  <data name="DESC_UNHANDLED_EXCEPTION" xml:space="preserve">
+    <value>An unhandled exception has occurred: {0}
+
+{1}</value>
   </data>
   <data name="UNKNOWN" xml:space="preserve">
     <value>unknown</value>

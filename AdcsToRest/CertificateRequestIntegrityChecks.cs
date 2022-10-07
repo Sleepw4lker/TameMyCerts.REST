@@ -143,7 +143,7 @@ namespace AdcsToRest
                 }
             }
 
-            throw new ArgumentException(string.Format(LocalizedStrings.DESC_INVALID_CSR));
+            return 0; // Unknown request type
         }
     }
 }

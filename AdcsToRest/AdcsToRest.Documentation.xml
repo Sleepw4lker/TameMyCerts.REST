@@ -271,20 +271,33 @@
               Looks up a localized string similar to The certificate template {0} was not found..
             </summary>
         </member>
-        <member name="P:AdcsToRest.LocalizedStrings.DESC_SUBMISSION_FAILED">
-            <summary>
-              Looks up a localized string similar to Unable to connect to certification authority because {0}..
-            </summary>
-        </member>
         <member name="P:AdcsToRest.LocalizedStrings.DESC_TEMPLATED_DENIED">
             <summary>
               Looks up a localized string similar to You do not have permission to enroll for {0}..
             </summary>
         </member>
+        <member name="P:AdcsToRest.LocalizedStrings.DESC_UNHANDLED_EXCEPTION">
+             <summary>
+               Looks up a localized string similar to An unhandled exception has occurred: {0}
+            
+            {1}.
+             </summary>
+        </member>
         <member name="P:AdcsToRest.LocalizedStrings.UNKNOWN">
             <summary>
               Looks up a localized string similar to unknown.
             </summary>
+        </member>
+        <member name="T:AdcsToRest.Logger">
+            <summary>
+                A simple class to write to the Windows Event log.
+            </summary>
+        </member>
+        <member name="M:AdcsToRest.Logger.Log(System.Exception)">
+            <summary>
+                Logs an exception to the Windows Application Event log.
+            </summary>
+            <param name="ex"></param>
         </member>
         <member name="T:AdcsToRest.Models.AuthorityInformationAccess">
             <summary>
@@ -501,9 +514,39 @@
                 The common name of the certificate template.
             </summary>
         </member>
+        <member name="P:AdcsToRest.Models.CertificateTemplate.DisplayName">
+            <summary>
+                The display name of the certificate template.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.Models.CertificateTemplate.ObjectIdentifier">
+            <summary>
+                The object identifier of the certificate template.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.Models.CertificateTemplate.EnrolleeSuppliesSubject">
+            <summary>
+            Specifies if the enrollee may provide subject information with the certificate request.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.Models.CertificateTemplate.KeyAlgorithm">
+            <summary>
+                Specifies the key algorithm the certificate will be signed with.
+            </summary>
+        </member>
         <member name="P:AdcsToRest.Models.CertificateTemplate.MinimumKeyLength">
             <summary>
                 The minimum accepted key length of the certificate template.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.Models.CertificateTemplate.ValidityPeriod">
+            <summary>
+                The validity period of issued certificates for this certificate template.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.Models.CertificateTemplate.RenewalOverlap">
+            <summary>
+                The desired renewal overlap period for this certificate template.
             </summary>
         </member>
         <member name="P:AdcsToRest.Models.CertificateTemplate.MajorVersion">
@@ -521,29 +564,14 @@
                 The Active Directory schema version of the certificate template.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.CertificateTemplate.Oid">
+        <member name="P:AdcsToRest.Models.CertificateTemplate.KeyUsageExtension">
             <summary>
-                The object identifier of the certificate template.
+                Information about the key usage extension of the certificate template.
             </summary>
         </member>
-        <member name="P:AdcsToRest.Models.CertificateTemplate.ExtendedKeyUsages">
+        <member name="P:AdcsToRest.Models.CertificateTemplate.ExtendedKeyUsageExtension">
             <summary>
-                A list of extended key usages of the certificate template.
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.CertificateTemplate.KeyAlgorithm">
-            <summary>
-                Specifies the key algorithm the certificate will be signed with.
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.CertificateTemplate.ValidityPeriod">
-            <summary>
-                The validity period of issued certificates for this certificate template.
-            </summary>
-        </member>
-        <member name="P:AdcsToRest.Models.CertificateTemplate.RenewalOverlap">
-            <summary>
-                The desired renewal overlap period for this certificate template.
+                Information about the extended key usage extension of the certificate template.
             </summary>
         </member>
         <member name="M:AdcsToRest.Models.CertificateTemplate.Create(System.String)">
@@ -589,9 +617,9 @@
             <summary>
                 Builds the ExtendedKeyUsage out of a given object identifier.
             </summary>
-            <param name="oid">The object identifier of the extended key usage.</param>
+            <param name="objectIdentifier">The object identifier of the extended key usage.</param>
         </member>
-        <member name="P:AdcsToRest.Models.ExtendedKeyUsage.Oid">
+        <member name="P:AdcsToRest.Models.ExtendedKeyUsage.ObjectIdentifier">
             <summary>
                 The object identifier of the extended key usage.
             </summary>
@@ -599,6 +627,129 @@
         <member name="P:AdcsToRest.Models.ExtendedKeyUsage.FriendlyName">
             <summary>
                 The friendly name of the extended key usage.
+            </summary>
+        </member>
+        <member name="T:AdcsToRest.Models.ExtendedKeyUsageExtension">
+            <summary>
+                Information about the extended key usage extension of the certificate template.
+            </summary>
+        </member>
+        <member name="M:AdcsToRest.Models.ExtendedKeyUsageExtension.#ctor(System.Collections.Generic.IEnumerable{System.String},System.Boolean)">
+            <summary>
+                Builds an EnhancedKeyUsageExtension out of a given list of object identifiers.
+            </summary>
+            <param name="extendedKeyUsages">The list of object identifiers to build the object from.</param>
+            <param name="critical">Indicates whether the extension is critical or not.</param>
+        </member>
+        <member name="P:AdcsToRest.Models.ExtendedKeyUsageExtension.Critical">
+            <summary>
+                Indicates whether the extension is critical or not.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.Models.ExtendedKeyUsageExtension.ExtendedKeyUsages">
+            <summary>
+                A list of extended key usages of the certificate template.
+            </summary>
+        </member>
+        <member name="T:AdcsToRest.Models.KeyUsage.KeyUsageType">
+            <summary>
+                Key Usage types according to RFC 5280.
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.KeyUsage.KeyUsageType.digitalSignature">
+            <summary>
+                The digitalSignature bit is asserted when the subject public key is used for verifying digital signatures, other
+                than signatures on certificates , such as those used  in an entity authentication service, a data origin
+                authentication service, and/or an integrity service.
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.KeyUsage.KeyUsageType.nonRepudiation">
+            <summary>
+                The nonRepudiation bit is asserted when the subject public key is used to verify digital signatures, other than
+                signatures on certificates , used to provide a non-repudiation service that protects against the signing entity
+                falsely denying some action. In the case of later conflict, a reliable third party may determine the authenticity
+                of the signed data.
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.KeyUsage.KeyUsageType.keyEncipherment">
+            <summary>
+                The keyEncipherment bit is asserted when the subject public key is used for enciphering private or secret keys,
+                i.e., for key transport. For example, this bit shall be set when an RSA public key is to be used for encrypting a
+                symmetric content-decryption key or an asymmetric private key.
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.KeyUsage.KeyUsageType.dataEncipherment">
+            <summary>
+                The dataEncipherment bit is asserted when the subject public key is used for directly enciphering raw user data
+                without the use of an intermediate symmetric cipher.
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.KeyUsage.KeyUsageType.keyAgreement">
+            <summary>
+                The keyAgreement bit is asserted when the subject public key is used for key agreement. For example, when a
+                Diffie-Hellman key is to be used for key management, then this bit is set.
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.KeyUsage.KeyUsageType.keyCertSign">
+            <summary>
+                The keyCertSign bit is asserted when the subject public key is used for verifying signatures on public key
+                certificates.
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.KeyUsage.KeyUsageType.cRLSign">
+            <summary>
+                The cRLSign bit is asserted when the subject public key is used for verifying signatures on certificate revocation
+                lists (e.g., CRLs, delta CRLs, or ARLs).
+            </summary>
+        </member>
+        <member name="F:AdcsToRest.Models.KeyUsage.KeyUsageType.encipherOnly">
+            <summary>
+                The meaning of the encipherOnly bit is undefined in the absence of the keyAgreement bit.  When the encipherOnly bit
+                is asserted and the keyAgreement bit is also set,  the subject public key may be used only for enciphering data
+                while performing key agreement.
+            </summary>
+        </member>
+        <member name="M:AdcsToRest.Models.KeyUsage.#ctor(System.Int32)">
+            <summary>
+                Builds a KeyUsage out of the given integer value.
+            </summary>
+            <param name="value">The value to build the object from.</param>
+        </member>
+        <member name="P:AdcsToRest.Models.KeyUsage.Value">
+            <summary>
+                The numerical value of the key usage.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.Models.KeyUsage.FriendlyName">
+            <summary>
+                The friendly name of the key usage.
+            </summary>
+        </member>
+        <member name="T:AdcsToRest.Models.KeyUsageExtension">
+            <summary>
+                Information about the key usage extension of the certificate template.
+            </summary>
+        </member>
+        <member name="M:AdcsToRest.Models.KeyUsageExtension.#ctor(System.Collections.Generic.IReadOnlyList{System.Byte},System.Boolean)">
+            <summary>
+                Builds a KeyUsageExtension out of a given byte array.
+            </summary>
+            <param name="bytes">The byte array to build the object from.</param>
+            <param name="critical">Indicates whether the extension is critical or not.</param>
+        </member>
+        <member name="P:AdcsToRest.Models.KeyUsageExtension.Value">
+            <summary>
+                The numerical value of the extension.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.Models.KeyUsageExtension.Critical">
+            <summary>
+                Indicates whether the extension is critical or not.
+            </summary>
+        </member>
+        <member name="P:AdcsToRest.Models.KeyUsageExtension.KeyUsages">
+            <summary>
+                A list of key usages of the certificate template.
             </summary>
         </member>
         <member name="T:AdcsToRest.Models.Status">
@@ -694,6 +845,17 @@
             <summary>
                 The issued PKIX certificate, if issued by the certification authority, as BASE64-encoded DER.
             </summary>
+        </member>
+        <member name="T:AdcsToRest.Filters.UnhandledExceptionFilterAttribute">
+            <summary>
+                A class to log unhandled exceptions.
+            </summary>
+        </member>
+        <member name="M:AdcsToRest.Filters.UnhandledExceptionFilterAttribute.OnException(System.Web.Http.Filters.HttpActionExecutedContext)">
+            <summary>
+                Writes unhandled exceptions to the Windows Event log.
+            </summary>
+            <param name="actionExecutedContext"></param>
         </member>
     </members>
 </doc>

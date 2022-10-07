@@ -25,16 +25,16 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     Builds the ExtendedKeyUsage out of a given object identifier.
         /// </summary>
-        /// <param name="oid">The object identifier of the extended key usage.</param>
-        public ExtendedKeyUsage(string oid)
+        /// <param name="objectIdentifier">The object identifier of the extended key usage.</param>
+        public ExtendedKeyUsage(string objectIdentifier)
         {
-            Oid = oid;
+            ObjectIdentifier = objectIdentifier;
 
             var cObjectId = new CObjectId();
 
             try
             {
-                cObjectId.InitializeFromValue(oid);
+                cObjectId.InitializeFromValue(objectIdentifier);
                 FriendlyName = cObjectId.FriendlyName;
             }
             catch
@@ -50,7 +50,7 @@ namespace AdcsToRest.Models
         /// <summary>
         ///     The object identifier of the extended key usage.
         /// </summary>
-        public string Oid { get; }
+        public string ObjectIdentifier { get; }
 
         /// <summary>
         ///     The friendly name of the extended key usage.

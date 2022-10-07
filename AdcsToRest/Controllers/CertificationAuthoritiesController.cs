@@ -110,21 +110,19 @@ namespace AdcsToRest.Controllers
                 });
             }
 
+            var certRequestInterface = new CCertRequest();
+
             try
             {
-                var certRequestInterface = new CCertRequest();
                 var submissionResponse =
                     certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString,
                         includeCertificateChain, textualEncoding);
-                Marshal.ReleaseComObject(certRequestInterface);
+
                 return submissionResponse;
             }
-            catch (Exception ex)
+            finally
             {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
-                });
+                Marshal.ReleaseComObject(certRequestInterface);
             }
         }
 
@@ -160,21 +158,20 @@ namespace AdcsToRest.Controllers
                 });
             }
 
+            var certRequestInterface = new CCertRequest();
+
             try
             {
-                var certRequestInterface = new CCertRequest();
-                var submissionResponse = certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString,
+                var submissionResponse = certRequestInterface.GetCaCertificate(
+                    certificationAuthority.ConfigurationString,
                     includeCertificateChain,
                     textualEncoding, true);
-                Marshal.ReleaseComObject(certRequestInterface);
+
                 return submissionResponse;
             }
-            catch (Exception ex)
+            finally
             {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
-                });
+                Marshal.ReleaseComObject(certRequestInterface);
             }
         }
 
@@ -208,21 +205,19 @@ namespace AdcsToRest.Controllers
                 });
             }
 
+            var certRequestInterface = new CCertRequest();
+
             try
             {
-                var certRequestInterface = new CCertRequest();
                 var certificateRevocationListDistributionPointCollection =
                     certRequestInterface.GetCrlDpCollection(certificationAuthority.ConfigurationString,
                         textualEncoding);
-                Marshal.ReleaseComObject(certRequestInterface);
+
                 return certificateRevocationListDistributionPointCollection;
             }
-            catch (Exception ex)
+            finally
             {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
-                });
+                Marshal.ReleaseComObject(certRequestInterface);
             }
         }
 
@@ -256,20 +251,17 @@ namespace AdcsToRest.Controllers
                 });
             }
 
+            var certRequestInterface = new CCertRequest();
+
             try
             {
-                var certRequestInterface = new CCertRequest();
                 var authorityInformationAccessCollection =
                     certRequestInterface.GetAiaCollection(certificationAuthority.ConfigurationString, textualEncoding);
-                Marshal.ReleaseComObject(certRequestInterface);
                 return authorityInformationAccessCollection;
             }
-            catch (Exception ex)
+            finally
             {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_SUBMISSION_FAILED, ex.Message))
-                });
+                Marshal.ReleaseComObject(certRequestInterface);
             }
         }
     }

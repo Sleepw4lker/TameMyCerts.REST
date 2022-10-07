@@ -68,4 +68,19 @@ namespace AdcsToRest
         // The operation completed successfully.
         public const int ERROR_SUCCESS = 0x0;
     }
+
+    // Constants from CertCa.h
+    internal static class CertCa
+    {
+        // The enrolling application must supply the subject name.
+        public const int CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT = 1;
+    }
+
+    // Constants from WinCrypt.h
+    internal static class WinCrypt
+    {
+        public const string szOID_KEY_USAGE = "2.5.29.15";
+        public const string szOID_ENHANCED_KEY_USAGE = "2.5.29.37";
+        public const string szOID_APPLICATION_CERT_POLICIES = "1.3.6.1.4.1.311.21.10";
+    }
 }

@@ -538,35 +538,19 @@
           "type": "string",
           "readOnly": true
         },
-        "minimumKeyLength": {
-          "format": "int32",
-          "description": "The minimum accepted key length of the certificate template.",
-          "type": "integer",
+        "displayName": {
+          "description": "The display name of the certificate template.",
+          "type": "string",
           "readOnly": true
         },
-        "majorVersion": {
-          "format": "int32",
-          "description": "The major version of the certificate template.",
-          "type": "integer",
-          "readOnly": true
-        },
-        "minorVersion": {
-          "format": "int32",
-          "description": "The minor version of the certificate template.",
-          "type": "integer",
-          "readOnly": true
-        },
-        "oid": {
+        "objectIdentifier": {
           "description": "The object identifier of the certificate template.",
           "type": "string",
           "readOnly": true
         },
-        "extendedKeyUsages": {
-          "description": "A list of extended key usages of the certificate template.",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ExtendedKeyUsage"
-          },
+        "enrolleeSuppliesSubject": {
+          "description": "Specifies if the enrollee may provide subject information with the certificate request.",
+          "type": "boolean",
           "readOnly": true
         },
         "keyAlgorithm": {
@@ -583,6 +567,12 @@
           "type": "string",
           "readOnly": true
         },
+        "minimumKeyLength": {
+          "format": "int32",
+          "description": "The minimum accepted key length of the certificate template.",
+          "type": "integer",
+          "readOnly": true
+        },
         "validityPeriod": {
           "description": "The validity period of issued certificates for this certificate template.",
           "type": "string",
@@ -592,6 +582,106 @@
           "description": "The desired renewal overlap period for this certificate template.",
           "type": "string",
           "readOnly": true
+        },
+        "keyStorageProviders": {
+          "description": "Contains a list of the preferred key storage providers for this certificate template.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "readOnly": true
+        },
+        "majorVersion": {
+          "format": "int32",
+          "description": "The major version of the certificate template.",
+          "type": "integer",
+          "readOnly": true
+        },
+        "minorVersion": {
+          "format": "int32",
+          "description": "The minor version of the certificate template.",
+          "type": "integer",
+          "readOnly": true
+        },
+        "keyUsageExtension": {
+          "$ref": "#/definitions/KeyUsageExtension",
+          "description": "Information about the key usage extension of the certificate template.",
+          "readOnly": true
+        },
+        "extendedKeyUsageExtension": {
+          "$ref": "#/definitions/ExtendedKeyUsageExtension",
+          "description": "Information about the extended key usage extension of the certificate template.",
+          "readOnly": true
+        }
+      }
+    },
+    "KeyUsageExtension": {
+      "description": "Information about the key usage extension of the certificate template.",
+      "type": "object",
+      "properties": {
+        "value": {
+          "format": "int32",
+          "description": "The numerical value of the extension.",
+          "type": "integer",
+          "readOnly": true
+        },
+        "critical": {
+          "description": "Indicates whether the extension is critical or not.",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "keyUsages": {
+          "description": "A list of key usages of the certificate template.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/KeyUsage"
+          },
+          "readOnly": true
+        }
+      }
+    },
+    "ExtendedKeyUsageExtension": {
+      "description": "Information about the extended key usage extension of the certificate template.",
+      "type": "object",
+      "properties": {
+        "critical": {
+          "description": "Indicates whether the extension is critical or not.",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "extendedKeyUsages": {
+          "description": "A list of extended key usages of the certificate template.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ExtendedKeyUsage"
+          },
+          "readOnly": true
+        }
+      }
+    },
+    "KeyUsage": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "format": "int32",
+          "description": "The numerical value of the key usage.",
+          "type": "integer",
+          "readOnly": true
+        },
+        "friendlyName": {
+          "description": "The friendly name of the key usage.",
+          "enum": [
+            "digitalSignature",
+            "nonRepudiation",
+            "keyEncipherment",
+            "dataEncipherment",
+            "keyAgreement",
+            "keyCertSign",
+            "cRLSign",
+            "encipherOnly"
+          ],
+          "type": "string",
+          "readOnly": true
         }
       }
     },
@@ -599,7 +689,7 @@
       "description": "Information about an extended key usage.",
       "type": "object",
       "properties": {
-        "oid": {
+        "objectIdentifier": {
           "description": "The object identifier of the extended key usage.",
           "type": "string",
           "readOnly": true

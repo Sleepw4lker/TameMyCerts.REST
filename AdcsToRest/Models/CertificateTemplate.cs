@@ -73,18 +73,30 @@ namespace AdcsToRest.Models
             const string enrollPermission = "0E10C968-78FB-11D2-90D4-00C04F79DC55";
 
             Name = templateName;
+            DisplayName = (string) regKey.GetValue("DisplayName");
             MinimumKeyLength = (int) regKey.GetValue("msPKI-Minimal-Key-Size");
             MajorVersion = (int) regKey.GetValue("Revision");
             MinorVersion = (int) regKey.GetValue("msPKI-Template-Minor-Revision");
             SchemaVersion = (int) regKey.GetValue("msPKI-Template-Schema-Version");
-            Oid = ((string[]) regKey.GetValue("msPKI-Cert-Template-OID"))[0];
-
+            ObjectIdentifier = ((string[]) regKey.GetValue("msPKI-Cert-Template-OID"))[0];
+            KeyStorageProviders = ((string[]) regKey.GetValue("SupportedCSPs")).ToList();
             ValidityPeriod = PkiPeriodToTimeSpan((byte[]) regKey.GetValue("ValidityPeriod"));
             RenewalOverlap = PkiPeriodToTimeSpan((byte[]) regKey.GetValue("RenewalOverlap"));
 
-            ExtendedKeyUsages = (from string extendedKeyUsage in (string[]) regKey.GetValue("ExtKeyUsageSyntax")
-                    select new ExtendedKeyUsage(extendedKeyUsage))
-                .OrderBy(extendedKeyUsage => extendedKeyUsage.FriendlyName).ToList();
+            EnrolleeSuppliesSubject =
+                (CertCa.CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT &
+                 Convert.ToInt32(regKey.GetValue("msPKI-Certificate-Name-Flag"))) ==
+                CertCa.CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT;
+
+            var criticalExtensions = (string[]) regKey.GetValue("CriticalExtensions");
+
+            KeyUsageExtension = new KeyUsageExtension((byte[]) regKey.GetValue("KeyUsage"),
+                criticalExtensions.Contains(WinCrypt.szOID_KEY_USAGE));
+
+            ExtendedKeyUsageExtension =
+                new ExtendedKeyUsageExtension((string[]) regKey.GetValue("ExtKeyUsageSyntax"),
+                    criticalExtensions.Contains(WinCrypt.szOID_ENHANCED_KEY_USAGE) ||
+                    criticalExtensions.Contains(WinCrypt.szOID_APPLICATION_CERT_POLICIES));
 
             var applicationPoliciesValueData = (string[]) regKey.GetValue("msPKI-RA-Application-Policies");
 
@@ -124,9 +136,44 @@ namespace AdcsToRest.Models
         public string Name { get; }
 
         /// <summary>
+        ///     The display name of the certificate template.
+        /// </summary>
+        public string DisplayName { get; }
+
+        /// <summary>
+        ///     The object identifier of the certificate template.
+        /// </summary>
+        public string ObjectIdentifier { get; }
+
+        /// <summary>
+        ///     Specifies if the enrollee may provide subject information with the certificate request.
+        /// </summary>
+        public bool EnrolleeSuppliesSubject { get; }
+
+        /// <summary>
+        ///     Specifies the key algorithm the certificate will be signed with.
+        /// </summary>
+        public KeyAlgorithmType KeyAlgorithm { get; }
+
+        /// <summary>
         ///     The minimum accepted key length of the certificate template.
         /// </summary>
         public int MinimumKeyLength { get; }
+
+        /// <summary>
+        ///     The validity period of issued certificates for this certificate template.
+        /// </summary>
+        public TimeSpan ValidityPeriod { get; }
+
+        /// <summary>
+        ///     The desired renewal overlap period for this certificate template.
+        /// </summary>
+        public TimeSpan RenewalOverlap { get; }
+
+        /// <summary>
+        ///     Contains a list of the preferred key storage providers for this certificate template.
+        /// </summary>
+        public List<string> KeyStorageProviders { get; }
 
         /// <summary>
         ///     The major version of the certificate template.
@@ -145,29 +192,14 @@ namespace AdcsToRest.Models
         public int SchemaVersion { get; }
 
         /// <summary>
-        ///     The object identifier of the certificate template.
+        ///     Information about the key usage extension of the certificate template.
         /// </summary>
-        public string Oid { get; }
+        public KeyUsageExtension KeyUsageExtension { get; }
 
         /// <summary>
-        ///     A list of extended key usages of the certificate template.
+        ///     Information about the extended key usage extension of the certificate template.
         /// </summary>
-        public List<ExtendedKeyUsage> ExtendedKeyUsages { get; }
-
-        /// <summary>
-        ///     Specifies the key algorithm the certificate will be signed with.
-        /// </summary>
-        public KeyAlgorithmType KeyAlgorithm { get; }
-
-        /// <summary>
-        ///     The validity period of issued certificates for this certificate template.
-        /// </summary>
-        public TimeSpan ValidityPeriod { get; }
-
-        /// <summary>
-        ///     The desired renewal overlap period for this certificate template.
-        /// </summary>
-        public TimeSpan RenewalOverlap { get; }
+        public ExtendedKeyUsageExtension ExtendedKeyUsageExtension { get; }
 
         private List<SecurityIdentifier> AllowedPrincipals { get; } = new List<SecurityIdentifier>();
         private List<SecurityIdentifier> DisallowedPrincipals { get; } = new List<SecurityIdentifier>();
