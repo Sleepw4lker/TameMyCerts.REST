@@ -1,5 +1,5 @@
 ﻿# The TameMyCerts REST API
-_(this project was renamed from "TameMyCerts.REST")_
+_(this project was renamed from "AdcsToRest")_
 
 > **Commercial support**, **consulting services** and **maintenance agreements** are available on demand. [Contact me](https://www.gradenegger.eu/?page_id=7) for details if you are interested.
 
@@ -17,7 +17,9 @@ Therefore...
 
 > Sample client implementations are to be found in the [clients](clients/) directory.
 
-## Installing
+## Getting started
+
+Find the most recent version as a ready-to-use, digitally signed binary package on the [releases page](https://github.com/Sleepw4lker/TameMyCerts.REST/releases).
 
 ### Security and Implementation considerations
 
@@ -52,7 +54,7 @@ For Windows Server 2016 and below, [.NET Framework 4.7.2](https://support.micros
 
 ### Configuring Group Policy
 
-To reduce network load, the API uses the _CertificateTemplateCache_ registry key of the web server, which requires that AutoEnrollment is enabled on the machine level (option "update certificates that use certificate templates"). PLease ensure this is configured via group policy for the API server.
+To reduce network load, the API uses the _CertificateTemplateCache_ registry key of the web server, which requires that AutoEnrollment is enabled on the machine level (option "update certificates that use certificate templates"). Please ensure this is configured via group policy for the API server.
 
 ### Installing IIS
 
@@ -69,12 +71,12 @@ Then ensure you have a SSL certificate installed and require SSL on the web site
 Register the Event Source with the below PowerShell command (as Administrator):
 
 ```powershell
-[System.Diagnostics.EventLog]::CreateEventSource("TameMyCerts.WSTEP", "Application")
+[System.Diagnostics.EventLog]::CreateEventSource("TameMyCerts.REST", "Application")
 ```
 
-Then simply copy the downloaded files into the designated Web Root. No application configuration required.
+Then simply copy the files from the _"wwwroot"_ folder of the downloaded package into the designated Web Root. No application configuration required.
 
-> If you plan to use the API behind a load balancer, you might want to tweak or disable the dynamicIpSecurity section in the [Web.config](Web.config) file.
+> If you plan to use the API behind a load balancer, you might want to tweak or disable the _dynamicIpSecurity_ section in the [Web.config](Web.config) file.
 
 ### Configuring IIS
 
@@ -86,11 +88,11 @@ For Basic Authentication, on the web site, in authentication settings, do the fo
 - Enable Basic Authentication
 - Configure your Default Domain for Basic Authentication
 
-> It is advised to implement additional hardening like HTTPS strict transport security and Forward Secrecy.
+> It is advised to implement additional server hardening.
 
 ## Using the API
 
-The API incorporates Swagger for automated documentation of the API operations. You can reach it under the /swagger directory, which is the default directory when you access it via browser. Consult this resource for detailled information. You can find the API specification [here](v1.json).
+The API incorporates Swagger for automated documentation of the API operations. You can reach it under the _/swagger_ directory, which is the default directory when you access it via browser. Consult this resource for detailled information. You can find the API specification [here](v1.json).
 
 The basic operations are as follows:
 
