@@ -5,7 +5,7 @@
     after successful submission.
 
     .Parameter ComputerName
-    The host name of the API endpoint, assuming that the API is installed under the /adcstorest directory.
+    The host name of the API endpoint, assuming that the API is installed under the /TameMyCerts.REST directory.
 
     .Parameter CertificateTemplate
     The certificate template to use.
@@ -40,7 +40,7 @@ process {
 
     $CertificationAuthority = (Invoke-RestMethod `
         -Credential $Credential `
-        -Uri "https://$ComputerName/adcstorest/v1/certificate-templates/$CertificateTemplate/issuers"
+        -Uri "https://$ComputerName/TameMyCerts.REST/v1/certificate-templates/$CertificateTemplate/issuers"
         ).certificationAuthorities | Get-Random -Count 1
 
     if (-not $CertificationAuthority)
@@ -53,7 +53,7 @@ process {
 
     $CertificateTemplateInfo = Invoke-RestMethod `
         -Credential $Credential `
-        -Uri "https://$ComputerName/adcstorest/v1/certificate-templates/$CertificateTemplate/"
+        -Uri "https://$ComputerName/TameMyCerts.REST/v1/certificate-templates/$CertificateTemplate/"
 
     # Now we create a certificate request based on the information we found. We assume this is an online template, thus the empty subject DN.
 
@@ -74,7 +74,7 @@ process {
         Body = ($Body | ConvertTo-Json)
         ContentType = "application/json"
         Credential = $Credential
-        Uri = "https://$ComputerName/adcstorest/v1/certificates/$($CertificationAuthority.Name)"
+        Uri = "https://$ComputerName/TameMyCerts.REST/v1/certificates/$($CertificationAuthority.Name)"
     }
 
     $Response = (Invoke-RestMethod @Parameters)
