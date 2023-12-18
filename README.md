@@ -63,7 +63,7 @@ Install IIS with the following feature set:
 ```powershell
 Install-WindowsFeature -Name Web-Server,Web-Basic-Auth,Web-Filtering,Web-IP-Security -IncludeManagementTools
 ```
-Download and install the .NET Core [hosting bundle](https://dotnet.microsoft.com/permalink/dotnetcore-current-windows-runtime-bundle-installer).
+Download and install the ASP .NET Core 8.0 [hosting bundle](https://dotnet.microsoft.com/permalink/dotnetcore-current-windows-runtime-bundle-installer).
 
 Then ensure you have a SSL certificate installed and require SSL on the web site you plan to install the API onto.
 

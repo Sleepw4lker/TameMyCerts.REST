@@ -1,4 +1,5 @@
-﻿// This code was automatically generated. Do not make any manual changes to it.
+﻿
+// This code was automatically generated. Do not make any manual changes to it.
 
 using System.Reflection;
 
@@ -9,5 +10,5 @@ using System.Reflection;
 //      Build Number
 //      Revision
 
-[assembly: AssemblyVersion("1.0.345.1164")]
-[assembly: AssemblyFileVersion("1.0.345.1164")]
+[assembly: AssemblyVersion("1.1.351.835")]
+[assembly: AssemblyFileVersion("1.1.351.835")]
