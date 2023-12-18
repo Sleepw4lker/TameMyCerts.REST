@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Uwe Gradenegger
+﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,241 +12,240 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using System.Web.Http;
-using TameMyCerts.REST.Models;
 using CERTCLILib;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TameMyCerts.REST.Models;
 
-namespace TameMyCerts.REST.Controllers
+namespace TameMyCerts.REST.Controllers;
+
+/// <summary>
+///     An API controller for all operations related to a certification authority.
+/// </summary>
+[Authorize]
+[ApiController]
+[Route("v1/certification-authorities")]
+public class CertificationAuthoritiesController : ControllerBase
 {
-    /// <summary>
-    ///     An API controller for all operations related to a certification authority.
-    /// </summary>
-    public class CertificationAuthoritiesController : ApiController
+    private readonly ILogger<CertificationAuthoritiesController> _logger;
+
+    public CertificationAuthoritiesController(ILogger<CertificationAuthoritiesController> logger)
     {
-        /// <summary>
-        ///     Retrieves a collection of all available certification authorities.
-        /// </summary>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/certification-authorities")]
-        public CertificationAuthorityCollection GetAllCas([FromUri] bool textualEncoding = false)
+        _logger = logger;
+    }
+
+    /// <summary>
+    ///     Retrieves a collection of all available certification authorities.
+    /// </summary>
+    /// <param name="textualEncoding">
+    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+    /// </param>
+    [HttpGet]
+    [Authorize]
+    public async Task<ActionResult<CertificationAuthorityCollection>> GetAllCas(bool textualEncoding = false)
+    {
+        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
         {
-            return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
-                .CertificationAuthorities.Where(certificationAuthority =>
-                    certificationAuthority.AllowsForEnrollment((WindowsIdentity)User.Identity)).ToList());
+            return Problem();
         }
 
-        /// <summary>
-        ///     Retrieves details for a certification authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certification authority.</param>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/certification-authorities/{caName}")]
-        public CertificationAuthority GetCaByName(string caName, [FromUri] bool textualEncoding = false)
+        return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
+            .CertificationAuthorities.Where(certificationAuthority =>
+                certificationAuthority.AllowsForEnrollment(user)).ToList());
+    }
+
+    /// <summary>
+    ///     Retrieves details for a certification authority.
+    /// </summary>
+    /// <param name="caName">The common name of the target certification authority.</param>
+    /// <param name="textualEncoding">
+    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+    /// </param>
+    [HttpGet]
+    [Authorize]
+    [Route("{caName}")]
+    public async Task<ActionResult<CertificationAuthority>> GetCaByName(string caName, bool textualEncoding = false)
+    {
+        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
         {
-            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
-                    certificationAuthority))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
-                });
-            }
-
-            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity)User.Identity))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        caName))
-                });
-            }
-
-            return certificationAuthority;
+            return Problem();
         }
 
-        /// <summary>
-        ///     Retrieves the current certification authority certificate for a certification authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certification authority.</param>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/certification-authorities/{caName}/ca-certificate")]
-        public SubmissionResponse GetCaCertificate(string caName, [FromUri] bool textualEncoding = false)
+        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
         {
-            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
-                    certificationAuthority))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
-                });
-            }
-
-            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity)User.Identity))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        caName))
-                });
-            }
-
-            var certRequestInterface = new CCertRequest();
-
-            try
-            {
-                return certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString,
-                    textualEncoding);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
+            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
         }
 
-        /// <summary>
-        ///     Retrieves the current certification authority exchange certificate for a certification authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certification authority.</param>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/certification-authorities/{caName}/ca-exchange-certificate")]
-        public SubmissionResponse GetCaExchangeCertificate(string caName, [FromUri] bool textualEncoding = false)
+        if (!certificationAuthority.AllowsForEnrollment(user))
         {
-            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
-                    certificationAuthority))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
-                });
-            }
-
-            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity)User.Identity))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED,
-                        caName))
-                });
-            }
-
-            var certRequestInterface = new CCertRequest();
-
-            try
-            {
-                return certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString,
-                    textualEncoding, true);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
+            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
         }
 
-        /// <summary>
-        ///     Retrieves a collection of certificate revocation list distribution points for a certification authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certification authority.</param>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/certification-authorities/{caName}/crl-distribution-points")]
-        public CertificateRevocationListDistributionPointCollection GetCrlDp(string caName,
-            [FromUri] bool textualEncoding = false)
+        return certificationAuthority;
+    }
+
+    /// <summary>
+    ///     Retrieves the current certification authority certificate for a certification authority.
+    /// </summary>
+    /// <param name="caName">The common name of the target certification authority.</param>
+    /// <param name="textualEncoding">
+    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+    /// </param>
+    [HttpGet]
+    [Authorize]
+    [Route("{caName}/ca-certificate")]
+    public async Task<ActionResult<SubmissionResponse>> GetCaCertificate(string caName,
+        bool textualEncoding = false)
+    {
+        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
         {
-            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
-                    certificationAuthority))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
-                });
-            }
-
-            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity)User.Identity))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED, caName))
-                });
-            }
-
-            var certRequestInterface = new CCertRequest();
-
-            try
-            {
-                return certRequestInterface.GetCrlDpCollection(certificationAuthority.ConfigurationString,
-                    textualEncoding);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
+            return Problem();
         }
 
-        /// <summary>
-        ///     Retrieves a collection of authority information access distribution points for a certification authority.
-        /// </summary>
-        /// <param name="caName">The common name of the target certification authority.</param>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/certification-authorities/{caName}/authority-information-access")]
-        public AuthorityInformationAccessCollection GetAia(string caName,
-            [FromUri] bool textualEncoding = false)
+        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
         {
-            if (!(CertificationAuthority.Create(caName, textualEncoding) is CertificationAuthority
-                    certificationAuthority))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_CA, caName))
-                });
-            }
+            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
+        }
 
-            if (!certificationAuthority.AllowsForEnrollment((WindowsIdentity)User.Identity))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_CA_DENIED, caName))
-                });
-            }
+        if (!certificationAuthority.AllowsForEnrollment(user))
+        {
+            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+        }
 
-            var certRequestInterface = new CCertRequest();
+        var certRequestInterface = new CCertRequest();
 
-            try
-            {
-                return certRequestInterface.GetAiaCollection(certificationAuthority.ConfigurationString,
-                    textualEncoding);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
+        try
+        {
+            return certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString, textualEncoding);
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(certRequestInterface);
+        }
+    }
+
+    /// <summary>
+    ///     Retrieves the current certification authority exchange certificate for a certification authority.
+    /// </summary>
+    /// <param name="caName">The common name of the target certification authority.</param>
+    /// <param name="textualEncoding">
+    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+    /// </param>
+    [HttpGet]
+    [Authorize]
+    [Route("{caName}/ca-exchange-certificate")]
+    public async Task<ActionResult<SubmissionResponse>> GetCaExchangeCertificate(string caName,
+        bool textualEncoding = false)
+    {
+        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        {
+            return Problem();
+        }
+
+        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
+        {
+            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
+        }
+
+        if (!certificationAuthority.AllowsForEnrollment(user))
+        {
+            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+        }
+
+        var certRequestInterface = new CCertRequest();
+
+        try
+        {
+            return certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString,
+                textualEncoding, true);
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(certRequestInterface);
+        }
+    }
+
+    /// <summary>
+    ///     Retrieves a collection of certificate revocation list distribution points for a certification authority.
+    /// </summary>
+    /// <param name="caName">The common name of the target certification authority.</param>
+    /// <param name="textualEncoding">
+    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+    /// </param>
+    [HttpGet]
+    [Authorize]
+    [Route("{caName}/crl-distribution-points")]
+    public async Task<ActionResult<CertificateRevocationListDistributionPointCollection>> GetCrlDp(string caName,
+        bool textualEncoding = false)
+    {
+        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        {
+            return Problem();
+        }
+
+        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
+        {
+            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
+        }
+
+        if (!certificationAuthority.AllowsForEnrollment(user))
+        {
+            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+        }
+
+        var certRequestInterface = new CCertRequest();
+
+        try
+        {
+            return certRequestInterface.GetCrlDpCollection(certificationAuthority.ConfigurationString,
+                textualEncoding);
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(certRequestInterface);
+        }
+    }
+
+    /// <summary>
+    ///     Retrieves a collection of authority information access distribution points for a certification authority.
+    /// </summary>
+    /// <param name="caName">The common name of the target certification authority.</param>
+    /// <param name="textualEncoding">
+    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+    /// </param>
+    [HttpGet]
+    [Authorize]
+    [Route("{caName}/authority-information-access")]
+    public async Task<ActionResult<AuthorityInformationAccessCollection>> GetAia(string caName,
+        bool textualEncoding = false)
+    {
+        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        {
+            return Problem();
+        }
+
+        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
+        {
+            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
+        }
+
+        if (!certificationAuthority.AllowsForEnrollment(user))
+        {
+            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+        }
+
+        var certRequestInterface = new CCertRequest();
+
+        try
+        {
+            return certRequestInterface.GetAiaCollection(certificationAuthority.ConfigurationString,
+                textualEncoding);
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(certRequestInterface);
         }
     }
 }

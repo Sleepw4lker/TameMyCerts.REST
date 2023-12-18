@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Uwe Gradenegger
+﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 
-namespace TameMyCerts.REST.Models
+namespace TameMyCerts.REST.Models;
+
+/// <summary>
+///     A data structure containing a certificate request and a list of optional request attributes.
+/// </summary>
+public class CertificateRequest
 {
     /// <summary>
-    ///     A data structure containing a certificate request and a list of optional request attributes.
+    ///     The PKIX certificate signing request as BASE64 encoded DER. Request type gets detected automatically.
     /// </summary>
-    public class CertificateRequest
-    {
-        /// <summary>
-        ///     The PKIX certificate signing request as BASE64 encoded DER. Request type gets detected automatically.
-        /// </summary>
-        [JsonRequired]
-        public string Request { get; set; }
+    [Required]
+    public string Request { get; set; }
 
-        /// <summary>
-        ///     Optional request attributes as a collection of strings.
-        /// </summary>
-        public List<string> RequestAttributes { get; set; } = new List<string>();
-    }
+    /// <summary>
+    ///     Optional request attributes as a collection of strings.
+    /// </summary>
+    public List<string> RequestAttributes { get; set; } = new();
 }

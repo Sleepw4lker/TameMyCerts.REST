@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Uwe Gradenegger
+﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,80 +12,90 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Security.Principal;
-using System.Web.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TameMyCerts.NetCore.Common.Models;
 using TameMyCerts.REST.Models;
 
-namespace TameMyCerts.REST.Controllers
+namespace TameMyCerts.REST.Controllers;
+
+/// <summary>
+///     An API controller for all operations related to certificate templates.
+/// </summary>
+[Authorize]
+[ApiController]
+[Route("v1/certificate-templates")]
+public class CertificateTemplatesController : ControllerBase
 {
-    /// <summary>
-    ///     An API controller for all operations related to certificate templates.
-    /// </summary>
-    public class CertificateTemplatesController : ApiController
+    private readonly ILogger<CertificateTemplatesController> _logger;
+
+    public CertificateTemplatesController(ILogger<CertificateTemplatesController> logger)
     {
-        /// <summary>
-        ///     Retrieves a collection of all certificate templates in the underlying Active Directory environment.
-        /// </summary>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/certificate-templates")]
-        public CertificateTemplateCollection GetCertificateTemplateCollection()
+        _logger = logger;
+    }
+
+    /// <summary>
+    ///     Retrieves a collection of all certificate templates in the underlying Active Directory environment.
+    /// </summary>
+    [HttpGet]
+    [Authorize]
+    public async Task<ActionResult<CertificateTemplateCollection>> GetCertificateTemplateCollection()
+    {
+        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
         {
-            return new CertificateTemplateCollection(new CertificateTemplateCollection().CertificateTemplates
-                .Where(certificateTemplate => certificateTemplate.AllowsForEnrollment((WindowsIdentity) User.Identity))
-                .ToList());
+            return Problem();
         }
 
-        /// <summary>
-        ///     Retrieves details for a certificate template.
-        /// </summary>
-        /// <param name="templateName">The name of the target certificate template.</param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/certificate-templates/{templateName}")]
-        public CertificateTemplate GetCertificateTemplate(string templateName)
+        return new CertificateTemplateCollection(new CertificateTemplateCollection().CertificateTemplates
+            .Where(certificateTemplate => certificateTemplate!.AllowsForEnrollment(user))
+            .ToList());
+    }
+
+    /// <summary>
+    ///     Retrieves details for a certificate template.
+    /// </summary>
+    /// <param name="templateName">The name of the target certificate template.</param>
+    [HttpGet]
+    [Authorize]
+    [Route("{templateName}")]
+    public async Task<ActionResult<CertificateTemplate>> GetCertificateTemplate(string templateName)
+    {
+        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
         {
-            if (!(CertificateTemplate.Create(templateName) is CertificateTemplate certificateTemplate))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.NotFound)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_MISSING_TEMPLATE, templateName))
-                });
-            }
-
-            if (!certificateTemplate.AllowsForEnrollment((WindowsIdentity) User.Identity))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Forbidden)
-                {
-                    Content = new StringContent(string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName))
-                });
-            }
-
-            return certificateTemplate;
+            return Forbid();
         }
 
-        /// <summary>
-        ///     Retrieves a collection of certification authorities that issue certificates for a given certificate template.
-        /// </summary>
-        /// <param name="templateName">The name of the target certificate template.</param>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        [HttpGet]
-        [Authorize]
-        [Route("v1/certificate-templates/{templateName}/issuers")]
-        public CertificationAuthorityCollection GetCertificateTemplateIssuers(string templateName,
-            [FromUri] bool textualEncoding = false)
+        if (CertificateTemplate.Create(templateName) is not { } certificateTemplate)
         {
-            return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
-                .CertificationAuthorities.Where(
-                    certificationAuthority =>
-                        certificationAuthority.CertificateTemplates.Contains(templateName,
-                            StringComparer.InvariantCultureIgnoreCase)).ToList());
+            return NotFound();
         }
+
+        if (!certificateTemplate.AllowsForEnrollment(user))
+        {
+            return Forbid(string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName));
+        }
+
+        return certificateTemplate;
+    }
+
+    /// <summary>
+    ///     Retrieves a collection of certification authorities that issue certificates for a given certificate template.
+    /// </summary>
+    /// <param name="templateName">The name of the target certificate template.</param>
+    /// <param name="textualEncoding">
+    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+    /// </param>
+    [HttpGet]
+    [Authorize]
+    [Route("{templateName}/issuers")]
+    public async Task<ActionResult<CertificationAuthorityCollection>> GetCertificateTemplateIssuers(string templateName,
+        bool textualEncoding = false)
+    {
+        return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
+            .CertificationAuthorities.Where(
+                certificationAuthority =>
+                    certificationAuthority.CertificateTemplates.Contains(templateName,
+                        StringComparer.InvariantCultureIgnoreCase)).ToList());
     }
 }

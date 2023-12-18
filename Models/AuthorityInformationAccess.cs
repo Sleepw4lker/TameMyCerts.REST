@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Uwe Gradenegger
+﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,38 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
+namespace TameMyCerts.REST.Models;
 
-namespace TameMyCerts.REST.Models
+/// <summary>
+///     A data structure containing authority information access for a certification authority.
+/// </summary>
+public class AuthorityInformationAccess
 {
     /// <summary>
-    ///     A data structure containing authority information access for a certification authority.
+    ///     Initiates an AuthorityInformationAccess object.
     /// </summary>
-    public class AuthorityInformationAccess
+    public AuthorityInformationAccess(List<string> urls, List<string> ocspUrls, string certificate)
     {
-        /// <summary>
-        ///     Initiates an AuthorityInformationAccess object.
-        /// </summary>
-        public AuthorityInformationAccess(List<string> urls, List<string> ocspUrls, string certificate)
-        {
-            Urls = urls;
-            OcspUrls = ocspUrls;
-            Certificate = certificate;
-        }
-
-        /// <summary>
-        ///     A collection of authority information access urls that are available for the certification authority certificate.
-        /// </summary>
-        public List<string> Urls { get; }
-
-        /// <summary>
-        ///     A collection of available online certificate status protocol urls.
-        /// </summary>
-        public List<string> OcspUrls { get; }
-
-        /// <summary>
-        ///     The PKIX certification authority certificate.
-        /// </summary>
-        public string Certificate { get; }
+        Urls = urls;
+        OcspUrls = ocspUrls;
+        Certificate = certificate;
     }
+
+    /// <summary>
+    ///     A collection of authority information access urls that are available for the certification authority certificate.
+    /// </summary>
+    public List<string> Urls { get; }
+
+    /// <summary>
+    ///     A collection of available online certificate status protocol urls.
+    /// </summary>
+    public List<string> OcspUrls { get; }
+
+    /// <summary>
+    ///     The PKIX certification authority certificate.
+    /// </summary>
+    public string Certificate { get; }
 }

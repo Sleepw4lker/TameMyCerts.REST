@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Uwe Gradenegger
+﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,35 +13,35 @@
 // limitations under the License.
 
 using System.ComponentModel;
+using TameMyCerts.NetCore.Common.Enums;
 
-namespace TameMyCerts.REST.Models
+namespace TameMyCerts.REST.Models;
+
+/// <summary>
+///     Additional status information about the outcome of the submission process.
+/// </summary>
+public class Status
 {
     /// <summary>
     ///     Additional status information about the outcome of the submission process.
     /// </summary>
-    public class Status
+    public Status(int statusCode)
     {
-        /// <summary>
-        ///     Additional status information about the outcome of the submission process.
-        /// </summary>
-        public Status(int statusCode)
-        {
-            var statusMessage = new Win32Exception(statusCode).Message;
+        var statusMessage = new Win32Exception(statusCode).Message;
 
-            StatusCode = statusCode;
-            Description = statusCode == WinError.ERROR_SUCCESS
-                ? statusMessage
-                : $"{statusMessage}. 0x{statusCode:X} ({statusCode})";
-        }
-
-        /// <summary>
-        ///     The result code returned by the certification authority during the submission process.
-        /// </summary>
-        public int StatusCode { get; }
-
-        /// <summary>
-        ///     The message the certification authority returned alongside with the result code.
-        /// </summary>
-        public string Description { get; }
+        StatusCode = statusCode;
+        Description = statusCode == WinError.ERROR_SUCCESS
+            ? statusMessage
+            : $"{statusMessage}. 0x{statusCode:X} ({statusCode})";
     }
+
+    /// <summary>
+    ///     The result code returned by the certification authority during the submission process.
+    /// </summary>
+    public int StatusCode { get; }
+
+    /// <summary>
+    ///     The message the certification authority returned alongside with the result code.
+    /// </summary>
+    public string Description { get; }
 }

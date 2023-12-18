@@ -1,7 +1,7 @@
 ﻿# The TameMyCerts REST API
 _(this project was renamed from "AdcsToRest")_
 
-> **Commercial support**, **consulting services** and **maintenance agreements** are available on demand. [Contact me](https://www.gradenegger.eu/?page_id=7) for details if you are interested.
+> **Commercial support**, **consulting services** and **maintenance agreements** are available on demand. [Contact me](https://www.gradenegger.eu/en/imprint/) for details if you are interested.
 
 A simple, yet powerful REST API for submitting certificates to one or more Microsoft [Active Directory Certificate Services (AD CS)](https://docs.microsoft.com/en-us/windows/win32/seccrypto/certificate-services) certification authorities, written in C#.
 
@@ -19,7 +19,7 @@ Therefore...
 
 ## Getting started
 
-Find the most recent version as a ready-to-use, digitally signed binary package on the [releases page](https://github.com/Sleepw4lker/TameMyCerts.REST/releases).
+Find the most recent version as a ready-to-use binary package on the [releases page](https://github.com/Sleepw4lker/TameMyCerts.REST/releases).
 
 ### Security and Implementation considerations
 
@@ -61,8 +61,9 @@ To reduce network load, the API uses the _CertificateTemplateCache_ registry key
 Install IIS with the following feature set:
 
 ```powershell
-Add-WindowsFeature -Name Web-Server,Web-Asp-Net45,Web-Basic-Auth,Web-Filtering,Web-IP-Security -IncludeManagementTools
+Install-WindowsFeature -Name Web-Server,Web-Basic-Auth,Web-Filtering,Web-IP-Security -IncludeManagementTools
 ```
+Download and install the .NET Core [hosting bundle](https://dotnet.microsoft.com/permalink/dotnetcore-current-windows-runtime-bundle-installer).
 
 Then ensure you have a SSL certificate installed and require SSL on the web site you plan to install the API onto.
 

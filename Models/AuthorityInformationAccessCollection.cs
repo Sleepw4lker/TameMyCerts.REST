@@ -10,26 +10,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
+namespace TameMyCerts.REST.Models;
 
-namespace TameMyCerts.REST.Models
+/// <summary>
+///     Contains a list of authority information access distribution points.
+/// </summary>
+public class AuthorityInformationAccessCollection
 {
+    /// <summary>
+    ///     Builds the collection out of a given list of authority information access distribution points.
+    /// </summary>
+    public AuthorityInformationAccessCollection(List<AuthorityInformationAccess> authorityInformationAccess)
+    {
+        AuthorityInformationAccess = authorityInformationAccess;
+    }
+
     /// <summary>
     ///     Contains a list of authority information access distribution points.
     /// </summary>
-    public class AuthorityInformationAccessCollection
-    {
-        /// <summary>
-        ///     Builds the collection out of a given list of authority information access distribution points.
-        /// </summary>
-        public AuthorityInformationAccessCollection(List<AuthorityInformationAccess> authorityInformationAccess)
-        {
-            AuthorityInformationAccess = authorityInformationAccess;
-        }
-
-        /// <summary>
-        ///     Contains a list of authority information access distribution points.
-        /// </summary>
-        public List<AuthorityInformationAccess> AuthorityInformationAccess { get; }
-    }
+    public List<AuthorityInformationAccess> AuthorityInformationAccess { get; }
 }

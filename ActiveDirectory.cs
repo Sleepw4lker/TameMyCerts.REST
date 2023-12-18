@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Uwe Gradenegger
+﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,45 +14,43 @@
 
 using System.DirectoryServices;
 
-namespace TameMyCerts.REST
+namespace TameMyCerts.REST;
+
+/// <summary>
+///     A class holding methods that help acquiring PKI related information from Active Directory.
+/// </summary>
+public static class ActiveDirectory
 {
     /// <summary>
-    ///     A class holding methods that help acquiring PKI related information from Active Directory.
+    ///     Returns a SearchResultCollection holding pKIEnrollmentService objects found in the directory.
     /// </summary>
-    public static class ActiveDirectory
+    /// <param name="cn">Common name of a specific ca.</param>
+    /// <returns></returns>
+    public static SearchResultCollection GetEnrollmentServiceCollection(string cn = null)
     {
-        /// <summary>
-        ///     Returns a SearchResultCollection holding pKIEnrollmentService objects found in the directory.
-        /// </summary>
-        /// <param name="cn">Common name of a specific ca.</param>
-        /// <returns></returns>
-        public static SearchResultCollection GetEnrollmentServiceCollection(string cn = null)
+        var forestRootDomain = new DirectoryEntry("LDAP://RootDSE").Properties["rootDomainNamingContext"][0].ToString();
+
+        var additionalCriteria = string.Empty;
+
+        if (cn != null)
         {
-            var forestRootDomain = new DirectoryEntry("LDAP://RootDSE").Properties["rootDomainNamingContext"][0]
-                .ToString();
-
-            var additionalCriteria = string.Empty;
-
-            if (cn != null)
-            {
-                additionalCriteria += $"(cn={cn})";
-            }
-
-            var enrollmentContainer =
-                $"LDAP://CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,{forestRootDomain}";
-
-            var directoryEntry = new DirectoryEntry(enrollmentContainer);
-
-            var directorySearcher = new DirectorySearcher(directoryEntry)
-            {
-                Filter = $"(&{additionalCriteria}(objectCategory=pKIEnrollmentService))",
-                Sort = new SortOption("cn", SortDirection.Ascending),
-                PropertiesToLoad =
-                    {"cn", "certificateTemplates", "dNSHostName", "cACertificate", "ntSecurityDescriptor"},
-                SecurityMasks = SecurityMasks.Dacl
-            };
-
-            return directorySearcher.FindAll();
+            additionalCriteria += $"(cn={cn})";
         }
+
+        var enrollmentContainer =
+            $"LDAP://CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,{forestRootDomain}";
+
+        var directoryEntry = new DirectoryEntry(enrollmentContainer);
+
+        var directorySearcher = new DirectorySearcher(directoryEntry)
+        {
+            Filter = $"(&{additionalCriteria}(objectCategory=pKIEnrollmentService))",
+            Sort = new SortOption("cn", SortDirection.Ascending),
+            PropertiesToLoad =
+                { "cn", "certificateTemplates", "dNSHostName", "cACertificate", "ntSecurityDescriptor" },
+            SecurityMasks = SecurityMasks.Dacl
+        };
+
+        return directorySearcher.FindAll();
     }
 }

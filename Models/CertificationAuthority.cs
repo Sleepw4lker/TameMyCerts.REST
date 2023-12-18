@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Uwe Gradenegger
+﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,151 +12,150 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
 using System.DirectoryServices;
-using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 
-namespace TameMyCerts.REST.Models
+namespace TameMyCerts.REST.Models;
+
+/// <summary>
+///     A data structure holding information about a certification authority.
+/// </summary>
+public partial class CertificationAuthority
 {
     /// <summary>
-    ///     A data structure holding information about a certification authority.
+    ///     Builds the object from a SearchResult containing a pKIEnrollmentService LDAP object.
     /// </summary>
-    public class CertificationAuthority
+    /// <param name="searchResult">The Active Directory SearchResult to build the object from.</param>
+    /// <param name="textualEncoding">
+    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+    /// </param>
+    public CertificationAuthority(SearchResult searchResult, bool textualEncoding = false)
     {
-        /// <summary>
-        ///     Builds the object from a SearchResult containing a pKIEnrollmentService LDAP object.
-        /// </summary>
-        /// <param name="searchResult">The Active Directory SearchResult to build the object from.</param>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        public CertificationAuthority(SearchResult searchResult, bool textualEncoding = false)
+        const string enrollPermission = "0E10C968-78FB-11D2-90D4-00C04F79DC55";
+
+        Name = (string)searchResult.Properties["cn"][0];
+
+        ConfigurationString = $"{searchResult.Properties["dNSHostName"][0]}\\{Name}";
+
+        Certificate = GetCertificate((byte[])searchResult.Properties["cACertificate"][0], textualEncoding);
+
+        CertificateTemplates =
+            (from object certificateTemplate in searchResult.Properties["certificateTemplates"]
+                select certificateTemplate.ToString()).ToList();
+
+        CertificateTemplates.Sort();
+
+        var rawSecurityDescriptor =
+            new RawSecurityDescriptor((byte[])searchResult.Properties["ntSecurityDescriptor"][0], 0);
+
+        foreach (var genericAce in rawSecurityDescriptor.DiscretionaryAcl)
         {
-            const string enrollPermission = "0E10C968-78FB-11D2-90D4-00C04F79DC55";
-
-            Name = (string) searchResult.Properties["cn"][0];
-
-            ConfigurationString = $"{searchResult.Properties["dNSHostName"][0]}\\{Name}";
-
-            Certificate = GetCertificate((byte[]) searchResult.Properties["cACertificate"][0], textualEncoding);
-
-            CertificateTemplates =
-                (from object certificateTemplate in searchResult.Properties["certificateTemplates"]
-                    select certificateTemplate.ToString()).ToList();
-
-            CertificateTemplates.Sort();
-
-            var rawSecurityDescriptor =
-                new RawSecurityDescriptor((byte[]) searchResult.Properties["ntSecurityDescriptor"][0], 0);
-
-            foreach (var genericAce in rawSecurityDescriptor.DiscretionaryAcl)
+            if (genericAce is not ObjectAce objectAce)
             {
-                if (!(genericAce is ObjectAce objectAce))
-                {
-                    continue;
-                }
-
-                if (objectAce.ObjectAceType != new Guid(enrollPermission))
-                {
-                    continue;
-                }
-
-                switch (objectAce.AceType)
-                {
-                    case AceType.AccessAllowedObject:
-                        AllowedPrincipals.Add(objectAce.SecurityIdentifier);
-                        break;
-                    case AceType.AccessDeniedObject:
-                        DisallowedPrincipals.Add(objectAce.SecurityIdentifier);
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     The common name of the certification authority.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        ///     The configuration string for this certification authority.
-        /// </summary>
-        [JsonIgnore]
-        public string ConfigurationString { get; }
-
-        /// <summary>
-        ///     A list of all certificate templates offered by the certification authority.
-        /// </summary>
-        public List<string> CertificateTemplates { get; }
-
-        /// <summary>
-        ///     The current certification authority certificate of the certification authority.
-        /// </summary>
-        public string Certificate { get; }
-
-        private List<SecurityIdentifier> AllowedPrincipals { get; } = new List<SecurityIdentifier>();
-        private List<SecurityIdentifier> DisallowedPrincipals { get; } = new List<SecurityIdentifier>();
-
-        /// <summary>
-        ///     Builds a CertificationAuthority object out of a given name.
-        /// </summary>
-        /// <param name="caName">The name of the target certification authority.</param>
-        /// <param name="textualEncoding">
-        ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-        /// </param>
-        public static CertificationAuthority Create(string caName,
-            bool textualEncoding = false)
-        {
-            var searchResults = ActiveDirectory.GetEnrollmentServiceCollection(caName);
-
-            return searchResults.Count == 1 ? new CertificationAuthority(searchResults[0], textualEncoding) : null;
-        }
-
-        /// <summary>
-        ///     Determines whether a given WindowsIdentity may enroll for certificates from this certification authority.
-        /// </summary>
-        /// <param name="identity">The Windows identity to check for permissions.</param>
-        /// <param name="explicitlyPermitted">Return true only if the identity is explicitly mentioned in the acl.</param>
-        /// <returns></returns>
-        public bool AllowsForEnrollment(WindowsIdentity identity, bool explicitlyPermitted = false)
-        {
-            var isAllowed = false;
-            var isDenied = false;
-
-            if (!explicitlyPermitted)
-            {
-                for (var index = 0; index < identity.Groups?.Count; index++)
-                {
-                    var group = (SecurityIdentifier) identity.Groups[index];
-                    isAllowed = AllowedPrincipals.Contains(group) || isAllowed;
-                    isDenied = DisallowedPrincipals.Contains(group) || isDenied;
-                }
+                continue;
             }
 
-            isAllowed = AllowedPrincipals.Contains(identity.User) || isAllowed;
-            isDenied = DisallowedPrincipals.Contains(identity.User) || isDenied;
-
-            return isAllowed && !isDenied;
-        }
-
-        private static string GetCertificate(byte[] rawData, bool textualEncoding = false)
-        {
-            var certificate = Convert.ToBase64String(rawData);
-
-            if (!textualEncoding)
+            if (objectAce.ObjectAceType != new Guid(enrollPermission))
             {
-                return certificate;
+                continue;
             }
 
-            certificate = Regex.Replace(certificate, ".{64}", "$&\r\n");
-            certificate = $"-----BEGIN CERTIFICATE-----\r\n{certificate}\r\n-----END CERTIFICATE-----";
-
-            return certificate;
+            switch (objectAce.AceType)
+            {
+                case AceType.AccessAllowedObject:
+                    AllowedPrincipals.Add(objectAce.SecurityIdentifier);
+                    break;
+                case AceType.AccessDeniedObject:
+                    DisallowedPrincipals.Add(objectAce.SecurityIdentifier);
+                    break;
+            }
         }
     }
+
+    /// <summary>
+    ///     The common name of the certification authority.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    ///     The configuration string for this certification authority.
+    /// </summary>
+    [JsonIgnore]
+    public string ConfigurationString { get; }
+
+    /// <summary>
+    ///     A list of all certificate templates offered by the certification authority.
+    /// </summary>
+    public List<string> CertificateTemplates { get; }
+
+    /// <summary>
+    ///     The current certification authority certificate of the certification authority.
+    /// </summary>
+    public string Certificate { get; }
+
+    private List<SecurityIdentifier> AllowedPrincipals { get; } = new();
+    private List<SecurityIdentifier> DisallowedPrincipals { get; } = new();
+
+    /// <summary>
+    ///     Builds a CertificationAuthority object out of a given name.
+    /// </summary>
+    /// <param name="caName">The name of the target certification authority.</param>
+    /// <param name="textualEncoding">
+    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
+    /// </param>
+    public static CertificationAuthority Create(string caName,
+        bool textualEncoding = false)
+    {
+        var searchResults = ActiveDirectory.GetEnrollmentServiceCollection(caName);
+
+        return searchResults.Count == 1 ? new CertificationAuthority(searchResults[0], textualEncoding) : null;
+    }
+
+    /// <summary>
+    ///     Determines whether a given WindowsIdentity may enroll for certificates from this certification authority.
+    /// </summary>
+    /// <param name="identity">The Windows identity to check for permissions.</param>
+    /// <param name="explicitlyPermitted">Return true only if the identity is explicitly mentioned in the acl.</param>
+    /// <returns></returns>
+    public bool AllowsForEnrollment(WindowsIdentity identity, bool explicitlyPermitted = false)
+    {
+        var isAllowed = false;
+        var isDenied = false;
+
+        if (!explicitlyPermitted)
+        {
+            for (var index = 0; index < identity.Groups?.Count; index++)
+            {
+                var group = (SecurityIdentifier)identity.Groups[index];
+                isAllowed = AllowedPrincipals.Contains(group) || isAllowed;
+                isDenied = DisallowedPrincipals.Contains(group) || isDenied;
+            }
+        }
+
+        isAllowed = AllowedPrincipals.Contains(identity.User) || isAllowed;
+        isDenied = DisallowedPrincipals.Contains(identity.User) || isDenied;
+
+        return isAllowed && !isDenied;
+    }
+
+    private static string GetCertificate(byte[] rawData, bool textualEncoding = false)
+    {
+        var certificate = Convert.ToBase64String(rawData);
+
+        if (!textualEncoding)
+        {
+            return certificate;
+        }
+
+        certificate = Base64EncodedDer().Replace(certificate, "$&\r\n");
+        certificate = $"-----BEGIN CERTIFICATE-----\r\n{certificate}\r\n-----END CERTIFICATE-----";
+
+        return certificate;
+    }
+
+    [GeneratedRegex(".{64}")]
+    private static partial Regex Base64EncodedDer();
 }
