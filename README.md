@@ -7,12 +7,6 @@ A simple, yet powerful REST API for submitting certificates to one or more Micro
 
 The API allows for requesting certificates from systems that are not joined to the same Active Directory domain as the certification authorities (or not joined to any domain at all). It can serve any client operating system that is capable of submitting a REST API call. It converts certificate requests submitted via REST to the DCOM protocol. 
 
-Therefore...
-
-- It is perfectly suited for certificate issuance scenarios from Linux, BSD, cloud services and the like.
-- It can also be used to connect cloud-native certificate management solutions (like [cert-manager](https://cert-manager.io]) or open source implementations of the ACME protocol (like [the Serles project](https://github.com/dvtirol/serles-acme)) to a Microsoft certification authority with this API.
-- An awesome use case is to implement **certificate AutoEnrollment across Active Directory Forest boundaries** leveraging the [TameMyCerts WSTEP Proxy](https://github.com/Sleepw4lker/TameMyCerts.WSTEP).
-
 > Sample client implementations are to be found in the [clients](clients/) directory.
 
 ## Getting started
