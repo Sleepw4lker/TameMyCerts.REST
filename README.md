@@ -1,8 +1,6 @@
 ﻿# The TameMyCerts REST API
 _(this project was renamed from "AdcsToRest")_
 
-> **Commercial support**, **consulting services** and **maintenance agreements** are available on demand. [Contact me](https://www.gradenegger.eu/en/imprint/) for details if you are interested.
-
 A simple, yet powerful REST API for submitting certificates to one or more Microsoft [Active Directory Certificate Services (AD CS)](https://docs.microsoft.com/en-us/windows/win32/seccrypto/certificate-services) certification authorities, written in C#.
 
 ## Introduction
