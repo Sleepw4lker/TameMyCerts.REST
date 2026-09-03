@@ -1,4 +1,4 @@
-﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
+// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,19 +51,14 @@ public class CertificatesController : ControllerBase
     public async Task<ActionResult<SubmissionResponse>> GetCertificateByRequestId(string caName, int requestId,
         bool textualEncoding = false)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryAuthorize(
+                HttpContext.User.Identity,
+                () => CertificationAuthority.Create(caName, textualEncoding),
+                () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
+                _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
+                out var certificationAuthority, out var user, out var error))
         {
-            return Problem();
-        }
-
-        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
-        {
-            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
-        }
-
-        if (!certificationAuthority.AllowsForEnrollment(user))
-        {
-            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return error;
         }
 
         var result = WindowsIdentity.RunImpersonated(user.AccessToken, () =>
@@ -99,19 +94,14 @@ public class CertificatesController : ControllerBase
     public async Task<ActionResult<SubmissionResponse>> SubmitCertificateRequest(string caName,
         CertificateRequest certificateRequest, string? certificateTemplate = null, bool textualEncoding = false)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryAuthorize(
+                HttpContext.User.Identity,
+                () => CertificationAuthority.Create(caName, textualEncoding),
+                () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
+                _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
+                out var certificationAuthority, out var user, out var error))
         {
-            return Problem();
-        }
-
-        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
-        {
-            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
-        }
-
-        if (!certificationAuthority.AllowsForEnrollment(user))
-        {
-            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return error;
         }
 
         if (certificateRequest?.Request == null)

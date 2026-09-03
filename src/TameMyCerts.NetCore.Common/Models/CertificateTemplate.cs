@@ -23,7 +23,7 @@ namespace TameMyCerts.NetCore.Common.Models;
 /// <summary>
 ///     Information about a certificate template.
 /// </summary>
-public class CertificateTemplate
+public class CertificateTemplate : IEnrollmentSubject
 {
     private CertificateTemplate(string templateName, RegistryKey regKey)
     {

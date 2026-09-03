@@ -17,13 +17,14 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using TameMyCerts.NetCore.Common.Models;
 
 namespace TameMyCerts.REST.Models;
 
 /// <summary>
 ///     A data structure holding information about a certification authority.
 /// </summary>
-public partial class CertificationAuthority
+public partial class CertificationAuthority : IEnrollmentSubject
 {
     /// <summary>
     ///     Builds the object from a SearchResult containing a pKIEnrollmentService LDAP object.

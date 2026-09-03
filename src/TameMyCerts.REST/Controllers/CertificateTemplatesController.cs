@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Security.Principal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TameMyCerts.NetCore.Common.Models;
@@ -42,9 +41,9 @@ public class CertificateTemplatesController : ControllerBase
     [Authorize]
     public async Task<ActionResult<CertificateTemplateCollection>> GetCertificateTemplateCollection()
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryGetIdentity(HttpContext.User.Identity, out var user, out var error))
         {
-            return Problem();
+            return error;
         }
 
         return new CertificateTemplateCollection(new CertificateTemplateCollection().CertificateTemplates
@@ -61,19 +60,14 @@ public class CertificateTemplatesController : ControllerBase
     [Route("{templateName}")]
     public async Task<ActionResult<CertificateTemplate>> GetCertificateTemplate(string templateName)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryAuthorize(
+                HttpContext.User.Identity,
+                () => CertificateTemplate.Create(templateName),
+                null,
+                _ => string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName),
+                out var certificateTemplate, out _, out var error))
         {
-            return Unauthorized();
-        }
-
-        if (CertificateTemplate.Create(templateName) is not { } certificateTemplate)
-        {
-            return NotFound();
-        }
-
-        if (!certificateTemplate.AllowsForEnrollment(user))
-        {
-            return Unauthorized(string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName));
+            return error;
         }
 
         return certificateTemplate;
