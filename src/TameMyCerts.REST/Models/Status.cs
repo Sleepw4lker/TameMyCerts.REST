@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using System.ComponentModel;
-using TameMyCerts.NetCore.Common.Enums;
+using TameMyCerts.REST.Enums;
 
 namespace TameMyCerts.REST.Models;
 

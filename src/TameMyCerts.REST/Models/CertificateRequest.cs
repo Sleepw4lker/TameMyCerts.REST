@@ -25,7 +25,7 @@ public class CertificateRequest
     ///     The PKIX certificate signing request as BASE64 encoded DER. Request type gets detected automatically.
     /// </summary>
     [Required]
-    public string Request { get; set; }
+    public required string Request { get; set; }
 
     /// <summary>
     ///     Optional request attributes as a collection of strings.

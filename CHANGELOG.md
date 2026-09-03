@@ -6,6 +6,7 @@ _This version was released on Sep 03, 2026._
 
 - Upgrade to .NET 10
 - Replace all occurrences of HTTP 403 (Forbidden) errors with HTTP 401 (Unauthorized) (#3)
+- Add certificate revocation endpoint (`POST v1/certificates/{caName}/revoke`), enforcing "Issue and Manage Certificates" permission on the certification authority
 
 ### Version 1.1.351.835
 

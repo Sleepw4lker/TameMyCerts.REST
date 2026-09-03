@@ -1,4 +1,4 @@
-﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
+// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using CERTCLILib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TameMyCerts.REST.Models;
@@ -29,11 +26,19 @@ namespace TameMyCerts.REST.Controllers;
 [Route("v1/certification-authorities")]
 public class CertificationAuthoritiesController : ControllerBase
 {
-    private readonly ILogger<CertificationAuthoritiesController> _logger;
+    private readonly ICertificationAuthorityDirectory _caDirectory;
+    private readonly ICertificationAuthorityGateway _gateway;
 
-    public CertificationAuthoritiesController(ILogger<CertificationAuthoritiesController> logger)
+    /// <summary>
+    ///     Builds the controller.
+    /// </summary>
+    /// <param name="gateway">The certification authority gateway to use.</param>
+    /// <param name="caDirectory">The certification authority directory to use.</param>
+    public CertificationAuthoritiesController(ICertificationAuthorityGateway gateway,
+        ICertificationAuthorityDirectory caDirectory)
     {
-        _logger = logger;
+        _gateway = gateway;
+        _caDirectory = caDirectory;
     }
 
     /// <summary>
@@ -44,16 +49,16 @@ public class CertificationAuthoritiesController : ControllerBase
     /// </param>
     [HttpGet]
     [Authorize]
-    public async Task<ActionResult<CertificationAuthorityCollection>> GetAllCas(bool textualEncoding = false)
+    public ActionResult<CertificationAuthorityCollection> GetAllCas(bool textualEncoding = false)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryGetIdentity(HttpContext.User.Identity, out var user, out var error))
         {
-            return Problem();
+            return error;
         }
 
-        return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
-            .CertificationAuthorities.Where(certificationAuthority =>
-                certificationAuthority.AllowsForEnrollment(user)).ToList());
+        return new CertificationAuthorityCollection(_caDirectory.GetAll(textualEncoding)
+            .Where(certificationAuthority => certificationAuthority.AllowsForEnrollment(user))
+            .ToList());
     }
 
     /// <summary>
@@ -66,21 +71,16 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}")]
-    public async Task<ActionResult<CertificationAuthority>> GetCaByName(string caName, bool textualEncoding = false)
+    public ActionResult<CertificationAuthority> GetCaByName(string caName, bool textualEncoding = false)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryAuthorize(
+                HttpContext.User.Identity,
+                () => _caDirectory.FindByName(caName, textualEncoding),
+                () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
+                _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
+                out var certificationAuthority, out _, out var error))
         {
-            return Problem();
-        }
-
-        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
-        {
-            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
-        }
-
-        if (!certificationAuthority.AllowsForEnrollment(user))
-        {
-            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return error;
         }
 
         return certificationAuthority;
@@ -96,34 +96,20 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}/ca-certificate")]
-    public async Task<ActionResult<SubmissionResponse>> GetCaCertificate(string caName,
+    public ActionResult<SubmissionResponse> GetCaCertificate(string caName,
         bool textualEncoding = false)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryAuthorize(
+                HttpContext.User.Identity,
+                () => _caDirectory.FindByName(caName, textualEncoding),
+                () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
+                _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
+                out var certificationAuthority, out _, out var error))
         {
-            return Problem();
+            return error;
         }
 
-        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
-        {
-            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
-        }
-
-        if (!certificationAuthority.AllowsForEnrollment(user))
-        {
-            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
-        }
-
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString, textualEncoding);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return _gateway.GetCaCertificate(certificationAuthority.ConfigurationString, textualEncoding);
     }
 
     /// <summary>
@@ -136,35 +122,20 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}/ca-exchange-certificate")]
-    public async Task<ActionResult<SubmissionResponse>> GetCaExchangeCertificate(string caName,
+    public ActionResult<SubmissionResponse> GetCaExchangeCertificate(string caName,
         bool textualEncoding = false)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryAuthorize(
+                HttpContext.User.Identity,
+                () => _caDirectory.FindByName(caName, textualEncoding),
+                () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
+                _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
+                out var certificationAuthority, out _, out var error))
         {
-            return Problem();
+            return error;
         }
 
-        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
-        {
-            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
-        }
-
-        if (!certificationAuthority.AllowsForEnrollment(user))
-        {
-            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
-        }
-
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString,
-                textualEncoding, true);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return _gateway.GetCaCertificate(certificationAuthority.ConfigurationString, textualEncoding, true);
     }
 
     /// <summary>
@@ -177,35 +148,20 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}/crl-distribution-points")]
-    public async Task<ActionResult<CertificateRevocationListDistributionPointCollection>> GetCrlDp(string caName,
+    public ActionResult<CertificateRevocationListDistributionPointCollection> GetCrlDp(string caName,
         bool textualEncoding = false)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryAuthorize(
+                HttpContext.User.Identity,
+                () => _caDirectory.FindByName(caName, textualEncoding),
+                () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
+                _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
+                out var certificationAuthority, out _, out var error))
         {
-            return Problem();
+            return error;
         }
 
-        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
-        {
-            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
-        }
-
-        if (!certificationAuthority.AllowsForEnrollment(user))
-        {
-            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
-        }
-
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetCrlDpCollection(certificationAuthority.ConfigurationString,
-                textualEncoding);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return _gateway.GetCrlDpCollection(certificationAuthority.ConfigurationString, textualEncoding);
     }
 
     /// <summary>
@@ -218,34 +174,19 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}/authority-information-access")]
-    public async Task<ActionResult<AuthorityInformationAccessCollection>> GetAia(string caName,
+    public ActionResult<AuthorityInformationAccessCollection> GetAia(string caName,
         bool textualEncoding = false)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryAuthorize(
+                HttpContext.User.Identity,
+                () => _caDirectory.FindByName(caName, textualEncoding),
+                () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
+                _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
+                out var certificationAuthority, out _, out var error))
         {
-            return Problem();
+            return error;
         }
 
-        if (CertificationAuthority.Create(caName, textualEncoding) is not { } certificationAuthority)
-        {
-            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
-        }
-
-        if (!certificationAuthority.AllowsForEnrollment(user))
-        {
-            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
-        }
-
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetAiaCollection(certificationAuthority.ConfigurationString,
-                textualEncoding);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return _gateway.GetAiaCollection(certificationAuthority.ConfigurationString, textualEncoding);
     }
 }

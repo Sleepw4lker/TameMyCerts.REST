@@ -17,7 +17,7 @@ Find the most recent version as a ready-to-use binary package on the [releases p
 
 You don't (necessarily) need a service account. The integrated IIS application pool identity is sufficient if you use HTTP basic authentication ([RFC 7617](https://datatracker.ietf.org/doc/html/rfc7617)). The chosen service account must have the _SeImpersonatePrivilege_ ("Impersonate a client after authentication") on the API web server, which by default is granted through membership of the local IIS_IUSRS security group.
 
-Certificate requests appear on the certification authority under the security context of the Active Directory user that was authenticated at the API. Therfore, enrollment permissions are handled on the CA/Template level, exactly as you would do with the native RPC/DCOM protocol. You may want to combine the API with the [TameMyCerts policy module](https://github.com/Sleepw4lker/TameMyCerts) on your certification authorities to be able to strictly restrict requested certificate content.
+Certificate requests appear on the certification authority under the security context of the Active Directory user that was authenticated at the API. Therfore, enrollment permissions are handled on the CA/Template level, exactly as you would do with the native RPC/DCOM protocol.
 
 I suggest using the API with [HTTP basic authentication](https://docs.microsoft.com/en-us/aspnet/web-api/overview/security/basic-authentication). Windows Authentication (NTLM/Kerberos) and Client Certificate Authentication work as well, but I advise against these because you will need Kerberos Delegation which can be a very dangerous topic that should be used with extreme caution.
 
@@ -55,7 +55,7 @@ Install IIS with the following feature set:
 ```powershell
 Install-WindowsFeature -Name Web-Server,Web-Basic-Auth,Web-Filtering,Web-IP-Security -IncludeManagementTools
 ```
-Download and install the ASP .NET Core 8.0 [hosting bundle](https://dotnet.microsoft.com/permalink/dotnetcore-current-windows-runtime-bundle-installer).
+Download and install the ASP .NET Core 10.0 [hosting bundle](https://dotnet.microsoft.com/permalink/dotnetcore-current-windows-runtime-bundle-installer).
 
 Then ensure you have a SSL certificate installed and require SSL on the web site you plan to install the API onto.
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
+// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Security.Principal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TameMyCerts.NetCore.Common.Models;
 using TameMyCerts.REST.Models;
 
 namespace TameMyCerts.REST.Controllers;
@@ -28,11 +26,19 @@ namespace TameMyCerts.REST.Controllers;
 [Route("v1/certificate-templates")]
 public class CertificateTemplatesController : ControllerBase
 {
-    private readonly ILogger<CertificateTemplatesController> _logger;
+    private readonly ICertificationAuthorityDirectory _caDirectory;
+    private readonly ICertificateTemplateRepository _templateRepository;
 
-    public CertificateTemplatesController(ILogger<CertificateTemplatesController> logger)
+    /// <summary>
+    ///     Builds the controller.
+    /// </summary>
+    /// <param name="templateRepository">The certificate template repository to use.</param>
+    /// <param name="caDirectory">The certification authority directory to use.</param>
+    public CertificateTemplatesController(ICertificateTemplateRepository templateRepository,
+        ICertificationAuthorityDirectory caDirectory)
     {
-        _logger = logger;
+        _templateRepository = templateRepository;
+        _caDirectory = caDirectory;
     }
 
     /// <summary>
@@ -40,15 +46,15 @@ public class CertificateTemplatesController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize]
-    public async Task<ActionResult<CertificateTemplateCollection>> GetCertificateTemplateCollection()
+    public ActionResult<CertificateTemplateCollection> GetCertificateTemplateCollection()
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryGetIdentity(HttpContext.User.Identity, out var user, out var error))
         {
-            return Problem();
+            return error;
         }
 
-        return new CertificateTemplateCollection(new CertificateTemplateCollection().CertificateTemplates
-            .Where(certificateTemplate => certificateTemplate!.AllowsForEnrollment(user))
+        return new CertificateTemplateCollection(_templateRepository.GetAll()
+            .Where(certificateTemplate => certificateTemplate.AllowsForEnrollment(user))
             .ToList());
     }
 
@@ -59,21 +65,16 @@ public class CertificateTemplatesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{templateName}")]
-    public async Task<ActionResult<CertificateTemplate>> GetCertificateTemplate(string templateName)
+    public ActionResult<CertificateTemplate> GetCertificateTemplate(string templateName)
     {
-        if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
+        if (!EnrollmentAuthorizationGate.TryAuthorize(
+                HttpContext.User.Identity,
+                () => _templateRepository.FindByName(templateName),
+                null,
+                _ => string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName),
+                out var certificateTemplate, out _, out var error))
         {
-            return Unauthorized();
-        }
-
-        if (CertificateTemplate.Create(templateName) is not { } certificateTemplate)
-        {
-            return NotFound();
-        }
-
-        if (!certificateTemplate.AllowsForEnrollment(user))
-        {
-            return Unauthorized(string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName));
+            return error;
         }
 
         return certificateTemplate;
@@ -89,13 +90,13 @@ public class CertificateTemplatesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{templateName}/issuers")]
-    public async Task<ActionResult<CertificationAuthorityCollection>> GetCertificateTemplateIssuers(string templateName,
+    public ActionResult<CertificationAuthorityCollection> GetCertificateTemplateIssuers(string templateName,
         bool textualEncoding = false)
     {
-        return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
-            .CertificationAuthorities.Where(
-                certificationAuthority =>
-                    certificationAuthority.CertificateTemplates.Contains(templateName,
-                        StringComparer.InvariantCultureIgnoreCase)).ToList());
+        return new CertificationAuthorityCollection(_caDirectory.GetAll(textualEncoding)
+            .Where(certificationAuthority =>
+                certificationAuthority.CertificateTemplates.Contains(templateName,
+                    StringComparer.InvariantCultureIgnoreCase))
+            .ToList());
     }
 }

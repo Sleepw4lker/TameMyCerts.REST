@@ -26,6 +26,6 @@ src\%PRODUCT%\%PRODUCT%.csproj ^
 /p:TransformOnBuild=true ^
 /p:TransformOutOfDateOnly=false
 
-copy src\%PRODUCT%\README.md src\%PRODUCT%\bin\%PROFILE%\
-copy src\%PRODUCT%\LICENSE src\%PRODUCT%\bin\%PROFILE%\
-copy src\%PRODUCT%\NOTICE src\%PRODUCT%\bin\%PROFILE%\
+copy README.md src\%PRODUCT%\bin\%PROFILE%\
+copy LICENSE src\%PRODUCT%\bin\%PROFILE%\
+copy NOTICE src\%PRODUCT%\bin\%PROFILE%\

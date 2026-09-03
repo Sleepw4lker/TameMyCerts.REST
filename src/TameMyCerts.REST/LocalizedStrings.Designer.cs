@@ -68,7 +68,16 @@ namespace TameMyCerts.REST {
                 return ResourceManager.GetString("DESC_CA_DENIED", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to issue and manage certificates on {0}..
+        /// </summary>
+        internal static string DESC_CA_MANAGEMENT_DENIED {
+            get {
+                return ResourceManager.GetString("DESC_CA_MANAGEMENT_DENIED", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to parse the given certificate request..
         /// </summary>
@@ -95,49 +104,22 @@ namespace TameMyCerts.REST {
                 return ResourceManager.GetString("DESC_MISSING_CA", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to The {0} parameter is missing or invalid..
+        ///   Looks up a localized string similar to The revocation date must be specified in UTC..
         /// </summary>
-        internal static string DESC_MISSING_PARAMETER {
+        internal static string DESC_REVOCATION_DATE_NOT_UTC {
             get {
-                return ResourceManager.GetString("DESC_MISSING_PARAMETER", resourceCulture);
+                return ResourceManager.GetString("DESC_REVOCATION_DATE_NOT_UTC", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The certificate template {0} was not found..
-        /// </summary>
-        internal static string DESC_MISSING_TEMPLATE {
-            get {
-                return ResourceManager.GetString("DESC_MISSING_TEMPLATE", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to connect to certification authority because {0}..
-        /// </summary>
-        internal static string DESC_SUBMISSION_FAILED {
-            get {
-                return ResourceManager.GetString("DESC_SUBMISSION_FAILED", resourceCulture);
-            }
-        }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to You do not have permission to enroll for {0}..
         /// </summary>
         internal static string DESC_TEMPLATED_DENIED {
             get {
                 return ResourceManager.GetString("DESC_TEMPLATED_DENIED", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to unknown.
-        /// </summary>
-        internal static string UNKNOWN {
-            get {
-                return ResourceManager.GetString("UNKNOWN", resourceCulture);
             }
         }
     }
