@@ -123,9 +123,12 @@ BeforeAll {
 
     # Generates a fresh, real PKCS#10 CSR - no external module or certreq.exe dependency.
     function script:New-TestCertificateRequestBase64 {
-        param([string] $Subject = 'CN=pester-test.contoso.com')
+        param(
+            [string] $Subject = 'CN=pester-test.contoso.com',
+            [int] $KeySize = 3072
+        )
 
-        $rsa = [System.Security.Cryptography.RSA]::Create(2048)
+        $rsa = [System.Security.Cryptography.RSA]::Create($KeySize)
         try {
             $req = [System.Security.Cryptography.X509Certificates.CertificateRequest]::new(
                 $Subject,
@@ -231,17 +234,12 @@ Describe 'TameMyCerts REST API - lab integration' {
                 -Body @{ Request = $csr }
         }
 
-        It 'issues or queues the request and returns a request id' {
-            $script:SubmitResponse.disposition | Should -BeIn @('Issued', 'Pending')
+        It 'issues the request and returns a request id' {
+            $script:SubmitResponse.disposition | Should -Be 'Issued'
             $script:SubmitResponse.requestId | Should -BeGreaterThan 0
         }
 
-        It 'returns a real, parseable certificate when disposition is Issued' {
-            if ($script:SubmitResponse.disposition -ne 'Issued') {
-                Set-ItResult -Skipped -Because 'the request was not issued immediately (disposition was Pending)'
-                return
-            }
-
+        It 'returns a real, parseable certificate' {
             { Test-ParseableCertificate -Base64Der $script:SubmitResponse.certificate } | Should -Not -Throw
         }
 
@@ -258,12 +256,20 @@ Describe 'TameMyCerts REST API - lab integration' {
             } | Should -Be 400
         }
 
-        It 'revokes the issued certificate (real DCOM round-trip to ICertAdmin::RevokeCertificate)' {
-            if ($script:SubmitResponse.disposition -ne 'Issued') {
-                Set-ItResult -Skipped -Because 'the request was not issued immediately (disposition was Pending)'
-                return
-            }
+        It 'denies a request with a key that is too weak and reports error details' {
+            # 1024 bits is below the minimum key size any reasonably configured template allows, so the CA's
+            # own (native, policy-module-independent) minimum key size check should deny this outright.
+            $weakCsr = New-TestCertificateRequestBase64 -KeySize 1024
 
+            $result = Invoke-Api -Method POST `
+                -Path "v1/certificates/$($script:Ca.name)?certificateTemplate=$CertificateTemplate" `
+                -Body @{ Request = $weakCsr }
+
+            $result.disposition | Should -Be 'Denied'
+            $result.status.description | Should -Not -BeNullOrEmpty
+        }
+
+        It 'revokes the issued certificate (real DCOM round-trip to ICertAdmin::RevokeCertificate)' {
             $certBytes = [Convert]::FromBase64String($script:SubmitResponse.certificate)
             $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certBytes)
             $script:RevokedSerialNumber = $cert.SerialNumber
@@ -275,11 +281,6 @@ Describe 'TameMyCerts REST API - lab integration' {
         }
 
         It 'reflects the revoked disposition on retrieval' {
-            if ($script:SubmitResponse.disposition -ne 'Issued') {
-                Set-ItResult -Skipped -Because 'the request was not issued immediately (disposition was Pending)'
-                return
-            }
-
             $retrieved = Invoke-Api -Path "v1/certificates/$($script:Ca.name)/$($script:SubmitResponse.requestId)"
             $retrieved.disposition | Should -Be 'Revoked'
         }
