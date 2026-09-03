@@ -21,14 +21,26 @@ namespace TameMyCerts.REST;
 
 /// <summary>
 ///     Talks to a certification authority over DCOM, via the ICertRequest COM interface for
-///     submission/retrieval/CA metadata, and the ICertAdmin interface for revocation. ICertAdmin has no
-///     embedded interop types (unlike ICertRequest's CERTCLILib) - it's accessed late-bound, via its
-///     well-known ProgID, so this one addition doesn't require a new &lt;COMReference&gt; and the tlbimp
-///     build step that comes with it.
+///     submission/retrieval/CA metadata, and the ICertAdmin/ICertAdmin2 interfaces for revocation and CA
+///     security. These have no embedded interop types (unlike ICertRequest's CERTCLILib) - they're accessed
+///     late-bound, via ICertAdmin's well-known ProgID, so this doesn't require a new
+///     &lt;COMReference&gt; and the tlbimp build step that comes with it.
 /// </summary>
 public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGateway
 {
     private const string CertAdminProgId = "CertificateAuthority.Admin";
+
+    // CCertAdmin's default automation interface (what plain late-bound `dynamic` resolves methods against) is
+    // the original ICertAdmin - RevokeCertificate lives there, so it just works. GetConfigEntry only exists on
+    // ICertAdmin2, a separate dual interface CCertAdmin also implements but does not expose as its default
+    // IDispatch. Reaching it therefore needs an explicit COM QueryInterface, which this marker interface
+    // triggers when a dynamic reference is cast to it; the empty body is enough; the IID is all that matters.
+    [ComImport]
+    [Guid("f7c3ac41-b8ce-4fb4-aa58-3d1dc0e36b39")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIDispatch)]
+    private interface ICertAdmin2
+    {
+    }
 
     /// <inheritdoc />
     public SubmissionResponse RetrievePending(string configString, int requestId, WindowsIdentity identity,
@@ -82,10 +94,16 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
     /// <inheritdoc />
     public bool AllowsForCertificateManagement(string configString, WindowsIdentity identity)
     {
-        string rawSecurityDescriptor = UseCertAdmin(identity,
-            certAdminInterface => (string)certAdminInterface.GetCASecurity(configString));
+        // The "Security" entry under the CA's own "CA" registry node holds the same raw security descriptor
+        // `certutil -getreg CA\Security` prints - ICertAdmin2::GetConfigEntry is the DCOM equivalent of that
+        // registry read, requiring no more permission than certutil itself does.
+        byte[] rawSecurityDescriptor = UseCertAdmin(identity, certAdminInterface =>
+        {
+            dynamic certAdmin2 = (ICertAdmin2)certAdminInterface;
+            return (byte[])certAdmin2.GetConfigEntry(configString, "CA", "Security");
+        });
 
-        var permission = new CertificateManagementPermission(Convert.FromBase64String(rawSecurityDescriptor));
+        var permission = new CertificateManagementPermission(rawSecurityDescriptor);
 
         return permission.AllowsForCertificateManagement(identity);
     }
