@@ -17,6 +17,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.OpenApi;
 using TameMyCerts.REST.Models;
 using TameMyCerts.REST;
@@ -29,7 +30,10 @@ builder.Logging.AddEventLog(settings =>
     settings.SourceName = appName;
 });
 
-builder.Services.AddSingleton<ICertificationAuthorityGateway, ComCertificationAuthorityGateway>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ICertificationAuthorityGateway>(serviceProvider =>
+    new CachingCertificationAuthorityGateway(new ComCertificationAuthorityGateway(),
+        serviceProvider.GetRequiredService<IMemoryCache>()));
 builder.Services.AddSingleton<ICertificationAuthorityDirectory, ActiveDirectoryCertificationAuthorityDirectory>();
 builder.Services.AddSingleton<ICertificateTemplateRepository, RegistryCertificateTemplateRepository>();
 
