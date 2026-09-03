@@ -147,12 +147,13 @@ public static class CCertRequestExtensions
                 continue;
             }
 
-            string crlDistributionPoints = certRequestInterface.GetCAProperty(configString,
+            string? crlDistributionPoints = certRequestInterface.GetCAProperty(configString,
                 CertCli.CR_PROP_CERTCDPURLS, index,
                 CertSrv.PROPTYPE_STRING, 0);
 
             crlList.Add(new CertificateRevocationListDistributionPoint(
-                crlDistributionPoints.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+                (crlDistributionPoints ?? string.Empty).Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                    .ToList(),
                 certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_BASECRL, index,
                     CertSrv.PROPTYPE_BINARY, outputFlags)));
         }
@@ -190,17 +191,17 @@ public static class CCertRequestExtensions
 
         for (var index = caCertCount - 1; index >= 0; index--)
         {
-            string aiaUrls = certRequestInterface.GetCAProperty(configString,
+            string? aiaUrls = certRequestInterface.GetCAProperty(configString,
                 CertCli.CR_PROP_CERTAIAURLS, index,
                 CertSrv.PROPTYPE_STRING, 0);
 
-            string aiaOcspUrls = certRequestInterface.GetCAProperty(configString,
+            string? aiaOcspUrls = certRequestInterface.GetCAProperty(configString,
                 CertCli.CR_PROP_CERTAIAOCSPURLS, index,
                 CertSrv.PROPTYPE_STRING, 0);
 
             aiaList.Add(new AuthorityInformationAccess(
-                aiaUrls.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList(),
-                aiaOcspUrls.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+                (aiaUrls ?? string.Empty).Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+                (aiaOcspUrls ?? string.Empty).Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList(),
                 certRequestInterface.GetCAProperty(configString, CertCli.CR_PROP_CASIGCERT, index,
                     CertSrv.PROPTYPE_BINARY, outputFlags)));
         }

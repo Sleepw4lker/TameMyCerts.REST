@@ -1,4 +1,4 @@
-﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
+// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,85 +35,56 @@ public static class CertificateRequestIntegrityChecks
     private static bool VerifyCertificateRequest(string certificateRequest, int requestType,
         out string rawCertificateRequest)
     {
-        rawCertificateRequest = string.Empty;
-
         switch (requestType)
         {
             case CertCli.CR_IN_PKCS10:
-
-                var certRequestPkcs10 = new CX509CertificateRequestPkcs10();
-
-                try
-                {
-                    certRequestPkcs10.InitializeDecode(
-                        certificateRequest,
-                        EncodingType.XCN_CRYPT_STRING_BASE64_ANY
-                    );
-                    rawCertificateRequest = certRequestPkcs10.RawData;
-                }
-                catch
-                {
-                    return false;
-                }
-                finally
-                {
-                    Marshal.ReleaseComObject(certRequestPkcs10);
-                }
-
-                break;
+                return TryDecode(() => new CX509CertificateRequestPkcs10(), certificateRequest,
+                    (request, input) => request.InitializeDecode(input, EncodingType.XCN_CRYPT_STRING_BASE64_ANY),
+                    out rawCertificateRequest);
 
             case CertCli.CR_IN_PKCS7:
-
-                var certRequestPkcs7 = new CX509CertificateRequestPkcs7();
-
-                try
-                {
-                    certRequestPkcs7.InitializeDecode(
-                        certificateRequest,
-                        EncodingType.XCN_CRYPT_STRING_BASE64_ANY
-                    );
-                    rawCertificateRequest = certRequestPkcs7.RawData;
-                }
-                catch
-                {
-                    return false;
-                }
-                finally
-                {
-                    Marshal.ReleaseComObject(certRequestPkcs7);
-                }
-
-                break;
+                return TryDecode(() => new CX509CertificateRequestPkcs7(), certificateRequest,
+                    (request, input) => request.InitializeDecode(input, EncodingType.XCN_CRYPT_STRING_BASE64_ANY),
+                    out rawCertificateRequest);
 
             case CertCli.CR_IN_CMC:
-
-                var certRequestCmc = new CX509CertificateRequestCmc();
-
-                try
-                {
-                    certRequestCmc.InitializeDecode(
-                        certificateRequest,
-                        EncodingType.XCN_CRYPT_STRING_BASE64_ANY
-                    );
-                    rawCertificateRequest = certRequestCmc.RawData;
-                }
-                catch
-                {
-                    return false;
-                }
-                finally
-                {
-                    Marshal.ReleaseComObject(certRequestCmc);
-                }
-
-                break;
+                return TryDecode(() => new CX509CertificateRequestCmc(), certificateRequest,
+                    (request, input) => request.InitializeDecode(input, EncodingType.XCN_CRYPT_STRING_BASE64_ANY),
+                    out rawCertificateRequest);
 
             default:
-
+                rawCertificateRequest = string.Empty;
                 return false;
         }
+    }
 
-        return true;
+    /// <summary>
+    ///     Creates a certificate request COM object of the given type, decodes it via <paramref name="decode" />,
+    ///     and always releases it afterwards, even if decoding throws. <c>IX509CertificateRequestPkcs10</c>,
+    ///     <c>...Pkcs7</c> and <c>...Cmc</c> each declare their own InitializeDecode, so it's passed in rather
+    ///     than called directly against the shared IX509CertificateRequest base.
+    /// </summary>
+    private static bool TryDecode<T>(Func<T> factory, string certificateRequest, Action<T, string> decode,
+        out string rawCertificateRequest)
+        where T : IX509CertificateRequest
+    {
+        var request = factory();
+
+        try
+        {
+            decode(request, certificateRequest);
+            rawCertificateRequest = request.RawData;
+            return true;
+        }
+        catch
+        {
+            rawCertificateRequest = string.Empty;
+            return false;
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(request);
+        }
     }
 
     /// <summary>

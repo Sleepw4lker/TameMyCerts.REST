@@ -28,19 +28,8 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
     public SubmissionResponse RetrievePending(string configString, int requestId, WindowsIdentity identity,
         bool textualEncoding = false)
     {
-        return WindowsIdentity.RunImpersonated(identity.AccessToken, () =>
-        {
-            var certRequestInterface = new CCertRequest();
-
-            try
-            {
-                return certRequestInterface.RetrievePending(configString, requestId, textualEncoding);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
-        });
+        return UseCertRequest(identity,
+            certRequestInterface => certRequestInterface.RetrievePending(configString, requestId, textualEncoding));
     }
 
     /// <inheritdoc />
@@ -48,47 +37,44 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
         List<string> requestAttributes, int submissionFlags, WindowsIdentity identity,
         bool textualEncoding = false)
     {
-        return WindowsIdentity.RunImpersonated(identity.AccessToken, () =>
-        {
-            var certRequestInterface = new CCertRequest();
-
-            try
-            {
-                return certRequestInterface.Submit(configString, rawCertificateRequest, requestAttributes,
-                    submissionFlags, textualEncoding);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
-        });
+        return UseCertRequest(identity, certRequestInterface => certRequestInterface.Submit(configString,
+            rawCertificateRequest, requestAttributes, submissionFlags, textualEncoding));
     }
 
     /// <inheritdoc />
     public SubmissionResponse GetCaCertificate(string configString, bool textualEncoding = false,
         bool caExchangeCertificate = false)
     {
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetCaCertificate(configString, textualEncoding, caExchangeCertificate);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return UseCertRequest(certRequestInterface =>
+            certRequestInterface.GetCaCertificate(configString, textualEncoding, caExchangeCertificate));
     }
 
     /// <inheritdoc />
     public CertificateRevocationListDistributionPointCollection GetCrlDpCollection(string configString,
         bool textualEncoding = false)
     {
+        return UseCertRequest(certRequestInterface =>
+            certRequestInterface.GetCrlDpCollection(configString, textualEncoding));
+    }
+
+    /// <inheritdoc />
+    public AuthorityInformationAccessCollection GetAiaCollection(string configString, bool textualEncoding = false)
+    {
+        return UseCertRequest(certRequestInterface => certRequestInterface.GetAiaCollection(configString,
+            textualEncoding));
+    }
+
+    /// <summary>
+    ///     Creates a CCertRequest COM object, runs <paramref name="action" /> against it, and always releases it
+    ///     afterwards, even if <paramref name="action" /> throws.
+    /// </summary>
+    private static T UseCertRequest<T>(Func<CCertRequest, T> action)
+    {
         var certRequestInterface = new CCertRequest();
 
         try
         {
-            return certRequestInterface.GetCrlDpCollection(configString, textualEncoding);
+            return action(certRequestInterface);
         }
         finally
         {
@@ -96,18 +82,14 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
         }
     }
 
-    /// <inheritdoc />
-    public AuthorityInformationAccessCollection GetAiaCollection(string configString, bool textualEncoding = false)
+    /// <summary>
+    ///     Same as <see cref="UseCertRequest{T}(Func{CCertRequest,T})" />, but impersonates
+    ///     <paramref name="identity" /> for the duration of the call, so the certification authority applies that
+    ///     identity's own enrollment permissions. The COM object is created, used, and released while still
+    ///     impersonated, so the DCOM release call itself is made under the same identity that acquired it.
+    /// </summary>
+    private static T UseCertRequest<T>(WindowsIdentity identity, Func<CCertRequest, T> action)
     {
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetAiaCollection(configString, textualEncoding);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return WindowsIdentity.RunImpersonated(identity.AccessToken, () => UseCertRequest(action));
     }
 }
