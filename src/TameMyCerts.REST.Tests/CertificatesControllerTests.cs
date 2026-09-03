@@ -197,4 +197,52 @@ public class CertificatesControllerTests
 
         Assert.Equal(RevocationReason.Unspecified, gateway.RevokeCertificateCall!.Value.Reason);
     }
+
+    [Fact]
+    public void RevokeCertificate_UsesCurrentUtcTime_WhenRevocationDateNotGiven()
+    {
+        var caDirectory = new FakeCertificationAuthorityDirectory();
+        caDirectory.Add(TestModels.CertificationAuthority("Contoso CA"));
+        var gateway = new FakeCertificationAuthorityGateway();
+        var controller = BuildController(caDirectory, gateway);
+        var before = DateTime.UtcNow;
+
+        controller.RevokeCertificate("Contoso CA", new RevocationRequest { SerialNumber = "1a2b3c" });
+
+        var after = DateTime.UtcNow;
+        var date = gateway.RevokeCertificateCall!.Value.Date;
+        Assert.Equal(DateTimeKind.Utc, date.Kind);
+        Assert.InRange(date, before, after);
+    }
+
+    [Fact]
+    public void RevokeCertificate_PassesThroughGivenRevocationDate()
+    {
+        var caDirectory = new FakeCertificationAuthorityDirectory();
+        caDirectory.Add(TestModels.CertificationAuthority("Contoso CA"));
+        var gateway = new FakeCertificationAuthorityGateway();
+        var controller = BuildController(caDirectory, gateway);
+        var revocationDate = new DateTime(2026, 1, 15, 8, 30, 0, DateTimeKind.Utc);
+
+        controller.RevokeCertificate("Contoso CA",
+            new RevocationRequest { SerialNumber = "1a2b3c", RevocationDate = revocationDate });
+
+        Assert.Equal(revocationDate, gateway.RevokeCertificateCall!.Value.Date);
+    }
+
+    [Fact]
+    public void RevokeCertificate_ReturnsBadRequest_WhenRevocationDateIsNotUtc()
+    {
+        var caDirectory = new FakeCertificationAuthorityDirectory();
+        caDirectory.Add(TestModels.CertificationAuthority("Contoso CA"));
+        var gateway = new FakeCertificationAuthorityGateway();
+        var controller = BuildController(caDirectory, gateway);
+        var localDate = DateTime.SpecifyKind(new DateTime(2026, 1, 15, 8, 30, 0), DateTimeKind.Local);
+
+        var result = controller.RevokeCertificate("Contoso CA",
+            new RevocationRequest { SerialNumber = "1a2b3c", RevocationDate = localDate });
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Null(gateway.RevokeCertificateCall);
+    }
 }

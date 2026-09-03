@@ -101,14 +101,16 @@ public class FakeCertificationAuthorityGatewayTests
     public void RevokeCertificate_RecordsCall()
     {
         var gateway = new FakeCertificationAuthorityGateway();
+        var date = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc);
 
-        gateway.RevokeCertificate("ca.contoso.com\\Contoso CA", "1a2b3c4d", RevocationReason.KeyCompromise,
+        gateway.RevokeCertificate("ca.contoso.com\\Contoso CA", "1a2b3c4d", RevocationReason.KeyCompromise, date,
             Identity);
 
         Assert.NotNull(gateway.RevokeCertificateCall);
         Assert.Equal("ca.contoso.com\\Contoso CA", gateway.RevokeCertificateCall.Value.ConfigString);
         Assert.Equal("1a2b3c4d", gateway.RevokeCertificateCall.Value.SerialNumber);
         Assert.Equal(RevocationReason.KeyCompromise, gateway.RevokeCertificateCall.Value.Reason);
+        Assert.Equal(date, gateway.RevokeCertificateCall.Value.Date);
         Assert.Same(Identity, gateway.RevokeCertificateCall.Value.Identity);
     }
 

@@ -48,13 +48,16 @@ public class CachingCertificationAuthorityGatewayTests
     {
         var inner = new FakeCertificationAuthorityGateway();
         var gateway = BuildGateway(inner);
+        var date = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc);
 
-        gateway.RevokeCertificate("ca.contoso.com\\Contoso CA", "1a2b3c", RevocationReason.KeyCompromise, Identity);
+        gateway.RevokeCertificate("ca.contoso.com\\Contoso CA", "1a2b3c", RevocationReason.KeyCompromise, date,
+            Identity);
 
         Assert.NotNull(inner.RevokeCertificateCall);
         Assert.Equal("ca.contoso.com\\Contoso CA", inner.RevokeCertificateCall.Value.ConfigString);
         Assert.Equal("1a2b3c", inner.RevokeCertificateCall.Value.SerialNumber);
         Assert.Equal(RevocationReason.KeyCompromise, inner.RevokeCertificateCall.Value.Reason);
+        Assert.Equal(date, inner.RevokeCertificateCall.Value.Date);
         Assert.Same(Identity, inner.RevokeCertificateCall.Value.Identity);
     }
 }
