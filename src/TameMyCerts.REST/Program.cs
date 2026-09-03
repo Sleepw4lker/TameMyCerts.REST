@@ -31,8 +31,10 @@ builder.Logging.AddEventLog(settings =>
 });
 
 builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ICertAdminClient, ComCertAdminClient>();
 builder.Services.AddSingleton<ICertificationAuthorityGateway>(serviceProvider =>
-    new CachingCertificationAuthorityGateway(new ComCertificationAuthorityGateway(),
+    new CachingCertificationAuthorityGateway(
+        new ComCertificationAuthorityGateway(serviceProvider.GetRequiredService<ICertAdminClient>()),
         serviceProvider.GetRequiredService<IMemoryCache>()));
 builder.Services.AddSingleton<ICertificationAuthorityDirectory, ActiveDirectoryCertificationAuthorityDirectory>();
 builder.Services.AddSingleton<ICertificateTemplateRepository, RegistryCertificateTemplateRepository>();

@@ -104,7 +104,16 @@ namespace TameMyCerts.REST {
                 return ResourceManager.GetString("DESC_MISSING_CA", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The revocation date must be specified in UTC..
+        /// </summary>
+        internal static string DESC_REVOCATION_DATE_NOT_UTC {
+            get {
+                return ResourceManager.GetString("DESC_REVOCATION_DATE_NOT_UTC", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to You do not have permission to enroll for {0}..
         /// </summary>

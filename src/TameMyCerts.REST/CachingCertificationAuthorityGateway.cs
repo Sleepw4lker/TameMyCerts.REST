@@ -81,10 +81,10 @@ public sealed class CachingCertificationAuthorityGateway : ICertificationAuthori
     }
 
     /// <inheritdoc />
-    public void RevokeCertificate(string configString, string serialNumber, RevocationReason reason,
+    public void RevokeCertificate(string configString, string serialNumber, RevocationReason reason, DateTime date,
         WindowsIdentity identity)
     {
-        _inner.RevokeCertificate(configString, serialNumber, reason, identity);
+        _inner.RevokeCertificate(configString, serialNumber, reason, date, identity);
     }
 
     /// <inheritdoc />

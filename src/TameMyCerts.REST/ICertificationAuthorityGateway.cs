@@ -58,7 +58,7 @@ public interface ICertificationAuthorityGateway
     ///     certification authority applies that user's own CA management permissions - a separate permission
     ///     from the "Request Certificates" (Enroll) right the other impersonated calls rely on.
     /// </summary>
-    void RevokeCertificate(string configString, string serialNumber, RevocationReason reason,
+    void RevokeCertificate(string configString, string serialNumber, RevocationReason reason, DateTime date,
         WindowsIdentity identity);
 
     /// <summary>

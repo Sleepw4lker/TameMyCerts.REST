@@ -31,4 +31,11 @@ public class RevocationRequest
     ///     The reason for the revocation.
     /// </summary>
     public RevocationReason Reason { get; set; } = RevocationReason.Unspecified;
+
+    /// <summary>
+    ///     The date and time the revocation shall be effective from, in UTC. Defaults to the time the request
+    ///     is processed if not given. Must be specified in UTC (e.g. with a trailing "Z"); a value with a
+    ///     different or no time zone offset is rejected.
+    /// </summary>
+    public DateTime? RevocationDate { get; set; }
 }

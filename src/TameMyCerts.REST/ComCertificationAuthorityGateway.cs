@@ -20,26 +20,21 @@ using TameMyCerts.REST.Models;
 namespace TameMyCerts.REST;
 
 /// <summary>
-///     Talks to a certification authority over DCOM, via the ICertRequest COM interface for
-///     submission/retrieval/CA metadata, and the ICertAdmin/ICertAdmin2 interfaces for revocation and CA
-///     security. These have no embedded interop types (unlike ICertRequest's CERTCLILib) - they're accessed
-///     late-bound, via ICertAdmin's well-known ProgID, so this doesn't require a new
-///     &lt;COMReference&gt; and the tlbimp build step that comes with it.
+///     Talks to a certification authority over DCOM: the ICertRequest COM interface (embedded interop,
+///     CERTCLILib) for submission/retrieval/CA metadata, owned directly by this class; and an injected
+///     <see cref="ICertAdminClient" /> for revocation and CA security. Owns impersonation for both.
 /// </summary>
 public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGateway
 {
-    private const string CertAdminProgId = "CertificateAuthority.Admin";
+    private readonly ICertAdminClient _certAdminClient;
 
-    // CCertAdmin's default automation interface (what plain late-bound `dynamic` resolves methods against) is
-    // the original ICertAdmin - RevokeCertificate lives there, so it just works. GetConfigEntry only exists on
-    // ICertAdmin2, a separate dual interface CCertAdmin also implements but does not expose as its default
-    // IDispatch. Reaching it therefore needs an explicit COM QueryInterface, which this marker interface
-    // triggers when a dynamic reference is cast to it; the empty body is enough; the IID is all that matters.
-    [ComImport]
-    [Guid("f7c3ac41-b8ce-4fb4-aa58-3d1dc0e36b39")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIDispatch)]
-    private interface ICertAdmin2
+    /// <summary>
+    ///     Builds the gateway.
+    /// </summary>
+    /// <param name="certAdminClient">The client to use for CA administration (revocation, CA security).</param>
+    public ComCertificationAuthorityGateway(ICertAdminClient certAdminClient)
     {
+        _certAdminClient = certAdminClient;
     }
 
     /// <inheritdoc />
@@ -83,27 +78,17 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
     }
 
     /// <inheritdoc />
-    public void RevokeCertificate(string configString, string serialNumber, RevocationReason reason,
+    public void RevokeCertificate(string configString, string serialNumber, RevocationReason reason, DateTime date,
         WindowsIdentity identity)
     {
-        UseCertAdmin(identity, certAdminInterface =>
-            certAdminInterface.RevokeCertificate(configString, serialNumber, (int)reason,
-                DateTime.UtcNow.ToOADate()));
+        UseCertAdmin(identity, () => _certAdminClient.RevokeCertificate(configString, serialNumber, reason, date));
     }
 
     /// <inheritdoc />
     public bool AllowsForCertificateManagement(string configString, WindowsIdentity identity)
     {
-        // The "Security" leaf entry under the CA's own configuration root holds the same raw security
-        // descriptor `certutil -getreg CA\Security` prints - ICertAdmin2::GetConfigEntry is the DCOM equivalent
-        // of that registry read, requiring no more permission than certutil itself does. Per [MS-CSRA]
-        // GetConfigEntry (Opnum 44), an empty node path plus entry name "Security" is the documented case for
-        // this value - certutil's "CA\" prefix is its own display grouping, not a literal node path.
-        byte[] rawSecurityDescriptor = UseCertAdmin(identity, certAdminInterface =>
-        {
-            dynamic certAdmin2 = (ICertAdmin2)certAdminInterface;
-            return (byte[])certAdmin2.GetConfigEntry(configString, string.Empty, "Security");
-        });
+        var rawSecurityDescriptor =
+            UseCertAdmin(identity, () => _certAdminClient.GetCaSecurityDescriptor(configString));
 
         var permission = new CertificateManagementPermission(rawSecurityDescriptor);
 
@@ -140,43 +125,20 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
     }
 
     /// <summary>
-    ///     Same COM-safety as <see cref="UseCertRequest{T}(WindowsIdentity,Func{CCertRequest,T})" />: creates a
-    ///     CCertAdmin COM object under the impersonated identity, runs <paramref name="action" /> against it, and
-    ///     always releases it afterwards - while still impersonated - even if <paramref name="action" /> throws.
-    ///     Late-bound (dynamic) rather than an embedded interop type, since ICertAdmin is only needed for this one
-    ///     call; see the class summary.
+    ///     Impersonates <paramref name="identity" /> for the duration of <paramref name="action" />, so calls
+    ///     the action makes through <see cref="_certAdminClient" /> run under - and the certification authority
+    ///     applies - that identity's own CA management permissions.
     /// </summary>
-    private static void UseCertAdmin(WindowsIdentity identity, Action<dynamic> action)
+    private static void UseCertAdmin(WindowsIdentity identity, Action action)
     {
-        UseCertAdmin<object?>(identity, certAdminInterface =>
-        {
-            action(certAdminInterface);
-            return null;
-        });
+        WindowsIdentity.RunImpersonated(identity.AccessToken, action);
     }
 
     /// <summary>
-    ///     Same as <see cref="UseCertAdmin(WindowsIdentity,Action{dynamic})" />, but for calls that return a
-    ///     value.
+    ///     Same as <see cref="UseCertAdmin(WindowsIdentity,Action)" />, but for calls that return a value.
     /// </summary>
-    private static T UseCertAdmin<T>(WindowsIdentity identity, Func<dynamic, T> action)
+    private static T UseCertAdmin<T>(WindowsIdentity identity, Func<T> action)
     {
-        return WindowsIdentity.RunImpersonated(identity.AccessToken, () =>
-        {
-            var certAdminType = Type.GetTypeFromProgID(CertAdminProgId) ?? throw new InvalidOperationException(
-                $"The '{CertAdminProgId}' COM class is not registered on this machine. " +
-                "The AD CS management tools (or the CA role itself) need to be installed.");
-
-            dynamic certAdminInterface = Activator.CreateInstance(certAdminType)!;
-
-            try
-            {
-                return action(certAdminInterface);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certAdminInterface);
-            }
-        });
+        return WindowsIdentity.RunImpersonated(identity.AccessToken, action);
     }
 }

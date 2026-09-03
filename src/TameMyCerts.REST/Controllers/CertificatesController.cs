@@ -161,8 +161,13 @@ public class CertificatesController : ControllerBase
             return BadRequest(LocalizedStrings.DESC_INVALID_REQUEST);
         }
 
+        if (revocationRequest.RevocationDate is { Kind: not DateTimeKind.Utc })
+        {
+            return BadRequest(LocalizedStrings.DESC_REVOCATION_DATE_NOT_UTC);
+        }
+
         _gateway.RevokeCertificate(certificationAuthority.ConfigurationString, revocationRequest.SerialNumber,
-            revocationRequest.Reason, user);
+            revocationRequest.Reason, revocationRequest.RevocationDate ?? DateTime.UtcNow, user);
 
         return NoContent();
     }
