@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.DirectoryServices;
-
 namespace TameMyCerts.REST.Models;
 
 /// <summary>
@@ -28,20 +26,6 @@ public class CertificationAuthorityCollection
     public CertificationAuthorityCollection(List<CertificationAuthority> certificationAuthorities)
     {
         CertificationAuthorities = certificationAuthorities;
-    }
-
-    /// <summary>
-    ///     Builds a CertificationAuthorityCollection out of the information available in Active Directory.
-    /// </summary>
-    /// <param name="textualEncoding">
-    ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
-    /// </param>
-    public CertificationAuthorityCollection(bool textualEncoding = false)
-    {
-        var searchResults = ActiveDirectory.GetEnrollmentServiceCollection();
-
-        CertificationAuthorities = (from SearchResult searchResult in searchResults
-            select new CertificationAuthority(searchResult, textualEncoding)).ToList();
     }
 
     /// <summary>

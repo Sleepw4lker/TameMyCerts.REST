@@ -18,10 +18,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Enums\WinCrypt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enums\WinError.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\CertificateTemplate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\EnrollmentPermission.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ExtendedKeyUsage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ExtendedKeyUsageExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ICertificateTemplateRepository.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\IEnrollmentSubject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\KeyUsage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\KeyUsageExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\RegistryCertificateTemplateRepository.cs" />
   </ItemGroup>
 </Project>

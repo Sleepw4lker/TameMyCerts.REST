@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.Win32;
 using TameMyCerts.NetCore.Common.Models;
 
 namespace TameMyCerts.REST.Models;
@@ -22,41 +21,6 @@ namespace TameMyCerts.REST.Models;
 /// </summary>
 public class CertificateTemplateCollection
 {
-    private readonly string[] _defaultVersion2CertificateTemplates =
-    [
-        "CAExchange",
-        "CrossCA",
-        "DirectoryEmailReplication",
-        "DomainControllerAuthentication",
-        "KerberosAuthentication",
-        "KeyRecoveryAgent",
-        "OCSPResponseSigning",
-        "RASAndIASServer",
-        "Workstation"
-    ];
-
-    /// <summary>
-    ///     Builds a CertificateTemplateCollection.
-    /// </summary>
-    public CertificateTemplateCollection()
-    {
-        var machineBaseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-        var templateBaseKey =
-            machineBaseKey.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography\\CertificateTemplateCache");
-
-        if (templateBaseKey == null)
-        {
-            CertificateTemplates = [];
-            return;
-        }
-
-        CertificateTemplates = templateBaseKey.GetSubKeyNames()
-            .Where(templateName => !_defaultVersion2CertificateTemplates.Contains(templateName))
-            .Select(CertificateTemplate.Create)
-            .OfType<CertificateTemplate>()
-            .Where(certificateTemplate => certificateTemplate.SchemaVersion > 1).ToList();
-    }
-
     /// <summary>
     ///     Builds a CertificateTemplateCollection.
     /// </summary>

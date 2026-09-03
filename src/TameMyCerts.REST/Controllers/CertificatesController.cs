@@ -27,15 +27,18 @@ namespace TameMyCerts.REST.Controllers;
 [Route("v1/certificates")]
 public class CertificatesController : ControllerBase
 {
+    private readonly ICertificationAuthorityDirectory _caDirectory;
     private readonly ICertificationAuthorityGateway _gateway;
 
     /// <summary>
     ///     Builds the controller.
     /// </summary>
     /// <param name="gateway">The certification authority gateway to use.</param>
-    public CertificatesController(ICertificationAuthorityGateway gateway)
+    /// <param name="caDirectory">The certification authority directory to use.</param>
+    public CertificatesController(ICertificationAuthorityGateway gateway, ICertificationAuthorityDirectory caDirectory)
     {
         _gateway = gateway;
+        _caDirectory = caDirectory;
     }
 
     /// <summary>
@@ -54,7 +57,7 @@ public class CertificatesController : ControllerBase
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
-                () => CertificationAuthority.Create(caName, textualEncoding),
+                () => _caDirectory.FindByName(caName, textualEncoding),
                 () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
                 _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
                 out var certificationAuthority, out var user, out var error))
@@ -83,7 +86,7 @@ public class CertificatesController : ControllerBase
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
-                () => CertificationAuthority.Create(caName, textualEncoding),
+                () => _caDirectory.FindByName(caName, textualEncoding),
                 () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
                 _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
                 out var certificationAuthority, out var user, out var error))

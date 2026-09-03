@@ -18,6 +18,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.OpenApi;
+using TameMyCerts.NetCore.Common.Models;
 using TameMyCerts.REST;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,8 @@ builder.Logging.AddEventLog(settings =>
 });
 
 builder.Services.AddSingleton<ICertificationAuthorityGateway, ComCertificationAuthorityGateway>();
+builder.Services.AddSingleton<ICertificationAuthorityDirectory, ActiveDirectoryCertificationAuthorityDirectory>();
+builder.Services.AddSingleton<ICertificateTemplateRepository, RegistryCertificateTemplateRepository>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

@@ -26,15 +26,19 @@ namespace TameMyCerts.REST.Controllers;
 [Route("v1/certification-authorities")]
 public class CertificationAuthoritiesController : ControllerBase
 {
+    private readonly ICertificationAuthorityDirectory _caDirectory;
     private readonly ICertificationAuthorityGateway _gateway;
 
     /// <summary>
     ///     Builds the controller.
     /// </summary>
     /// <param name="gateway">The certification authority gateway to use.</param>
-    public CertificationAuthoritiesController(ICertificationAuthorityGateway gateway)
+    /// <param name="caDirectory">The certification authority directory to use.</param>
+    public CertificationAuthoritiesController(ICertificationAuthorityGateway gateway,
+        ICertificationAuthorityDirectory caDirectory)
     {
         _gateway = gateway;
+        _caDirectory = caDirectory;
     }
 
     /// <summary>
@@ -52,9 +56,9 @@ public class CertificationAuthoritiesController : ControllerBase
             return error;
         }
 
-        return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
-            .CertificationAuthorities.Where(certificationAuthority =>
-                certificationAuthority.AllowsForEnrollment(user)).ToList());
+        return new CertificationAuthorityCollection(_caDirectory.GetAll(textualEncoding)
+            .Where(certificationAuthority => certificationAuthority.AllowsForEnrollment(user))
+            .ToList());
     }
 
     /// <summary>
@@ -71,7 +75,7 @@ public class CertificationAuthoritiesController : ControllerBase
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
-                () => CertificationAuthority.Create(caName, textualEncoding),
+                () => _caDirectory.FindByName(caName, textualEncoding),
                 () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
                 _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
                 out var certificationAuthority, out _, out var error))
@@ -97,7 +101,7 @@ public class CertificationAuthoritiesController : ControllerBase
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
-                () => CertificationAuthority.Create(caName, textualEncoding),
+                () => _caDirectory.FindByName(caName, textualEncoding),
                 () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
                 _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
                 out var certificationAuthority, out _, out var error))
@@ -123,7 +127,7 @@ public class CertificationAuthoritiesController : ControllerBase
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
-                () => CertificationAuthority.Create(caName, textualEncoding),
+                () => _caDirectory.FindByName(caName, textualEncoding),
                 () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
                 _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
                 out var certificationAuthority, out _, out var error))
@@ -149,7 +153,7 @@ public class CertificationAuthoritiesController : ControllerBase
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
-                () => CertificationAuthority.Create(caName, textualEncoding),
+                () => _caDirectory.FindByName(caName, textualEncoding),
                 () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
                 _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
                 out var certificationAuthority, out _, out var error))
@@ -175,7 +179,7 @@ public class CertificationAuthoritiesController : ControllerBase
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
-                () => CertificationAuthority.Create(caName, textualEncoding),
+                () => _caDirectory.FindByName(caName, textualEncoding),
                 () => string.Format(LocalizedStrings.DESC_MISSING_CA, caName),
                 _ => string.Format(LocalizedStrings.DESC_CA_DENIED, caName),
                 out var certificationAuthority, out _, out var error))

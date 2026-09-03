@@ -1,4 +1,4 @@
-﻿// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
+// Copyright (c) Uwe Gradenegger <info@gradenegger.eu>
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,6 +27,21 @@ namespace TameMyCerts.REST.Controllers;
 [Route("v1/certificate-templates")]
 public class CertificateTemplatesController : ControllerBase
 {
+    private readonly ICertificationAuthorityDirectory _caDirectory;
+    private readonly ICertificateTemplateRepository _templateRepository;
+
+    /// <summary>
+    ///     Builds the controller.
+    /// </summary>
+    /// <param name="templateRepository">The certificate template repository to use.</param>
+    /// <param name="caDirectory">The certification authority directory to use.</param>
+    public CertificateTemplatesController(ICertificateTemplateRepository templateRepository,
+        ICertificationAuthorityDirectory caDirectory)
+    {
+        _templateRepository = templateRepository;
+        _caDirectory = caDirectory;
+    }
+
     /// <summary>
     ///     Retrieves a collection of all certificate templates in the underlying Active Directory environment.
     /// </summary>
@@ -39,8 +54,8 @@ public class CertificateTemplatesController : ControllerBase
             return error;
         }
 
-        return new CertificateTemplateCollection(new CertificateTemplateCollection().CertificateTemplates
-            .Where(certificateTemplate => certificateTemplate!.AllowsForEnrollment(user))
+        return new CertificateTemplateCollection(_templateRepository.GetAll()
+            .Where(certificateTemplate => certificateTemplate.AllowsForEnrollment(user))
             .ToList());
     }
 
@@ -55,7 +70,7 @@ public class CertificateTemplatesController : ControllerBase
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
-                () => CertificateTemplate.Create(templateName),
+                () => _templateRepository.FindByName(templateName),
                 null,
                 _ => string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName),
                 out var certificateTemplate, out _, out var error))
@@ -79,10 +94,10 @@ public class CertificateTemplatesController : ControllerBase
     public ActionResult<CertificationAuthorityCollection> GetCertificateTemplateIssuers(string templateName,
         bool textualEncoding = false)
     {
-        return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
-            .CertificationAuthorities.Where(
-                certificationAuthority =>
-                    certificationAuthority.CertificateTemplates.Contains(templateName,
-                        StringComparer.InvariantCultureIgnoreCase)).ToList());
+        return new CertificationAuthorityCollection(_caDirectory.GetAll(textualEncoding)
+            .Where(certificationAuthority =>
+                certificationAuthority.CertificateTemplates.Contains(templateName,
+                    StringComparer.InvariantCultureIgnoreCase))
+            .ToList());
     }
 }
