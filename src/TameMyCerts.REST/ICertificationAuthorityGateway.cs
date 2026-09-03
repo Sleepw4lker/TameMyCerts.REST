@@ -60,4 +60,13 @@ public interface ICertificationAuthorityGateway
     /// </summary>
     void RevokeCertificate(string configString, string serialNumber, RevocationReason reason,
         WindowsIdentity identity);
+
+    /// <summary>
+    ///     Determines whether a given identity has the "Issue and Manage Certificates" permission on a
+    ///     certification authority - the permission that governs revocation. Unlike enrollment permissions,
+    ///     which are published to the pKIEnrollmentService object in Active Directory, CA security permissions
+    ///     (Manage CA / Issue and Manage Certificates / Read) live only on the certification authority itself,
+    ///     so this requires a live call to the CA, made under the impersonated identity of the caller.
+    /// </summary>
+    bool AllowsForCertificateManagement(string configString, WindowsIdentity identity);
 }

@@ -34,7 +34,11 @@ public sealed class CertificateManagementPermission
     /// <summary>
     ///     Parses the "Issue and Manage Certificates" ACEs out of a raw security descriptor.
     /// </summary>
-    /// <param name="rawSecurityDescriptor">The ASN.1/binary security descriptor to parse.</param>
+    /// <param name="rawSecurityDescriptor">
+    ///     The certification authority's own security descriptor (as obtained via
+    ///     <c>ICertAdmin2::GetCASecurity</c>) - not the pKIEnrollmentService Active Directory object's
+    ///     security descriptor, which does not carry CA security permissions.
+    /// </param>
     public CertificateManagementPermission(byte[] rawSecurityDescriptor)
     {
         var securityDescriptor = new RawSecurityDescriptor(rawSecurityDescriptor, 0);

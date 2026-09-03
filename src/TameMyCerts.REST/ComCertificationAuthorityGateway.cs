@@ -79,6 +79,17 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
                 DateTime.UtcNow.ToOADate()));
     }
 
+    /// <inheritdoc />
+    public bool AllowsForCertificateManagement(string configString, WindowsIdentity identity)
+    {
+        string rawSecurityDescriptor = UseCertAdmin(identity,
+            certAdminInterface => (string)certAdminInterface.GetCASecurity(configString));
+
+        var permission = new CertificateManagementPermission(Convert.FromBase64String(rawSecurityDescriptor));
+
+        return permission.AllowsForCertificateManagement(identity);
+    }
+
     /// <summary>
     ///     Creates a CCertRequest COM object, runs <paramref name="action" /> against it, and always releases it
     ///     afterwards, even if <paramref name="action" /> throws.
@@ -117,7 +128,20 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
     /// </summary>
     private static void UseCertAdmin(WindowsIdentity identity, Action<dynamic> action)
     {
-        WindowsIdentity.RunImpersonated(identity.AccessToken, () =>
+        UseCertAdmin<object?>(identity, certAdminInterface =>
+        {
+            action(certAdminInterface);
+            return null;
+        });
+    }
+
+    /// <summary>
+    ///     Same as <see cref="UseCertAdmin(WindowsIdentity,Action{dynamic})" />, but for calls that return a
+    ///     value.
+    /// </summary>
+    private static T UseCertAdmin<T>(WindowsIdentity identity, Func<dynamic, T> action)
+    {
+        return WindowsIdentity.RunImpersonated(identity.AccessToken, () =>
         {
             var certAdminType = Type.GetTypeFromProgID(CertAdminProgId) ?? throw new InvalidOperationException(
                 $"The '{CertAdminProgId}' COM class is not registered on this machine. " +
@@ -127,7 +151,7 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
 
             try
             {
-                action(certAdminInterface);
+                return action(certAdminInterface);
             }
             finally
             {
