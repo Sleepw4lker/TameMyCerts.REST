@@ -1,0 +1,66 @@
+name: Build Release Zip
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and upload release asset
+    runs-on: windows-latest
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Install dependencies
+      run: dotnet restore src\TameMyCerts.REST\TameMyCerts.REST.csproj
+
+    - name: Setup MSBuild Path
+      uses: microsoft/setup-msbuild@v1.3
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+
+    - name: Build and publish release
+      run: >
+        msbuild src\TameMyCerts.REST\TameMyCerts.REST.csproj
+        -property:Configuration=release
+        /restore
+        /t:Rebuild
+        /p:DeployOnBuild=true
+        /p:PublishProfile=FolderProfile
+        /p:DebugSymbols=false
+        /p:DebugType=None
+
+    - name: Copy README, CHANGELOG and LICENSE
+      shell: pwsh
+      run: |
+        Copy-Item README.md src\TameMyCerts.REST\bin\Release\wwwroot\
+        Copy-Item CHANGELOG.md src\TameMyCerts.REST\bin\Release\wwwroot\
+        Copy-Item LICENSE src\TameMyCerts.REST\bin\Release\wwwroot\
+        Copy-Item NOTICE src\TameMyCerts.REST\bin\Release\wwwroot\
+
+    - name: Create ZIP file
+      shell: pwsh
+      run: |
+        Add-Type -AssemblyName 'System.IO.Compression.FileSystem'
+        [System.IO.Compression.ZipFile]::CreateFromDirectory("src\TameMyCerts.REST\bin\Release\wwwroot", "release.zip", [System.IO.Compression.CompressionLevel]::SmallestSize, $false)
+
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: release.zip
+        asset_name: TameMyCerts.REST_${{ github.event.release.tag_name }}.zip
+        asset_content_type: application/zip

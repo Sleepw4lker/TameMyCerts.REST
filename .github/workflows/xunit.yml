@@ -1,0 +1,38 @@
+name: XUnit tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: XUnit tests
+    runs-on: windows-latest
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Install dependencies
+      run: dotnet restore src\TameMyCerts.REST\TameMyCerts.REST.slnx
+
+    - name: Setup MSBuild Path
+      uses: microsoft/setup-msbuild@v1.3
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+
+    - name: Build TameMyCerts.REST
+      run: msbuild src\TameMyCerts.REST\TameMyCerts.REST.csproj -property:Configuration=debug /restore /t:Rebuild
+
+    - name: Build TameMyCerts.REST.Tests
+      run: msbuild src\TameMyCerts.REST.Tests\TameMyCerts.REST.Tests.csproj -property:Configuration=debug /restore /t:Rebuild
+
+    - name: Run xunit tests
+      run: dotnet test src\TameMyCerts.REST.Tests\TameMyCerts.REST.Tests.csproj --no-build --configuration debug --verbosity minimal
