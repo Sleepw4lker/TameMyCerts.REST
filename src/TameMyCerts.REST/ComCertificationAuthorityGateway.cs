@@ -20,10 +20,16 @@ using TameMyCerts.REST.Models;
 namespace TameMyCerts.REST;
 
 /// <summary>
-///     Talks to a certification authority over DCOM, via the ICertRequest COM interface.
+///     Talks to a certification authority over DCOM, via the ICertRequest COM interface for
+///     submission/retrieval/CA metadata, and the ICertAdmin interface for revocation. ICertAdmin has no
+///     embedded interop types (unlike ICertRequest's CERTCLILib) - it's accessed late-bound, via its
+///     well-known ProgID, so this one addition doesn't require a new &lt;COMReference&gt; and the tlbimp
+///     build step that comes with it.
 /// </summary>
 public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGateway
 {
+    private const string CertAdminProgId = "CertificateAuthority.Admin";
+
     /// <inheritdoc />
     public SubmissionResponse RetrievePending(string configString, int requestId, WindowsIdentity identity,
         bool textualEncoding = false)
@@ -64,6 +70,15 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
             textualEncoding));
     }
 
+    /// <inheritdoc />
+    public void RevokeCertificate(string configString, string serialNumber, RevocationReason reason,
+        WindowsIdentity identity)
+    {
+        UseCertAdmin(identity, certAdminInterface =>
+            certAdminInterface.RevokeCertificate(configString, serialNumber, (int)reason,
+                DateTime.UtcNow.ToOADate()));
+    }
+
     /// <summary>
     ///     Creates a CCertRequest COM object, runs <paramref name="action" /> against it, and always releases it
     ///     afterwards, even if <paramref name="action" /> throws.
@@ -91,5 +106,33 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
     private static T UseCertRequest<T>(WindowsIdentity identity, Func<CCertRequest, T> action)
     {
         return WindowsIdentity.RunImpersonated(identity.AccessToken, () => UseCertRequest(action));
+    }
+
+    /// <summary>
+    ///     Same COM-safety as <see cref="UseCertRequest{T}(WindowsIdentity,Func{CCertRequest,T})" />: creates a
+    ///     CCertAdmin COM object under the impersonated identity, runs <paramref name="action" /> against it, and
+    ///     always releases it afterwards - while still impersonated - even if <paramref name="action" /> throws.
+    ///     Late-bound (dynamic) rather than an embedded interop type, since ICertAdmin is only needed for this one
+    ///     call; see the class summary.
+    /// </summary>
+    private static void UseCertAdmin(WindowsIdentity identity, Action<dynamic> action)
+    {
+        WindowsIdentity.RunImpersonated(identity.AccessToken, () =>
+        {
+            var certAdminType = Type.GetTypeFromProgID(CertAdminProgId) ?? throw new InvalidOperationException(
+                $"The '{CertAdminProgId}' COM class is not registered on this machine. " +
+                "The AD CS management tools (or the CA role itself) need to be installed.");
+
+            dynamic certAdminInterface = Activator.CreateInstance(certAdminType)!;
+
+            try
+            {
+                action(certAdminInterface);
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(certAdminInterface);
+            }
+        });
     }
 }

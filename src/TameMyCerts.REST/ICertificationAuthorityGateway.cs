@@ -52,4 +52,12 @@ public interface ICertificationAuthorityGateway
     ///     Retrieves authority information access information from a certification authority.
     /// </summary>
     AuthorityInformationAccessCollection GetAiaCollection(string configString, bool textualEncoding = false);
+
+    /// <summary>
+    ///     Revokes a previously issued certificate. Runs under the impersonated identity of the caller, so the
+    ///     certification authority applies that user's own CA management permissions - a separate permission
+    ///     from the "Request Certificates" (Enroll) right the other impersonated calls rely on.
+    /// </summary>
+    void RevokeCertificate(string configString, string serialNumber, RevocationReason reason,
+        WindowsIdentity identity);
 }

@@ -122,4 +122,41 @@ public class CertificatesController : ControllerBase
         return _gateway.Submit(certificationAuthority.ConfigurationString, rawCertificateRequest,
             certificateRequest.RequestAttributes, submissionFlags, user, textualEncoding);
     }
+
+    /// <summary>
+    ///     Revokes a previously issued certificate.
+    /// </summary>
+    /// <param name="caName">The common name of the target certification authority.</param>
+    /// <param name="revocationRequest">The data structure describing the certificate to revoke.</param>
+    [HttpPost]
+    [Authorize]
+    [Route("{caName}/revoke")]
+    public ActionResult RevokeCertificate(string caName, RevocationRequest revocationRequest)
+    {
+        if (!EnrollmentAuthorizationGate.TryGetIdentity(HttpContext.User.Identity, out var user, out var error))
+        {
+            return error;
+        }
+
+        // Deliberately does not go through EnrollmentAuthorizationGate.TryAuthorize/AllowsForEnrollment here:
+        // revoking requires the CA's "Issue and Manage Certificates" permission, not the "Request Certificates"
+        // (Enroll) permission that check evaluates - a different ACL entirely. That permission is enforced by
+        // the certification authority itself, server-side, via the DCOM impersonation RevokeCertificate runs
+        // under below - the same mechanism Submit already relies on for enrollment permission, just checking a
+        // different right.
+        if (_caDirectory.FindByName(caName) is not { } certificationAuthority)
+        {
+            return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
+        }
+
+        if (string.IsNullOrEmpty(revocationRequest?.SerialNumber))
+        {
+            return BadRequest(LocalizedStrings.DESC_INVALID_REQUEST);
+        }
+
+        _gateway.RevokeCertificate(certificationAuthority.ConfigurationString, revocationRequest.SerialNumber,
+            revocationRequest.Reason, user);
+
+        return NoContent();
+    }
 }
