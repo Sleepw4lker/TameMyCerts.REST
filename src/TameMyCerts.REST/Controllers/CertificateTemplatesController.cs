@@ -27,17 +27,6 @@ namespace TameMyCerts.REST.Controllers;
 [Route("v1/certificate-templates")]
 public class CertificateTemplatesController : ControllerBase
 {
-    private readonly ILogger<CertificateTemplatesController> _logger;
-
-    /// <summary>
-    ///     Builds the controller.
-    /// </summary>
-    /// <param name="logger">The logger to use.</param>
-    public CertificateTemplatesController(ILogger<CertificateTemplatesController> logger)
-    {
-        _logger = logger;
-    }
-
     /// <summary>
     ///     Retrieves a collection of all certificate templates in the underlying Active Directory environment.
     /// </summary>
