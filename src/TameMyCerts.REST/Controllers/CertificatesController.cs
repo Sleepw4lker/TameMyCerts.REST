@@ -140,13 +140,19 @@ public class CertificatesController : ControllerBase
 
         // Deliberately does not go through EnrollmentAuthorizationGate.TryAuthorize/AllowsForEnrollment here:
         // revoking requires the CA's "Issue and Manage Certificates" permission, not the "Request Certificates"
-        // (Enroll) permission that check evaluates - a different ACL entirely. That permission is enforced by
-        // the certification authority itself, server-side, via the DCOM impersonation RevokeCertificate runs
-        // under below - the same mechanism Submit already relies on for enrollment permission, just checking a
-        // different right.
+        // (Enroll) permission that check evaluates - a different ACL entirely, checked below via
+        // AllowsForCertificateManagement. The certification authority itself also enforces this, server-side,
+        // via the DCOM impersonation RevokeCertificate runs under - this client-side check exists so a caller
+        // without the right gets the same kind of prompt 401 every other endpoint gives, instead of an
+        // unhandled COM exception surfacing as a bare 500.
         if (_caDirectory.FindByName(caName) is not { } certificationAuthority)
         {
             return NotFound(string.Format(LocalizedStrings.DESC_MISSING_CA, caName));
+        }
+
+        if (!certificationAuthority.AllowsForCertificateManagement(user))
+        {
+            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_MANAGEMENT_DENIED, caName));
         }
 
         if (string.IsNullOrEmpty(revocationRequest?.SerialNumber))

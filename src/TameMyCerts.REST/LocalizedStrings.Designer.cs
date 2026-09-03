@@ -68,7 +68,16 @@ namespace TameMyCerts.REST {
                 return ResourceManager.GetString("DESC_CA_DENIED", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to issue and manage certificates on {0}..
+        /// </summary>
+        internal static string DESC_CA_MANAGEMENT_DENIED {
+            get {
+                return ResourceManager.GetString("DESC_CA_MANAGEMENT_DENIED", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to parse the given certificate request..
         /// </summary>

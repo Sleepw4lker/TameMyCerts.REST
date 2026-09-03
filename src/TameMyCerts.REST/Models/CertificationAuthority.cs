@@ -24,6 +24,7 @@ namespace TameMyCerts.REST.Models;
 public partial class CertificationAuthority : IEnrollmentSubject
 {
     private readonly EnrollmentPermission _enrollmentPermission;
+    private readonly CertificateManagementPermission _certificateManagementPermission;
 
     /// <summary>
     ///     Builds the certification authority from already-resolved values.
@@ -32,7 +33,9 @@ public partial class CertificationAuthority : IEnrollmentSubject
     /// <param name="dnsHostName">The DNS host name of the server hosting the certification authority.</param>
     /// <param name="certificate">The raw current certification authority certificate.</param>
     /// <param name="certificateTemplates">The certificate templates offered by the certification authority.</param>
-    /// <param name="rawSecurityDescriptor">The raw security descriptor to determine enrollment permissions from.</param>
+    /// <param name="rawSecurityDescriptor">
+    ///     The raw security descriptor to determine enrollment and certificate management permissions from.
+    /// </param>
     /// <param name="textualEncoding">
     ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
     /// </param>
@@ -45,6 +48,7 @@ public partial class CertificationAuthority : IEnrollmentSubject
         CertificateTemplates = certificateTemplates;
         CertificateTemplates.Sort();
         _enrollmentPermission = new EnrollmentPermission(rawSecurityDescriptor);
+        _certificateManagementPermission = new CertificateManagementPermission(rawSecurityDescriptor);
     }
 
     /// <summary>
@@ -76,6 +80,17 @@ public partial class CertificationAuthority : IEnrollmentSubject
     public bool AllowsForEnrollment(WindowsIdentity identity, bool explicitlyPermitted = false)
     {
         return _enrollmentPermission.AllowsForEnrollment(identity, explicitlyPermitted);
+    }
+
+    /// <summary>
+    ///     Determines whether a given WindowsIdentity has the "Issue and Manage Certificates" permission on
+    ///     this certification authority - the permission that governs revocation, distinct from the "Request
+    ///     Certificates" (Enroll) permission <see cref="AllowsForEnrollment" /> checks.
+    /// </summary>
+    /// <param name="identity">The Windows identity to check for permissions.</param>
+    public bool AllowsForCertificateManagement(WindowsIdentity identity)
+    {
+        return _certificateManagementPermission.AllowsForCertificateManagement(identity);
     }
 
     private static string GetCertificate(byte[] rawData, bool textualEncoding = false)

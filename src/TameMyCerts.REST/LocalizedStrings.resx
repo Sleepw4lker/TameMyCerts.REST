@@ -120,6 +120,9 @@
   <data name="DESC_CA_DENIED" xml:space="preserve">
     <value>You do not have permission to request certificates from {0}.</value>
   </data>
+  <data name="DESC_CA_MANAGEMENT_DENIED" xml:space="preserve">
+    <value>You do not have permission to issue and manage certificates on {0}.</value>
+  </data>
   <data name="DESC_INVALID_CSR" xml:space="preserve">
     <value>Unable to parse the given certificate request.</value>
   </data>
