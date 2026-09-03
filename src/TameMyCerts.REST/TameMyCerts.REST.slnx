@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="../TameMyCerts.NetCore.Common/TameMyCerts.NetCore.Common.shproj" Id="fa6ff598-16e7-4599-ba3b-01f72c3275ce" />
   <Project Path="TameMyCerts.REST.csproj" />
+  <Project Path="../TameMyCerts.REST.Tests/TameMyCerts.REST.Tests.csproj" />
 </Solution>
