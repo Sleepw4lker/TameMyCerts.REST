@@ -22,7 +22,9 @@
 
     .PARAMETER Credential
     Credentials of a domain user with enrollment permission on at least one certification
-    authority and one certificate template reachable through the API.
+    authority and one certificate template reachable through the API, and with "Issue and
+    Manage Certificates" permission on that same certification authority (needed for the
+    revoke tests).
 
     .PARAMETER CertificateTemplate
     Name (not display name) of a certificate template the above user may enroll for, that
@@ -31,7 +33,9 @@
 
     .PARAMETER DeniedCredential
     Optional. Credentials of a domain user WITHOUT enrollment permission on anything the API
-    exposes. If supplied, an extra test confirms real AD ACL enforcement. Skipped otherwise.
+    exposes, and WITHOUT "Issue and Manage Certificates" permission on the certification
+    authority under test. If supplied, extra tests confirm real AD ACL enforcement for both
+    permission kinds. Skipped otherwise.
 
     .PARAMETER SkipCertificateCheck
     Pass-through for labs serving the API over HTTPS with a self-signed or otherwise
@@ -248,12 +252,35 @@ Describe 'TameMyCerts REST API - lab integration' {
                 Invoke-Api -Method POST -Path "v1/certificates/$($script:Ca.name)" -Body @{ Request = $garbage }
             } | Should -Be 400
         }
+
+        It 'revokes the issued certificate (real DCOM round-trip to ICertAdmin::RevokeCertificate)' -Skip:($script:SubmitResponse.disposition -ne 'Issued') {
+            $certBytes = [Convert]::FromBase64String($script:SubmitResponse.certificate)
+            $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certBytes)
+            $script:RevokedSerialNumber = $cert.SerialNumber
+
+            {
+                Invoke-Api -Method POST -Path "v1/certificates/$($script:Ca.name)/revoke" `
+                    -Body @{ SerialNumber = $script:RevokedSerialNumber; Reason = 'Superseded' }
+            } | Should -Not -Throw
+        }
+
+        It 'reflects the revoked disposition on retrieval' -Skip:($script:SubmitResponse.disposition -ne 'Issued') {
+            $retrieved = Invoke-Api -Path "v1/certificates/$($script:Ca.name)/$($script:SubmitResponse.requestId)"
+            $retrieved.disposition | Should -Be 'Revoked'
+        }
     }
 
     Context 'Real Active Directory permission enforcement' -Skip:(-not $DeniedCredential) {
         It 'returns no certification authorities to a user without enrollment permission on any of them' {
             $result = Invoke-Api -Path 'v1/certification-authorities' -Credential $DeniedCredential
             $result.certificationAuthorities | Should -BeNullOrEmpty
+        }
+
+        It 'returns 401 when a user without "Issue and Manage Certificates" permission attempts to revoke a certificate' {
+            Invoke-ApiStatusCode {
+                Invoke-Api -Method POST -Path "v1/certificates/$($script:Ca.name)/revoke" `
+                    -Body @{ SerialNumber = '00' } -Credential $DeniedCredential
+            } | Should -Be 401
         }
     }
 }
