@@ -15,8 +15,9 @@
 namespace TameMyCerts.REST.Models;
 
 /// <summary>
-///     Certificate revocation reason codes, as defined by RFC 5280 section 5.3.1 (CRLReason). Note that the
-///     value 7 is intentionally not assigned to anything, matching the RFC.
+///     Certificate revocation reason codes, as defined by RFC 5280 section 5.3.1 (CRLReason). Value 7 is
+///     intentionally unassigned, matching the RFC. Values 9 (privilegeWithdrawn) and 10 (aACompromise) are
+///     omitted as AD CS does not support them.
 /// </summary>
 public enum RevocationReason
 {
@@ -58,16 +59,5 @@ public enum RevocationReason
     /// <summary>
     ///     Removes a certificate previously revoked with CertificateHold from the CRL.
     /// </summary>
-    RemoveFromCrl = 8,
-
-    /// <summary>
-    ///     An authority-granted privilege described by the certificate is suspected to have been compromised or
-    ///     is no longer valid.
-    /// </summary>
-    PrivilegeWithdrawn = 9,
-
-    /// <summary>
-    ///     The attribute authority's private key is suspected to have been compromised.
-    /// </summary>
-    AaCompromise = 10
+    RemoveFromCrl = 8
 }
