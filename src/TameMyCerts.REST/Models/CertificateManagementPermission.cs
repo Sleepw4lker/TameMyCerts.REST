@@ -35,9 +35,10 @@ public sealed class CertificateManagementPermission
     ///     Parses the "Issue and Manage Certificates" ACEs out of a raw security descriptor.
     /// </summary>
     /// <param name="rawSecurityDescriptor">
-    ///     The certification authority's own security descriptor (the "Security" entry of its "CA" registry
-    ///     node, as obtained via <c>ICertAdmin2::GetConfigEntry</c>) - not the pKIEnrollmentService Active
-    ///     Directory object's security descriptor, which does not carry CA security permissions.
+    ///     The certification authority's own security descriptor (the "Security" leaf entry of its
+    ///     configuration root, as obtained via <c>ICertAdmin2::GetConfigEntry</c>) - not the
+    ///     pKIEnrollmentService Active Directory object's security descriptor, which does not carry CA
+    ///     security permissions.
     /// </param>
     public CertificateManagementPermission(byte[] rawSecurityDescriptor)
     {

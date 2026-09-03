@@ -94,13 +94,15 @@ public sealed class ComCertificationAuthorityGateway : ICertificationAuthorityGa
     /// <inheritdoc />
     public bool AllowsForCertificateManagement(string configString, WindowsIdentity identity)
     {
-        // The "Security" entry under the CA's own "CA" registry node holds the same raw security descriptor
-        // `certutil -getreg CA\Security` prints - ICertAdmin2::GetConfigEntry is the DCOM equivalent of that
-        // registry read, requiring no more permission than certutil itself does.
+        // The "Security" leaf entry under the CA's own configuration root holds the same raw security
+        // descriptor `certutil -getreg CA\Security` prints - ICertAdmin2::GetConfigEntry is the DCOM equivalent
+        // of that registry read, requiring no more permission than certutil itself does. Per [MS-CSRA]
+        // GetConfigEntry (Opnum 44), an empty node path plus entry name "Security" is the documented case for
+        // this value - certutil's "CA\" prefix is its own display grouping, not a literal node path.
         byte[] rawSecurityDescriptor = UseCertAdmin(identity, certAdminInterface =>
         {
             dynamic certAdmin2 = (ICertAdmin2)certAdminInterface;
-            return (byte[])certAdmin2.GetConfigEntry(configString, "CA", "Security");
+            return (byte[])certAdmin2.GetConfigEntry(configString, string.Empty, "Security");
         });
 
         var permission = new CertificateManagementPermission(rawSecurityDescriptor);
