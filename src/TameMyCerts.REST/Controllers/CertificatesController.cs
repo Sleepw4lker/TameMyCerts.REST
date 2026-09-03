@@ -52,7 +52,7 @@ public class CertificatesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}/{requestId}")]
-    public async Task<ActionResult<SubmissionResponse>> GetCertificateByRequestId(string caName, int requestId,
+    public ActionResult<SubmissionResponse> GetCertificateByRequestId(string caName, int requestId,
         bool textualEncoding = false)
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
@@ -81,7 +81,7 @@ public class CertificatesController : ControllerBase
     [HttpPost]
     [Authorize]
     [Route("{caName}")]
-    public async Task<ActionResult<SubmissionResponse>> SubmitCertificateRequest(string caName,
+    public ActionResult<SubmissionResponse> SubmitCertificateRequest(string caName,
         CertificateRequest certificateRequest, string? certificateTemplate = null, bool textualEncoding = false)
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(

@@ -49,7 +49,7 @@ public class CertificationAuthoritiesController : ControllerBase
     /// </param>
     [HttpGet]
     [Authorize]
-    public async Task<ActionResult<CertificationAuthorityCollection>> GetAllCas(bool textualEncoding = false)
+    public ActionResult<CertificationAuthorityCollection> GetAllCas(bool textualEncoding = false)
     {
         if (!EnrollmentAuthorizationGate.TryGetIdentity(HttpContext.User.Identity, out var user, out var error))
         {
@@ -71,7 +71,7 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}")]
-    public async Task<ActionResult<CertificationAuthority>> GetCaByName(string caName, bool textualEncoding = false)
+    public ActionResult<CertificationAuthority> GetCaByName(string caName, bool textualEncoding = false)
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
@@ -96,7 +96,7 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}/ca-certificate")]
-    public async Task<ActionResult<SubmissionResponse>> GetCaCertificate(string caName,
+    public ActionResult<SubmissionResponse> GetCaCertificate(string caName,
         bool textualEncoding = false)
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
@@ -122,7 +122,7 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}/ca-exchange-certificate")]
-    public async Task<ActionResult<SubmissionResponse>> GetCaExchangeCertificate(string caName,
+    public ActionResult<SubmissionResponse> GetCaExchangeCertificate(string caName,
         bool textualEncoding = false)
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
@@ -148,7 +148,7 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}/crl-distribution-points")]
-    public async Task<ActionResult<CertificateRevocationListDistributionPointCollection>> GetCrlDp(string caName,
+    public ActionResult<CertificateRevocationListDistributionPointCollection> GetCrlDp(string caName,
         bool textualEncoding = false)
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
@@ -174,7 +174,7 @@ public class CertificationAuthoritiesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{caName}/authority-information-access")]
-    public async Task<ActionResult<AuthorityInformationAccessCollection>> GetAia(string caName,
+    public ActionResult<AuthorityInformationAccessCollection> GetAia(string caName,
         bool textualEncoding = false)
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(

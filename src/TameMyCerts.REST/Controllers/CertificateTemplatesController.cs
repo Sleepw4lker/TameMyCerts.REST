@@ -43,7 +43,7 @@ public class CertificateTemplatesController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize]
-    public async Task<ActionResult<CertificateTemplateCollection>> GetCertificateTemplateCollection()
+    public ActionResult<CertificateTemplateCollection> GetCertificateTemplateCollection()
     {
         if (!EnrollmentAuthorizationGate.TryGetIdentity(HttpContext.User.Identity, out var user, out var error))
         {
@@ -62,7 +62,7 @@ public class CertificateTemplatesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{templateName}")]
-    public async Task<ActionResult<CertificateTemplate>> GetCertificateTemplate(string templateName)
+    public ActionResult<CertificateTemplate> GetCertificateTemplate(string templateName)
     {
         if (!EnrollmentAuthorizationGate.TryAuthorize(
                 HttpContext.User.Identity,
@@ -87,7 +87,7 @@ public class CertificateTemplatesController : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("{templateName}/issuers")]
-    public async Task<ActionResult<CertificationAuthorityCollection>> GetCertificateTemplateIssuers(string templateName,
+    public ActionResult<CertificationAuthorityCollection> GetCertificateTemplateIssuers(string templateName,
         bool textualEncoding = false)
     {
         return new CertificationAuthorityCollection(new CertificationAuthorityCollection(textualEncoding)
