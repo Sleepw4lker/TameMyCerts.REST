@@ -96,4 +96,19 @@ public class FakeCertificationAuthorityGatewayTests
         Assert.Equal("ca.contoso.com\\Contoso CA", gateway.GetAiaCollectionCall.Value.ConfigString);
         Assert.True(gateway.GetAiaCollectionCall.Value.TextualEncoding);
     }
+
+    [Fact]
+    public void RevokeCertificate_RecordsCall()
+    {
+        var gateway = new FakeCertificationAuthorityGateway();
+
+        gateway.RevokeCertificate("ca.contoso.com\\Contoso CA", "1a2b3c4d", RevocationReason.KeyCompromise,
+            Identity);
+
+        Assert.NotNull(gateway.RevokeCertificateCall);
+        Assert.Equal("ca.contoso.com\\Contoso CA", gateway.RevokeCertificateCall.Value.ConfigString);
+        Assert.Equal("1a2b3c4d", gateway.RevokeCertificateCall.Value.SerialNumber);
+        Assert.Equal(RevocationReason.KeyCompromise, gateway.RevokeCertificateCall.Value.Reason);
+        Assert.Same(Identity, gateway.RevokeCertificateCall.Value.Identity);
+    }
 }

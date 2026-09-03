@@ -124,4 +124,61 @@ public class CertificatesControllerTests
         Assert.Same(Identity, gateway.SubmitCall.Value.Identity);
         Assert.Contains("CertificateTemplate:WebServer", gateway.SubmitCall.Value.RequestAttributes);
     }
+
+    [Fact]
+    public void RevokeCertificate_ReturnsNotFound_WhenCaDoesNotExist()
+    {
+        var controller = BuildController(new FakeCertificationAuthorityDirectory());
+
+        var result = controller.RevokeCertificate("missing-ca", new RevocationRequest { SerialNumber = "1a2b3c" });
+
+        Assert.IsType<NotFoundObjectResult>(result);
+    }
+
+    [Fact]
+    public void RevokeCertificate_ReturnsBadRequest_WhenSerialNumberIsEmpty()
+    {
+        var caDirectory = new FakeCertificationAuthorityDirectory();
+        caDirectory.Add(TestModels.CertificationAuthority("Contoso CA"));
+        var controller = BuildController(caDirectory);
+
+        var result = controller.RevokeCertificate("Contoso CA", new RevocationRequest { SerialNumber = "" });
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public void RevokeCertificate_DoesNotCheckEnrollmentPermission_AndReturnsNoContent()
+    {
+        // Revoking requires the CA's "Issue and Manage Certificates" permission, not "Request Certificates"
+        // (Enroll) - a CA the identity is denied enrollment on must still allow the revoke call through to the
+        // gateway; the CA itself is the one that would reject it, server-side, if manage rights were missing.
+        var caDirectory = new FakeCertificationAuthorityDirectory();
+        caDirectory.Add(TestModels.CertificationAuthority("Contoso CA", allowed: false));
+        var gateway = new FakeCertificationAuthorityGateway();
+        var controller = BuildController(caDirectory, gateway);
+
+        var result = controller.RevokeCertificate("Contoso CA",
+            new RevocationRequest { SerialNumber = "1a2b3c", Reason = RevocationReason.KeyCompromise });
+
+        Assert.IsType<NoContentResult>(result);
+        Assert.NotNull(gateway.RevokeCertificateCall);
+        Assert.Equal("ca.contoso.com\\Contoso CA", gateway.RevokeCertificateCall.Value.ConfigString);
+        Assert.Equal("1a2b3c", gateway.RevokeCertificateCall.Value.SerialNumber);
+        Assert.Equal(RevocationReason.KeyCompromise, gateway.RevokeCertificateCall.Value.Reason);
+        Assert.Same(Identity, gateway.RevokeCertificateCall.Value.Identity);
+    }
+
+    [Fact]
+    public void RevokeCertificate_DefaultsReasonToUnspecified_WhenNotGiven()
+    {
+        var caDirectory = new FakeCertificationAuthorityDirectory();
+        caDirectory.Add(TestModels.CertificationAuthority("Contoso CA"));
+        var gateway = new FakeCertificationAuthorityGateway();
+        var controller = BuildController(caDirectory, gateway);
+
+        controller.RevokeCertificate("Contoso CA", new RevocationRequest { SerialNumber = "1a2b3c" });
+
+        Assert.Equal(RevocationReason.Unspecified, gateway.RevokeCertificateCall!.Value.Reason);
+    }
 }

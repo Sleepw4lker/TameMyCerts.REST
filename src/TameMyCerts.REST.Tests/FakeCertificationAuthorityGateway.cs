@@ -33,6 +33,13 @@ internal sealed class FakeCertificationAuthorityGateway : ICertificationAuthorit
 
     public (string ConfigString, bool TextualEncoding)? GetAiaCollectionCall { get; private set; }
 
+    public (string ConfigString, string SerialNumber, RevocationReason Reason, WindowsIdentity Identity)?
+        RevokeCertificateCall
+    {
+        get;
+        private set;
+    }
+
     public SubmissionResponse RetrievePendingResult { get; set; } = new(0);
     public SubmissionResponse SubmitResult { get; set; } = new(0);
     public SubmissionResponse GetCaCertificateResult { get; set; } = new(0);
@@ -76,5 +83,11 @@ internal sealed class FakeCertificationAuthorityGateway : ICertificationAuthorit
     {
         GetAiaCollectionCall = (configString, textualEncoding);
         return GetAiaCollectionResult;
+    }
+
+    public void RevokeCertificate(string configString, string serialNumber, RevocationReason reason,
+        WindowsIdentity identity)
+    {
+        RevokeCertificateCall = (configString, serialNumber, reason, identity);
     }
 }
