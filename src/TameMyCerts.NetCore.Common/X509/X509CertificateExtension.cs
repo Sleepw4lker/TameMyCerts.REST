@@ -16,8 +16,14 @@ using TameMyCerts.NetCore.Common.ClassExtensions;
 
 namespace TameMyCerts.NetCore.Common.X509;
 
+/// <summary>
+///     Base class for building the raw ASN.1 DER encoding of an X.509 certificate extension.
+/// </summary>
 public abstract class X509CertificateExtension
 {
+    /// <summary>
+    ///     The ASN.1 DER encoded extension value.
+    /// </summary>
     public byte[] RawData { get; internal set; } = Array.Empty<byte>();
 
     internal byte[] Asn1BuildNode(byte identifier, byte[] content)

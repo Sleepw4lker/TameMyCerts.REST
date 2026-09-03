@@ -70,7 +70,7 @@ public class SubmissionResponse
     /// <param name="certificate">The certificate, if any.</param>
     /// <param name="certificateChain">The certificate, if any, including the certificate chain.</param>
     public SubmissionResponse(int statusCode, int requestId = 0, int dispositionCode = 0,
-        string binaryResponse = null, string certificate = null, string certificateChain = null)
+        string? binaryResponse = null, string? certificate = null, string? certificateChain = null)
     {
         Status = new Status(statusCode);
         RequestId = requestId;
@@ -98,16 +98,16 @@ public class SubmissionResponse
     /// <summary>
     ///     The issued PKIX certificate, if issued by the certification authority, as BASE64-encoded DER.
     /// </summary>
-    public string Certificate { get; }
+    public string? Certificate { get; }
 
     /// <summary>
     ///     The issued PKIX certificate, if issued by the certification authority, as a PKCS#7 certificate chain in
     ///     BASE64-encoded DER.
     /// </summary>
-    public string CertificateChain { get; }
+    public string? CertificateChain { get; }
 
     /// <summary>
     ///     The full response of the certification authority in signed CMC format.
     /// </summary>
-    public string BinaryResponse { get; }
+    public string? BinaryResponse { get; }
 }

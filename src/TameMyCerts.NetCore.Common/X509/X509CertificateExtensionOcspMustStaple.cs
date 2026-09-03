@@ -14,8 +14,14 @@
 
 namespace TameMyCerts.NetCore.Common.X509;
 
+/// <summary>
+///     Builds the TLS Feature (OCSP Must-Staple, RFC 7633) X.509 certificate extension.
+/// </summary>
 public class X509CertificateExtensionOcspMustStaple : X509CertificateExtension
 {
+    /// <summary>
+    ///     Builds the extension.
+    /// </summary>
     public X509CertificateExtensionOcspMustStaple()
     {
         RawData = new byte[] { 0x30, 0x03, 0x02, 0x01, 0x05 };

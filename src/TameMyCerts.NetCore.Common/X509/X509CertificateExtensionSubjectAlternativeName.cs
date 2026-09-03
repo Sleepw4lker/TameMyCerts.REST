@@ -20,6 +20,9 @@ using TameMyCerts.NetCore.Common.Models;
 
 namespace TameMyCerts.NetCore.Common.X509;
 
+/// <summary>
+///     Builds the Subject Alternative Name (SAN) X.509 certificate extension (RFC 5280, section 4.2.1.6).
+/// </summary>
 public class X509CertificateExtensionSubjectAlternativeName : X509CertificateExtension
 {
     /// <summary>
@@ -27,20 +30,34 @@ public class X509CertificateExtensionSubjectAlternativeName : X509CertificateExt
     /// </summary>
     private bool _modified;
 
+    /// <summary>
+    ///     Builds an empty extension.
+    /// </summary>
     public X509CertificateExtensionSubjectAlternativeName()
     {
     }
 
+    /// <summary>
+    ///     Builds the extension by decoding an existing, ASN.1 DER encoded extension value.
+    /// </summary>
+    /// <param name="rawData">The ASN.1 DER encoded extension value.</param>
     public X509CertificateExtensionSubjectAlternativeName(byte[] rawData)
     {
         InitializeDecode(Convert.ToBase64String(rawData));
     }
 
+    /// <summary>
+    ///     Builds the extension by decoding an existing, BASE64 encoded extension value.
+    /// </summary>
+    /// <param name="rawData">The BASE64 encoded extension value.</param>
     public X509CertificateExtensionSubjectAlternativeName(string rawData)
     {
         InitializeDecode(rawData);
     }
 
+    /// <summary>
+    ///     The alternative names contained in the extension, keyed by their <see cref="SanTypes" /> type.
+    /// </summary>
     public List<KeyValuePair<string, string>> AlternativeNames { get; } = new();
 
     private void InitializeDecode(string rawData)
@@ -107,6 +124,9 @@ public class X509CertificateExtensionSubjectAlternativeName : X509CertificateExt
         Marshal.ReleaseComObject(extensionAlternativeNames);
     }
 
+    /// <summary>
+    ///     Builds <see cref="X509CertificateExtension.RawData" /> from the added or removed alternative names, if any.
+    /// </summary>
     public void InitializeEncode()
     {
         // This ensures we return the unmodified original RawData if the Extension was not modified.
@@ -176,71 +196,127 @@ public class X509CertificateExtensionSubjectAlternativeName : X509CertificateExt
         Marshal.ReleaseComObject(extensionAlternativeNames);
     }
 
+    /// <summary>
+    ///     Adds a dNSName alternative name.
+    /// </summary>
+    /// <param name="value">The DNS name to add.</param>
     public void AddDnsName(string value)
     {
         AddAlternativeName(SanTypes.DnsName, value);
     }
 
+    /// <summary>
+    ///     Adds an iPAddress alternative name.
+    /// </summary>
+    /// <param name="value">The IP address to add.</param>
     public void AddIpAddress(IPAddress value)
     {
         AddAlternativeName(SanTypes.IpAddress, value.ToString());
     }
 
+    /// <summary>
+    ///     Adds a userPrincipalName (otherName) alternative name.
+    /// </summary>
+    /// <param name="value">The user principal name to add.</param>
     public void AddUserPrincipalName(string value)
     {
         AddAlternativeName(SanTypes.UserPrincipalName, value);
     }
 
+    /// <summary>
+    ///     Adds an rfc822Name alternative name.
+    /// </summary>
+    /// <param name="value">The email address to add.</param>
     public void AddEmailAddress(string value)
     {
         AddAlternativeName(SanTypes.Rfc822Name, value);
     }
 
+    /// <summary>
+    ///     Adds an rfc822Name alternative name.
+    /// </summary>
+    /// <param name="value">The email address to add.</param>
     public void AddEmailAddress(MailAddress value)
     {
         AddAlternativeName(SanTypes.Rfc822Name, value.ToString());
     }
 
+    /// <summary>
+    ///     Adds a uniformResourceIdentifier alternative name, parsed from a string.
+    /// </summary>
+    /// <param name="value">The URI to add.</param>
     public void AddUniformResourceIdentifier(string value)
     {
         AddAlternativeName(SanTypes.UniformResourceIdentifier, value);
     }
 
+    /// <summary>
+    ///     Adds a uniformResourceIdentifier alternative name.
+    /// </summary>
+    /// <param name="value">The URI to add.</param>
     public void AddUniformResourceIdentifier(Uri value)
     {
         AddAlternativeName(SanTypes.UniformResourceIdentifier, value.ToString());
     }
 
+    /// <summary>
+    ///     Removes a dNSName alternative name.
+    /// </summary>
+    /// <param name="value">The DNS name to remove.</param>
     public void RemoveDnsName(string value)
     {
         RemoveAlternativeName(SanTypes.DnsName, value);
     }
 
+    /// <summary>
+    ///     Removes an iPAddress alternative name.
+    /// </summary>
+    /// <param name="value">The IP address to remove.</param>
     public void RemoveIpAddress(IPAddress value)
     {
         RemoveAlternativeName(SanTypes.IpAddress, value.ToString());
     }
 
+    /// <summary>
+    ///     Removes a userPrincipalName (otherName) alternative name.
+    /// </summary>
+    /// <param name="value">The user principal name to remove.</param>
     public void RemoveUserPrincipalName(string value)
     {
         RemoveAlternativeName(SanTypes.UserPrincipalName, value);
     }
 
+    /// <summary>
+    ///     Removes an rfc822Name alternative name.
+    /// </summary>
+    /// <param name="value">The email address to remove.</param>
     public void RemoveEmailAddress(string value)
     {
         RemoveAlternativeName(SanTypes.Rfc822Name, value);
     }
 
+    /// <summary>
+    ///     Removes an rfc822Name alternative name.
+    /// </summary>
+    /// <param name="value">The email address to remove.</param>
     public void RemoveEmailAddress(MailAddress value)
     {
         RemoveAlternativeName(SanTypes.Rfc822Name, value.ToString());
     }
 
+    /// <summary>
+    ///     Removes a uniformResourceIdentifier alternative name, parsed from a string.
+    /// </summary>
+    /// <param name="value">The URI to remove.</param>
     public void RemoveUniformResourceIdentifier(string value)
     {
         RemoveAlternativeName(SanTypes.UniformResourceIdentifier, value);
     }
 
+    /// <summary>
+    ///     Removes a uniformResourceIdentifier alternative name.
+    /// </summary>
+    /// <param name="value">The URI to remove.</param>
     public void RemoveUniformResourceIdentifier(Uri value)
     {
         RemoveAlternativeName(SanTypes.UniformResourceIdentifier, value.ToString());
@@ -249,8 +325,9 @@ public class X509CertificateExtensionSubjectAlternativeName : X509CertificateExt
     /// <summary>
     ///     Essentially the same as TryAddAlternativeName but without caring for the result.
     /// </summary>
-    /// <param name="type"></param>
-    /// <param name="value"></param>
+    /// <param name="type">The <see cref="SanTypes" /> type of the alternative name.</param>
+    /// <param name="value">The value of the alternative name.</param>
+    /// <param name="throwOnError">Throws an <see cref="ArgumentException" /> if the alternative name was rejected.</param>
     public void AddAlternativeName(string type, string value, bool throwOnError = false)
     {
         if (!TryAddAlternativeName(type, value) && throwOnError)
@@ -260,6 +337,12 @@ public class X509CertificateExtensionSubjectAlternativeName : X509CertificateExt
         }
     }
 
+    /// <summary>
+    ///     Validates and adds an alternative name, unless it is already present.
+    /// </summary>
+    /// <param name="type">The <see cref="SanTypes" /> type of the alternative name.</param>
+    /// <param name="value">The value of the alternative name.</param>
+    /// <returns><see langword="false" /> if the value does not validate for the given type.</returns>
     public bool TryAddAlternativeName(string type, string value)
     {
         if (ContainsAlternativeName(type, value))
@@ -319,11 +402,21 @@ public class X509CertificateExtensionSubjectAlternativeName : X509CertificateExt
         return true;
     }
 
+    /// <summary>
+    ///     Determines whether the given alternative name is already present.
+    /// </summary>
+    /// <param name="type">The <see cref="SanTypes" /> type of the alternative name.</param>
+    /// <param name="value">The value of the alternative name.</param>
     public bool ContainsAlternativeName(string type, string value)
     {
         return AlternativeNames.Contains(new KeyValuePair<string, string>(type, value));
     }
 
+    /// <summary>
+    ///     Removes an alternative name, if present.
+    /// </summary>
+    /// <param name="type">The <see cref="SanTypes" /> type of the alternative name.</param>
+    /// <param name="value">The value of the alternative name.</param>
     public void RemoveAlternativeName(string type, string value)
     {
         if (!ContainsAlternativeName(type, value))

@@ -17,8 +17,16 @@ using System.Text;
 
 namespace TameMyCerts.NetCore.Common.X509;
 
+/// <summary>
+///     Builds the Active Directory security identifier (szOID_NTDS_CA_SECURITY_EXT, 1.3.6.1.4.1.311.25.2)
+///     X.509 certificate extension.
+/// </summary>
 public class X509CertificateExtensionSecurityIdentifier : X509CertificateExtension
 {
+    /// <summary>
+    ///     Builds the extension from the given security identifier.
+    /// </summary>
+    /// <param name="sid">The Active Directory security identifier of the certificate's subject.</param>
     public X509CertificateExtensionSecurityIdentifier(SecurityIdentifier sid)
     {
         var result = Encoding.ASCII.GetBytes(sid.ToString());

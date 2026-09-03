@@ -45,7 +45,7 @@ internal static class CX509CertificateRequestPkcs10Extensions
 
                 var certificateRequestCmc =
                     (IX509CertificateRequestCmc)Activator.CreateInstance(
-                        Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestCmc"));
+                        Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestCmc")!)!;
 
                 try
                 {
@@ -70,7 +70,7 @@ internal static class CX509CertificateRequestPkcs10Extensions
 
                 var certificateRequestPkcs7 =
                     (IX509CertificateRequestPkcs7)Activator.CreateInstance(
-                        Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestPkcs7"));
+                        Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestPkcs7")!)!;
 
                 try
                 {
@@ -117,7 +117,7 @@ internal static class CX509CertificateRequestPkcs10Extensions
         }
     }
 
-    public static Oid GetCertificateTemplateOid(this IX509CertificateRequestPkcs10 certificateRequestPkcs10)
+    public static Oid? GetCertificateTemplateOid(this IX509CertificateRequestPkcs10 certificateRequestPkcs10)
     {
         var extensionList = certificateRequestPkcs10.GetRequestExtensions();
 

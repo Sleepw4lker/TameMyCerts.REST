@@ -35,7 +35,7 @@ public static class CertificateRequestIntegrityChecks
     private static bool VerifyCertificateRequest(string certificateRequest, int requestType,
         out string rawCertificateRequest)
     {
-        rawCertificateRequest = null;
+        rawCertificateRequest = string.Empty;
 
         switch (requestType)
         {

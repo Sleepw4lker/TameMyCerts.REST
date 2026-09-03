@@ -46,12 +46,14 @@ public class CertificateTemplateCollection
 
         if (templateBaseKey == null)
         {
+            CertificateTemplates = [];
             return;
         }
 
         CertificateTemplates = templateBaseKey.GetSubKeyNames()
             .Where(templateName => !_defaultVersion2CertificateTemplates.Contains(templateName))
             .Select(CertificateTemplate.Create)
+            .OfType<CertificateTemplate>()
             .Where(certificateTemplate => certificateTemplate.SchemaVersion > 1).ToList();
     }
 

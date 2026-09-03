@@ -29,6 +29,10 @@ public class CertificateTemplatesController : ControllerBase
 {
     private readonly ILogger<CertificateTemplatesController> _logger;
 
+    /// <summary>
+    ///     Builds the controller.
+    /// </summary>
+    /// <param name="logger">The logger to use.</param>
     public CertificateTemplatesController(ILogger<CertificateTemplatesController> logger)
     {
         _logger = logger;

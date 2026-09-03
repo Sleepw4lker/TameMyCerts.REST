@@ -14,6 +14,9 @@
 
 namespace TameMyCerts.NetCore.Common.Models;
 
+/// <summary>
+///     A key usage value, as defined by RFC 5280.
+/// </summary>
 public class KeyUsage
 {
     /// <summary>

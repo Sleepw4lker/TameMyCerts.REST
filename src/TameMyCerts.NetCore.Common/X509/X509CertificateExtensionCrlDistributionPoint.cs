@@ -16,10 +16,17 @@ using System.Text;
 
 namespace TameMyCerts.NetCore.Common.X509;
 
+/// <summary>
+///     Builds the CRL Distribution Points (CDP) X.509 certificate extension (RFC 5280, section 4.2.1.13).
+/// </summary>
 public class X509CertificateExtensionCrlDistributionPoint : X509CertificateExtension
 {
     private readonly List<Uri> _uris = new();
 
+    /// <summary>
+    ///     Adds a distribution point URI, parsed from a string.
+    /// </summary>
+    /// <param name="uri">The URI to add.</param>
     public void AddUniformResourceIdentifier(string uri)
     {
         if (Uri.TryCreate(uri, UriKind.Absolute, out var uriObject))
@@ -28,11 +35,19 @@ public class X509CertificateExtensionCrlDistributionPoint : X509CertificateExten
         }
     }
 
+    /// <summary>
+    ///     Adds a distribution point URI.
+    /// </summary>
+    /// <param name="uri">The URI to add.</param>
     public void AddUniformResourceIdentifier(Uri uri)
     {
         _uris.Add(uri);
     }
 
+    /// <summary>
+    ///     Builds <see cref="X509CertificateExtension.RawData" /> from the added URIs.
+    /// </summary>
+    /// <param name="encodeUris">Percent-encodes spaces in the URIs before encoding.</param>
     public void InitializeEncode(bool encodeUris = false)
     {
         var result = Array.Empty<byte>();

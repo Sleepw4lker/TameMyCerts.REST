@@ -52,7 +52,7 @@ public partial class CertificationAuthority : IEnrollmentSubject
         var rawSecurityDescriptor =
             new RawSecurityDescriptor((byte[])searchResult.Properties["ntSecurityDescriptor"][0], 0);
 
-        foreach (var genericAce in rawSecurityDescriptor.DiscretionaryAcl)
+        foreach (var genericAce in rawSecurityDescriptor.DiscretionaryAcl!)
         {
             if (genericAce is not ObjectAce objectAce)
             {
@@ -107,7 +107,7 @@ public partial class CertificationAuthority : IEnrollmentSubject
     /// <param name="textualEncoding">
     ///     Causes returned PKIX data to be encoded according to RFC 7468 instead of a plain BASE64 stream.
     /// </param>
-    public static CertificationAuthority Create(string caName,
+    public static CertificationAuthority? Create(string caName,
         bool textualEncoding = false)
     {
         var searchResults = ActiveDirectory.GetEnrollmentServiceCollection(caName);
@@ -136,8 +136,8 @@ public partial class CertificationAuthority : IEnrollmentSubject
             }
         }
 
-        isAllowed = AllowedPrincipals.Contains(identity.User) || isAllowed;
-        isDenied = DisallowedPrincipals.Contains(identity.User) || isDenied;
+        isAllowed = AllowedPrincipals.Contains(identity.User!) || isAllowed;
+        isDenied = DisallowedPrincipals.Contains(identity.User!) || isDenied;
 
         return isAllowed && !isDenied;
     }

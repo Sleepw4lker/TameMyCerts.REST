@@ -16,10 +16,18 @@ using System.Text;
 
 namespace TameMyCerts.NetCore.Common.X509;
 
+/// <summary>
+///     Builds the Authority Information Access (AIA) X.509 certificate extension (RFC 5280, section 4.2.2.1).
+/// </summary>
 public class X509CertificateExtensionAuthorityInformationAccess : X509CertificateExtension
 {
     private readonly List<KeyValuePair<Uri, bool>> _uris = new();
 
+    /// <summary>
+    ///     Adds a distribution point URI, parsed from a string.
+    /// </summary>
+    /// <param name="uri">The URI to add.</param>
+    /// <param name="isOcsp">Whether the URI points to an OCSP responder instead of an issuing CA certificate.</param>
     public void AddUniformResourceIdentifier(string uri, bool isOcsp = false)
     {
         if (Uri.TryCreate(uri, UriKind.Absolute, out var uriObject))
@@ -28,11 +36,20 @@ public class X509CertificateExtensionAuthorityInformationAccess : X509Certificat
         }
     }
 
+    /// <summary>
+    ///     Adds a distribution point URI.
+    /// </summary>
+    /// <param name="uri">The URI to add.</param>
+    /// <param name="isOcsp">Whether the URI points to an OCSP responder instead of an issuing CA certificate.</param>
     public void AddUniformResourceIdentifier(Uri uri, bool isOcsp = false)
     {
         _uris.Add(new KeyValuePair<Uri, bool>(uri, isOcsp));
     }
 
+    /// <summary>
+    ///     Builds <see cref="X509CertificateExtension.RawData" /> from the added URIs.
+    /// </summary>
+    /// <param name="encodeUris">Percent-encodes spaces in http(s)/ldap URIs before encoding.</param>
     public void InitializeEncode(bool encodeUris = false)
     {
         var result = Array.Empty<byte>();

@@ -26,9 +26,10 @@ public static class ActiveDirectory
     /// </summary>
     /// <param name="cn">Common name of a specific ca.</param>
     /// <returns></returns>
-    public static SearchResultCollection GetEnrollmentServiceCollection(string cn = null)
+    public static SearchResultCollection GetEnrollmentServiceCollection(string? cn = null)
     {
-        var forestRootDomain = new DirectoryEntry("LDAP://RootDSE").Properties["rootDomainNamingContext"][0].ToString();
+        var forestRootDomain = new DirectoryEntry("LDAP://RootDSE").Properties["rootDomainNamingContext"][0]!
+            .ToString();
 
         var additionalCriteria = string.Empty;
 

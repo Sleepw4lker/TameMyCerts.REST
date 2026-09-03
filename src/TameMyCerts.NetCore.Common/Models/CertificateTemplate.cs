@@ -30,40 +30,40 @@ public class CertificateTemplate : IEnrollmentSubject
         const string enrollPermission = "0E10C968-78FB-11D2-90D4-00C04F79DC55";
 
         Name = templateName;
-        DisplayName = (string)regKey.GetValue("DisplayName");
-        MinimumKeyLength = (int)regKey.GetValue("msPKI-Minimal-Key-Size");
-        MajorVersion = (int)regKey.GetValue("Revision");
-        MinorVersion = (int)regKey.GetValue("msPKI-Template-Minor-Revision");
-        SchemaVersion = (int)regKey.GetValue("msPKI-Template-Schema-Version");
-        ObjectIdentifier = ((string[])regKey.GetValue("msPKI-Cert-Template-OID"))[0];
-        KeyStorageProviders = ((string[])regKey.GetValue("SupportedCSPs")).ToList();
-        ValidityPeriod = PkiPeriodToTimeSpan((byte[])regKey.GetValue("ValidityPeriod"));
-        RenewalOverlap = PkiPeriodToTimeSpan((byte[])regKey.GetValue("RenewalOverlap"));
+        DisplayName = (string)regKey.GetValue("DisplayName")!;
+        MinimumKeyLength = (int)regKey.GetValue("msPKI-Minimal-Key-Size")!;
+        MajorVersion = (int)regKey.GetValue("Revision")!;
+        MinorVersion = (int)regKey.GetValue("msPKI-Template-Minor-Revision")!;
+        SchemaVersion = (int)regKey.GetValue("msPKI-Template-Schema-Version")!;
+        ObjectIdentifier = ((string[])regKey.GetValue("msPKI-Cert-Template-OID")!)[0];
+        KeyStorageProviders = ((string[])regKey.GetValue("SupportedCSPs")!).ToList();
+        ValidityPeriod = PkiPeriodToTimeSpan((byte[])regKey.GetValue("ValidityPeriod")!);
+        RenewalOverlap = PkiPeriodToTimeSpan((byte[])regKey.GetValue("RenewalOverlap")!);
 
         EnrolleeSuppliesSubject =
             (CertCa.CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT &
              Convert.ToInt32(regKey.GetValue("msPKI-Certificate-Name-Flag"))) ==
             CertCa.CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT;
 
-        var criticalExtensions = (string[])regKey.GetValue("CriticalExtensions");
+        var criticalExtensions = (string[])regKey.GetValue("CriticalExtensions")!;
 
-        KeyUsageExtension = new KeyUsageExtension((byte[])regKey.GetValue("KeyUsage"),
+        KeyUsageExtension = new KeyUsageExtension((byte[])regKey.GetValue("KeyUsage")!,
             criticalExtensions.Contains(WinCrypt.szOID_KEY_USAGE));
 
         ExtendedKeyUsageExtension =
-            new ExtendedKeyUsageExtension((string[])regKey.GetValue("ExtKeyUsageSyntax"),
+            new ExtendedKeyUsageExtension((string[])regKey.GetValue("ExtKeyUsageSyntax")!,
                 criticalExtensions.Contains(WinCrypt.szOID_ENHANCED_KEY_USAGE) ||
                 criticalExtensions.Contains(WinCrypt.szOID_APPLICATION_CERT_POLICIES));
 
-        var applicationPoliciesValueData = (string[])regKey.GetValue("msPKI-RA-Application-Policies");
+        var applicationPoliciesValueData = (string[])regKey.GetValue("msPKI-RA-Application-Policies")!;
 
         KeyAlgorithm = applicationPoliciesValueData.Length > 0
             ? GetKeyAlgorithm(applicationPoliciesValueData[0])
             : KeyAlgorithmType.RSA;
 
-        var rawSecurityDescriptor = new RawSecurityDescriptor((byte[])regKey.GetValue("Security"), 0);
+        var rawSecurityDescriptor = new RawSecurityDescriptor((byte[])regKey.GetValue("Security")!, 0);
 
-        foreach (var genericAce in rawSecurityDescriptor.DiscretionaryAcl)
+        foreach (var genericAce in rawSecurityDescriptor.DiscretionaryAcl!)
         {
             if (genericAce is not ObjectAce objectAce)
             {
@@ -164,7 +164,7 @@ public class CertificateTemplate : IEnrollmentSubject
     ///     Builds a new CertificateTemplate object.
     /// </summary>
     /// <param name="templateName">The name of the certificate template from which the object is built.</param>
-    public static CertificateTemplate Create(string templateName)
+    public static CertificateTemplate? Create(string templateName)
     {
         var machineBaseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
         var templateBaseKey =
@@ -182,7 +182,7 @@ public class CertificateTemplate : IEnrollmentSubject
     ///     Builds a new CertificateTemplate object.
     /// </summary>
     /// <param name="templateOid">The object identifier ame of the certificate template from which the object is built.</param>
-    public static CertificateTemplate Create(Oid templateOid)
+    public static CertificateTemplate? Create(Oid templateOid)
     {
         var machineBaseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
         var templateBaseKey =
@@ -200,7 +200,7 @@ public class CertificateTemplate : IEnrollmentSubject
                 continue;
             }
 
-            if (((string[])templateSubKey.GetValue("msPKI-Cert-Template-OID"))[0].Equals(templateOid.Value))
+            if (((string[])templateSubKey.GetValue("msPKI-Cert-Template-OID")!)[0].Equals(templateOid.Value))
             {
                 return new CertificateTemplate(templateName, templateSubKey);
             }
@@ -230,8 +230,8 @@ public class CertificateTemplate : IEnrollmentSubject
             }
         }
 
-        isAllowed = AllowedPrincipals.Contains(identity.User) || isAllowed;
-        isDenied = DisallowedPrincipals.Contains(identity.User) || isDenied;
+        isAllowed = AllowedPrincipals.Contains(identity.User!) || isAllowed;
+        isDenied = DisallowedPrincipals.Contains(identity.User!) || isDenied;
 
         return isAllowed && !isDenied;
     }

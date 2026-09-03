@@ -29,6 +29,11 @@ public class CertificationAuthoritiesController : ControllerBase
     private readonly ICertificationAuthorityGateway _gateway;
     private readonly ILogger<CertificationAuthoritiesController> _logger;
 
+    /// <summary>
+    ///     Builds the controller.
+    /// </summary>
+    /// <param name="logger">The logger to use.</param>
+    /// <param name="gateway">The certification authority gateway to use.</param>
     public CertificationAuthoritiesController(ILogger<CertificationAuthoritiesController> logger,
         ICertificationAuthorityGateway gateway)
     {
