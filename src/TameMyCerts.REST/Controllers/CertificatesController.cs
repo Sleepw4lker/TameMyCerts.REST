@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using CERTCLILib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TameMyCerts.NetCore.Common.Enums;
@@ -30,11 +27,13 @@ namespace TameMyCerts.REST.Controllers;
 [Route("v1/certificates")]
 public class CertificatesController : ControllerBase
 {
+    private readonly ICertificationAuthorityGateway _gateway;
     private readonly ILogger<CertificatesController> _logger;
 
-    public CertificatesController(ILogger<CertificatesController> logger)
+    public CertificatesController(ILogger<CertificatesController> logger, ICertificationAuthorityGateway gateway)
     {
         _logger = logger;
+        _gateway = gateway;
     }
 
     /// <summary>
@@ -61,22 +60,8 @@ public class CertificatesController : ControllerBase
             return error;
         }
 
-        var result = WindowsIdentity.RunImpersonated(user.AccessToken, () =>
-        {
-            var certRequestInterface = new CCertRequest();
-
-            try
-            {
-                return certRequestInterface.RetrievePending(certificationAuthority.ConfigurationString, requestId,
-                    textualEncoding);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
-        });
-
-        return result;
+        return _gateway.RetrievePending(certificationAuthority.ConfigurationString, requestId, user,
+            textualEncoding);
     }
 
     /// <summary>
@@ -129,22 +114,7 @@ public class CertificatesController : ControllerBase
             certificateRequest.RequestAttributes.Add($"CertificateTemplate:{certificateTemplate}");
         }
 
-        var result = WindowsIdentity.RunImpersonated(user.AccessToken, () =>
-        {
-            var certRequestInterface = new CCertRequest();
-
-            try
-            {
-                return certRequestInterface.Submit(certificationAuthority.ConfigurationString,
-                    rawCertificateRequest, certificateRequest.RequestAttributes, submissionFlags,
-                    textualEncoding);
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(certRequestInterface);
-            }
-        });
-
-        return result;
+        return _gateway.Submit(certificationAuthority.ConfigurationString, rawCertificateRequest,
+            certificateRequest.RequestAttributes, submissionFlags, user, textualEncoding);
     }
 }

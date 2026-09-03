@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Runtime.InteropServices;
-using CERTCLILib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TameMyCerts.REST.Models;
@@ -28,11 +26,14 @@ namespace TameMyCerts.REST.Controllers;
 [Route("v1/certification-authorities")]
 public class CertificationAuthoritiesController : ControllerBase
 {
+    private readonly ICertificationAuthorityGateway _gateway;
     private readonly ILogger<CertificationAuthoritiesController> _logger;
 
-    public CertificationAuthoritiesController(ILogger<CertificationAuthoritiesController> logger)
+    public CertificationAuthoritiesController(ILogger<CertificationAuthoritiesController> logger,
+        ICertificationAuthorityGateway gateway)
     {
         _logger = logger;
+        _gateway = gateway;
     }
 
     /// <summary>
@@ -103,16 +104,7 @@ public class CertificationAuthoritiesController : ControllerBase
             return error;
         }
 
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString, textualEncoding);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return _gateway.GetCaCertificate(certificationAuthority.ConfigurationString, textualEncoding);
     }
 
     /// <summary>
@@ -138,17 +130,7 @@ public class CertificationAuthoritiesController : ControllerBase
             return error;
         }
 
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetCaCertificate(certificationAuthority.ConfigurationString,
-                textualEncoding, true);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return _gateway.GetCaCertificate(certificationAuthority.ConfigurationString, textualEncoding, true);
     }
 
     /// <summary>
@@ -174,17 +156,7 @@ public class CertificationAuthoritiesController : ControllerBase
             return error;
         }
 
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetCrlDpCollection(certificationAuthority.ConfigurationString,
-                textualEncoding);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return _gateway.GetCrlDpCollection(certificationAuthority.ConfigurationString, textualEncoding);
     }
 
     /// <summary>
@@ -210,16 +182,6 @@ public class CertificationAuthoritiesController : ControllerBase
             return error;
         }
 
-        var certRequestInterface = new CCertRequest();
-
-        try
-        {
-            return certRequestInterface.GetAiaCollection(certificationAuthority.ConfigurationString,
-                textualEncoding);
-        }
-        finally
-        {
-            Marshal.ReleaseComObject(certRequestInterface);
-        }
+        return _gateway.GetAiaCollection(certificationAuthority.ConfigurationString, textualEncoding);
     }
 }
