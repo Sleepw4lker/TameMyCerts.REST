@@ -236,7 +236,12 @@ Describe 'TameMyCerts REST API - lab integration' {
             $script:SubmitResponse.requestId | Should -BeGreaterThan 0
         }
 
-        It 'returns a real, parseable certificate when disposition is Issued' -Skip:($script:SubmitResponse.disposition -ne 'Issued') {
+        It 'returns a real, parseable certificate when disposition is Issued' {
+            if ($script:SubmitResponse.disposition -ne 'Issued') {
+                Set-ItResult -Skipped -Because 'the request was not issued immediately (disposition was Pending)'
+                return
+            }
+
             { Test-ParseableCertificate -Base64Der $script:SubmitResponse.certificate } | Should -Not -Throw
         }
 
@@ -253,7 +258,12 @@ Describe 'TameMyCerts REST API - lab integration' {
             } | Should -Be 400
         }
 
-        It 'revokes the issued certificate (real DCOM round-trip to ICertAdmin::RevokeCertificate)' -Skip:($script:SubmitResponse.disposition -ne 'Issued') {
+        It 'revokes the issued certificate (real DCOM round-trip to ICertAdmin::RevokeCertificate)' {
+            if ($script:SubmitResponse.disposition -ne 'Issued') {
+                Set-ItResult -Skipped -Because 'the request was not issued immediately (disposition was Pending)'
+                return
+            }
+
             $certBytes = [Convert]::FromBase64String($script:SubmitResponse.certificate)
             $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($certBytes)
             $script:RevokedSerialNumber = $cert.SerialNumber
@@ -264,7 +274,12 @@ Describe 'TameMyCerts REST API - lab integration' {
             } | Should -Not -Throw
         }
 
-        It 'reflects the revoked disposition on retrieval' -Skip:($script:SubmitResponse.disposition -ne 'Issued') {
+        It 'reflects the revoked disposition on retrieval' {
+            if ($script:SubmitResponse.disposition -ne 'Issued') {
+                Set-ItResult -Skipped -Because 'the request was not issued immediately (disposition was Pending)'
+                return
+            }
+
             $retrieved = Invoke-Api -Path "v1/certificates/$($script:Ca.name)/$($script:SubmitResponse.requestId)"
             $retrieved.disposition | Should -Be 'Revoked'
         }
