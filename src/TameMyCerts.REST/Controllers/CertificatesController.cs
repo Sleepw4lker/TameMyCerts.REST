@@ -63,7 +63,7 @@ public class CertificatesController : ControllerBase
 
         if (!certificationAuthority.AllowsForEnrollment(user))
         {
-            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
         }
 
         var result = WindowsIdentity.RunImpersonated(user.AccessToken, () =>
@@ -111,7 +111,7 @@ public class CertificatesController : ControllerBase
 
         if (!certificationAuthority.AllowsForEnrollment(user))
         {
-            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
         }
 
         if (certificateRequest?.Request == null)

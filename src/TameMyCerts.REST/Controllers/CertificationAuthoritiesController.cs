@@ -80,7 +80,7 @@ public class CertificationAuthoritiesController : ControllerBase
 
         if (!certificationAuthority.AllowsForEnrollment(user))
         {
-            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
         }
 
         return certificationAuthority;
@@ -111,7 +111,7 @@ public class CertificationAuthoritiesController : ControllerBase
 
         if (!certificationAuthority.AllowsForEnrollment(user))
         {
-            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
         }
 
         var certRequestInterface = new CCertRequest();
@@ -151,7 +151,7 @@ public class CertificationAuthoritiesController : ControllerBase
 
         if (!certificationAuthority.AllowsForEnrollment(user))
         {
-            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
         }
 
         var certRequestInterface = new CCertRequest();
@@ -192,7 +192,7 @@ public class CertificationAuthoritiesController : ControllerBase
 
         if (!certificationAuthority.AllowsForEnrollment(user))
         {
-            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
         }
 
         var certRequestInterface = new CCertRequest();
@@ -233,7 +233,7 @@ public class CertificationAuthoritiesController : ControllerBase
 
         if (!certificationAuthority.AllowsForEnrollment(user))
         {
-            return Forbid(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
+            return Unauthorized(string.Format(LocalizedStrings.DESC_CA_DENIED, caName));
         }
 
         var certRequestInterface = new CCertRequest();

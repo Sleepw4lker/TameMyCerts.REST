@@ -63,7 +63,7 @@ public class CertificateTemplatesController : ControllerBase
     {
         if ((WindowsIdentity)HttpContext.User.Identity! is not { } user)
         {
-            return Forbid();
+            return Unauthorized();
         }
 
         if (CertificateTemplate.Create(templateName) is not { } certificateTemplate)
@@ -73,7 +73,7 @@ public class CertificateTemplatesController : ControllerBase
 
         if (!certificateTemplate.AllowsForEnrollment(user))
         {
-            return Forbid(string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName));
+            return Unauthorized(string.Format(LocalizedStrings.DESC_TEMPLATED_DENIED, templateName));
         }
 
         return certificateTemplate;
