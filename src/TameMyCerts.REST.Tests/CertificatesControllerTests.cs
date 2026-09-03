@@ -139,13 +139,15 @@ public class CertificatesControllerTests
     public void RevokeCertificate_ReturnsUnauthorized_WhenCertificateManagementIsDenied()
     {
         var caDirectory = new FakeCertificationAuthorityDirectory();
-        caDirectory.Add(TestModels.CertificationAuthority("Contoso CA", allowedForManagement: false));
-        var gateway = new FakeCertificationAuthorityGateway();
+        caDirectory.Add(TestModels.CertificationAuthority("Contoso CA"));
+        var gateway = new FakeCertificationAuthorityGateway { AllowsForCertificateManagementResult = false };
         var controller = BuildController(caDirectory, gateway);
 
         var result = controller.RevokeCertificate("Contoso CA", new RevocationRequest { SerialNumber = "1a2b3c" });
 
         Assert.IsType<UnauthorizedObjectResult>(result);
+        Assert.Equal("ca.contoso.com\\Contoso CA",
+            gateway.AllowsForCertificateManagementCall!.Value.ConfigString);
         Assert.Null(gateway.RevokeCertificateCall);
     }
 

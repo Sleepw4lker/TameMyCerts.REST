@@ -13,14 +13,14 @@ internal static class TestModels
     public static SecurityIdentifier CurrentUserSid => WindowsIdentity.GetCurrent().User!;
 
     public static CertificationAuthority CertificationAuthority(string name = "Contoso CA", bool allowed = true,
-        bool allowedForManagement = true, List<string>? certificateTemplates = null)
+        List<string>? certificateTemplates = null)
     {
         return new CertificationAuthority(
             name,
             "ca.contoso.com",
             [0x30, 0x03, 0x02, 0x01, 0x00],
             certificateTemplates ?? [],
-            TestSecurityDescriptors.Combined(CurrentUserSid, allowed, allowedForManagement));
+            allowed ? TestSecurityDescriptors.Allowing(CurrentUserSid) : TestSecurityDescriptors.Denying(CurrentUserSid));
     }
 
     public static CertificateTemplate CertificateTemplate(string name = "WebServer", bool allowed = true,

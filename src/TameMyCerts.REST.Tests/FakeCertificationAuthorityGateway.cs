@@ -40,6 +40,12 @@ internal sealed class FakeCertificationAuthorityGateway : ICertificationAuthorit
         private set;
     }
 
+    public (string ConfigString, WindowsIdentity Identity)? AllowsForCertificateManagementCall
+    {
+        get;
+        private set;
+    }
+
     public SubmissionResponse RetrievePendingResult { get; set; } = new(0);
     public SubmissionResponse SubmitResult { get; set; } = new(0);
     public SubmissionResponse GetCaCertificateResult { get; set; } = new(0);
@@ -48,6 +54,8 @@ internal sealed class FakeCertificationAuthorityGateway : ICertificationAuthorit
         new([]);
 
     public AuthorityInformationAccessCollection GetAiaCollectionResult { get; set; } = new([]);
+
+    public bool AllowsForCertificateManagementResult { get; set; } = true;
 
     public SubmissionResponse RetrievePending(string configString, int requestId, WindowsIdentity identity,
         bool textualEncoding = false)
@@ -89,5 +97,11 @@ internal sealed class FakeCertificationAuthorityGateway : ICertificationAuthorit
         WindowsIdentity identity)
     {
         RevokeCertificateCall = (configString, serialNumber, reason, identity);
+    }
+
+    public bool AllowsForCertificateManagement(string configString, WindowsIdentity identity)
+    {
+        AllowsForCertificateManagementCall = (configString, identity);
+        return AllowsForCertificateManagementResult;
     }
 }

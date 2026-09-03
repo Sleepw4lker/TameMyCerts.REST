@@ -111,4 +111,17 @@ public class FakeCertificationAuthorityGatewayTests
         Assert.Equal(RevocationReason.KeyCompromise, gateway.RevokeCertificateCall.Value.Reason);
         Assert.Same(Identity, gateway.RevokeCertificateCall.Value.Identity);
     }
+
+    [Fact]
+    public void AllowsForCertificateManagement_RecordsCallAndReturnsConfiguredResult()
+    {
+        var gateway = new FakeCertificationAuthorityGateway { AllowsForCertificateManagementResult = false };
+
+        var result = gateway.AllowsForCertificateManagement("ca.contoso.com\\Contoso CA", Identity);
+
+        Assert.False(result);
+        Assert.NotNull(gateway.AllowsForCertificateManagementCall);
+        Assert.Equal("ca.contoso.com\\Contoso CA", gateway.AllowsForCertificateManagementCall.Value.ConfigString);
+        Assert.Same(Identity, gateway.AllowsForCertificateManagementCall.Value.Identity);
+    }
 }
