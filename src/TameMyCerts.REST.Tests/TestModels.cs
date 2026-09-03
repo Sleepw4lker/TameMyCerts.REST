@@ -1,6 +1,5 @@
 using System.Security.Principal;
-using TameMyCerts.NetCore.Common.Enums;
-using TameMyCerts.NetCore.Common.Models;
+using TameMyCerts.REST.Enums;
 using TameMyCerts.REST.Models;
 
 namespace TameMyCerts.REST.Tests;

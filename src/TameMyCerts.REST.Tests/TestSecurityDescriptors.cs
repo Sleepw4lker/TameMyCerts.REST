@@ -5,7 +5,7 @@ namespace TameMyCerts.REST.Tests;
 
 /// <summary>
 ///     Builds raw (binary) security descriptors carrying a single "Enroll" object ACE, for feeding
-///     <see cref="TameMyCerts.NetCore.Common.Models.EnrollmentPermission" /> and the model constructors that
+///     <see cref="TameMyCerts.REST.Models.EnrollmentPermission" /> and the model constructors that
 ///     build one, without needing a real Active Directory object or registry key.
 /// </summary>
 internal static class TestSecurityDescriptors

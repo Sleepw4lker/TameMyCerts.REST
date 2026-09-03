@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using CERTCLILib;
-using TameMyCerts.NetCore.Common.Enums;
+using TameMyCerts.REST.Enums;
 using TameMyCerts.REST.Models;
 
 namespace TameMyCerts.REST;

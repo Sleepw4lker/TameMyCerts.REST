@@ -1,7 +1,7 @@
 using System.Security.Principal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TameMyCerts.NetCore.Common.Models;
+using TameMyCerts.REST.Models;
 
 namespace TameMyCerts.REST.Tests;
 

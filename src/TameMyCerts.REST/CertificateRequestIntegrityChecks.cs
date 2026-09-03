@@ -14,7 +14,7 @@
 
 using System.Runtime.InteropServices;
 using CERTENROLLLib;
-using TameMyCerts.NetCore.Common.Enums;
+using TameMyCerts.REST.Enums;
 
 namespace TameMyCerts.REST;
 

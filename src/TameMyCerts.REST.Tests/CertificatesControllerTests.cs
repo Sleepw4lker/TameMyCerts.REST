@@ -1,25 +1,15 @@
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Security.Principal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TameMyCerts.REST.Controllers;
 using TameMyCerts.REST.Models;
-using X509CertificateRequest = System.Security.Cryptography.X509Certificates.CertificateRequest;
 
 namespace TameMyCerts.REST.Tests;
 
 public class CertificatesControllerTests
 {
     private static readonly WindowsIdentity Identity = WindowsIdentity.GetCurrent();
-
-    private static string CreatePkcs10RequestBase64()
-    {
-        using var rsa = RSA.Create(2048);
-        var request = new X509CertificateRequest("CN=test.contoso.com", rsa, HashAlgorithmName.SHA256,
-            RSASignaturePadding.Pkcs1);
-        return Convert.ToBase64String(request.CreateSigningRequest());
-    }
 
     private static CertificatesController BuildController(FakeCertificationAuthorityDirectory caDirectory,
         FakeCertificationAuthorityGateway? gateway = null)
@@ -124,7 +114,7 @@ public class CertificatesControllerTests
             SubmitResult = new SubmissionResponse(0, dispositionCode: (int)SubmissionResponse.DispositionCode.Pending)
         };
         var controller = BuildController(caDirectory, gateway);
-        var csr = CreatePkcs10RequestBase64();
+        var csr = TestCertificateRequests.CreatePkcs10RequestBase64();
 
         var result = controller.SubmitCertificateRequest("Contoso CA",
             new CertificateRequest { Request = csr }, "WebServer");

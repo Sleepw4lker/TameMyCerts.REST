@@ -13,9 +13,9 @@
 // limitations under the License.
 
 using Microsoft.Win32;
-using TameMyCerts.NetCore.Common.Enums;
+using TameMyCerts.REST.Enums;
 
-namespace TameMyCerts.NetCore.Common.Models;
+namespace TameMyCerts.REST.Models;
 
 /// <summary>
 ///     Looks up certificate templates from the machine's local certificate template cache registry key.

@@ -15,7 +15,7 @@
 using System.Runtime.InteropServices;
 using CERTENROLLLib;
 
-namespace TameMyCerts.NetCore.Common.Models;
+namespace TameMyCerts.REST.Models;
 
 /// <summary>
 ///     Information about an extended key usage.

@@ -15,7 +15,7 @@
 using System.Security.AccessControl;
 using System.Security.Principal;
 
-namespace TameMyCerts.NetCore.Common.Models;
+namespace TameMyCerts.REST.Models;
 
 /// <summary>
 ///     Decides whether a Windows identity may enroll for certificates, based on the "Enroll" object ACEs

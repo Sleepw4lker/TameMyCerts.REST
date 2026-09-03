@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace TameMyCerts.NetCore.Common.Models;
+namespace TameMyCerts.REST.Models;
 
 /// <summary>
 ///     Information about the key usage extension of the certificate template.

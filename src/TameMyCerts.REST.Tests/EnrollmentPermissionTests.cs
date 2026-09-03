@@ -1,5 +1,5 @@
 using System.Security.Principal;
-using TameMyCerts.NetCore.Common.Models;
+using TameMyCerts.REST.Models;
 
 namespace TameMyCerts.REST.Tests;
 

@@ -18,7 +18,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.OpenApi;
-using TameMyCerts.NetCore.Common.Models;
+using TameMyCerts.REST.Models;
 using TameMyCerts.REST;
 
 var builder = WebApplication.CreateBuilder(args);

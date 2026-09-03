@@ -1,4 +1,4 @@
-﻿namespace TameMyCerts.NetCore.Common.Enums;
+﻿namespace TameMyCerts.REST.Enums;
 
 // Constants from CertView.h
 internal static class CertView

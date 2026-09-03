@@ -14,7 +14,7 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TameMyCerts.NetCore.Common.Enums;
+using TameMyCerts.REST.Enums;
 using TameMyCerts.REST.Models;
 
 namespace TameMyCerts.REST.Controllers;

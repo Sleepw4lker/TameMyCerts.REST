@@ -15,7 +15,6 @@
 using System.Security.Principal;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using TameMyCerts.NetCore.Common.Models;
 
 namespace TameMyCerts.REST.Models;
 

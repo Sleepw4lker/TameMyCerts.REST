@@ -14,7 +14,7 @@
 
 using System.Security.Principal;
 
-namespace TameMyCerts.NetCore.Common.Models;
+namespace TameMyCerts.REST.Models;
 
 /// <summary>
 ///     Something an identity may or may not be permitted to enroll for, such as a certification authority

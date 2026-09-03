@@ -77,6 +77,4 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <Import Project="..\TameMyCerts.NetCore.Common\TameMyCerts.NetCore.Common.projitems" Label="Shared" />
-
 </Project>

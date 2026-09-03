@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace TameMyCerts.NetCore.Common.Enums;
+namespace TameMyCerts.REST.Enums;
 
 /// <summary>
 ///     Supported public key algorithm types.

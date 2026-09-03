@@ -1,4 +1,4 @@
-﻿namespace TameMyCerts.NetCore.Common.Enums;
+﻿namespace TameMyCerts.REST.Enums;
 
 /// <summary>
 ///     Constants from WinCrypt.h

@@ -13,9 +13,9 @@
 // limitations under the License.
 
 using System.Security.Principal;
-using TameMyCerts.NetCore.Common.Enums;
+using TameMyCerts.REST.Enums;
 
-namespace TameMyCerts.NetCore.Common.Models;
+namespace TameMyCerts.REST.Models;
 
 /// <summary>
 ///     Information about a certificate template.
