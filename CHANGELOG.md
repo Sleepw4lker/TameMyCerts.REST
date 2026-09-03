@@ -1,5 +1,12 @@
 ## Changelog for the TameMyCerts REST API
 
+### Version 1.2.1341.391
+
+_This version was released on Sep 03, 2026._
+
+- Upgrade to .NET 10
+- Replace all occurrences of HTTP 403 (Forbidden) errors with HTTP 401 (Unauthorized) (#3)
+
 ### Version 1.1.351.835
 
 _This version was released on Dec 18, 2023._
