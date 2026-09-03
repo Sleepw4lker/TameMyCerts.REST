@@ -1038,6 +1038,23 @@
                 A list of key usages of the certificate template.
             </summary>
         </member>
+        <member name="F:TameMyCerts.NetCore.Common.X509.X509CertificateExtensionSubjectAlternativeName._modified">
+            <summary>
+                An indicator if the extension was modified. If not, it returns the un-changed RawData.
+            </summary>
+        </member>
+        <member name="M:TameMyCerts.NetCore.Common.X509.X509CertificateExtensionSubjectAlternativeName.AddAlternativeName(System.String,System.String,System.Boolean)">
+            <summary>
+                Essentially the same as TryAddAlternativeName but without caring for the result.
+            </summary>
+            <param name="type"></param>
+            <param name="value"></param>
+        </member>
+        <member name="T:Program">
+            <summary>
+            Auto-generated public partial Program class for top-level statement apps.
+            </summary>
+        </member>
         <member name="T:System.Text.RegularExpressions.Generated.Base64EncodedDer_0">
             <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the Base64EncodedDer method.</summary>
         </member>
